@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
+
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -126,7 +127,7 @@ STORAGES = {
     },
     "staticfiles": {
         "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
-    }
+    },
 }
 
 # Public URL to access the photos

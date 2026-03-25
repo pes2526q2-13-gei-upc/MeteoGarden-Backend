@@ -6,14 +6,14 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0004_merge_20260319_1331'),
+        ("api", "0004_merge_20260319_1331"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='stationCode',
-            field=models.CharField(default='W3', max_length=4),
+            model_name="user",
+            name="stationCode",
+            field=models.CharField(default="W3", max_length=4),
             preserve_default=False,
         ),
     ]

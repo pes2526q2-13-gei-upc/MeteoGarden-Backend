@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from api.models import Pot, Image
+
+from api.models import Image, Pot
 
 
 class PotSerializer(serializers.ModelSerializer):
@@ -57,7 +58,9 @@ class PotSerializer(serializers.ModelSerializer):
 
     def get_planted_at(self, obj):
         planting = getattr(obj, "plantingarden", None)
-        return planting.plantedAt.isoformat() if planting and planting.plantedAt else None
+        return (
+            planting.plantedAt.isoformat() if planting and planting.plantedAt else None
+        )
 
     def get_last_watered_at(self, obj):
         planting = getattr(obj, "plantingarden", None)

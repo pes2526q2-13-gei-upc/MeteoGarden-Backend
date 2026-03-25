@@ -43,7 +43,9 @@ class PotSerializerImageUrlTest(TestCase):
     def test_image_url_present_when_image_exists(self, mock_filter):
         """El serializer devuelve la URL de S3 cuando existe una imagen."""
         fake_image = MagicMock(spec=Image)
-        fake_image.url.url = "https://mybucket.s3.amazonaws.com/plants/rosa_canina/photo.jpg"
+        fake_image.url.url = (
+            "https://mybucket.s3.amazonaws.com/plants/rosa_canina/photo.jpg"
+        )
 
         mock_filter.return_value.first.return_value = fake_image
 
@@ -89,7 +91,9 @@ class PotSerializerImageUrlTest(TestCase):
         from django.test import Client
 
         fake_image = MagicMock(spec=Image)
-        fake_image.url.url = "https://mybucket.s3.amazonaws.com/plants/rosa_canina/photo.jpg"
+        fake_image.url.url = (
+            "https://mybucket.s3.amazonaws.com/plants/rosa_canina/photo.jpg"
+        )
         mock_filter.return_value.first.return_value = fake_image
 
         client = Client()

@@ -6,14 +6,17 @@ services:
     image: postgres:16-alpine
     container_name: meteogarden_pg
     restart: unless-stopped
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:-meteogarden}
-      POSTGRES_USER: ${POSTGRES_USER:-meteogarden}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-meteogarden}
+    env_file:
+      - .postgres.env
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   api:
     build:
@@ -24,6 +27,9 @@ services:
     ports:
       - "8000:8000"
     env_file:
-      environment.env
+      - .django.env
     depends_on:
-      - pg
+      pg:
+          condition: service_healthy
+    volumes:
+      - .:/app

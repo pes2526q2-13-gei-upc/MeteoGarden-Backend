@@ -73,6 +73,7 @@ def login(request):
 def get_profile(request):
     user = request.user
     inventory = Inventory.objects.get(user=user)
+    gardens = Garden.objects.filter(user=user)  # We use filter to get all gardens
     return Response(
         {
             "username": user.username,
@@ -83,6 +84,7 @@ def get_profile(request):
             "lastEntry": user.lastEntry,
             "numPlantsCollected": user.numPlantsCollected,
             "numCoins": inventory.coins,
+            "gardens": [{"gardenName": garden.name} for garden in gardens],
         }
     )
 

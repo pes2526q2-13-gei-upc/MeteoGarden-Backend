@@ -98,13 +98,14 @@ def filterInfo(details: dict, lang: str) -> dict | None:
     }
 
     saveOrUpdatePlant(info)
+    if lang != "en" and lang != "EN":
+        info.update(
+            {
+                "commonName": translate(info["commonName"], lang),
+                "description": translate(description, lang),
+            }
+        )
 
-    info.update(
-        {
-            "commonName": translate(info["commonName"], lang),
-            "description": translate(description, lang),
-        }
-    )
     return info
 
 
@@ -130,19 +131,29 @@ def getPlant(scientific_name: str) -> Plant | None:
 
 def getInfoPlant(scientific_name: str, lang: str) -> dict | None:
     plant = Plant.objects.filter(scientificName=scientific_name).first()
-    if plant:
+
+    if plant is None:
+        details = getPlantInfoFromAPI(scientific_name)
+        return filterInfo(details, lang)
+
+    else:
+        desc = plant.description
+        commonName = plant.commonName
+        if lang != "en" and lang != "EN":
+            print(lang)
+            desc = translate(desc, lang)
+            print("traduir")
+            commonName = translate(commonName, lang)
+
         return {
             "scientificName": plant.scientificName,
-            "commonName": translate(plant.commonName, lang).capitalize(),
+            "commonName": commonName.capitalize(),
             "family": plant.family,
             "canFlower": plant.canFlower,
             "minTemperature": plant.minTemperature,
             "maxTemperature": plant.maxTemperature,
-            "description": translate(plant.description, lang),
+            "description": desc,
         }
-    else:
-        details = getPlantInfoFromAPI(scientific_name)
-        return filterInfo(details, lang)
 
 
 @api_view(["GET", "POST"])
@@ -150,10 +161,10 @@ def getInfoPlant(scientific_name: str, lang: str) -> dict | None:
 def importPlant(request):
     if request.method == "GET":
         scientific_name = request.query_params.get("scientificName")
-        lang = request.query_params.get("lang", "ca")
+        lang = request.query_params.get("lang")
     else:
         scientific_name = request.data.get("scientificName")
-        lang = request.data.get("lang", "ca")
+        lang = request.data.get("lang")
 
     if not scientific_name:
         return Response({"error": "scientificName is required"}, status=400)

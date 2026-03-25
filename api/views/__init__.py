@@ -1,4 +1,5 @@
 from .views import health  # noqa: F401
+from .views_collect import collect_plant  # noqa: F401
 from .views_identify import identifyPlant  # noqa: F401
 from .views_image import getUserAlbum  # noqa: F401
 from .views_info import importPlant  # noqa: F401

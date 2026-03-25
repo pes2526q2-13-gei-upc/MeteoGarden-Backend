@@ -81,3 +81,20 @@ def getUserAlbum(request):
             list_url.append(image.url.url)
 
     return Response(list_url)
+
+
+@api_view(["GET"])
+def getPlantImage(request):
+    scientificName = request.query_params.get("plant")
+    if not scientificName:
+        return Response({"plant": "Plant not found."}, status=404)
+    state = request.query_params.get("state")
+    if not state:
+        return Response({"state": "State not found."}, status=404)
+    plant = Plant.objects.get(scientificName=scientificName)
+
+    image = Image.objects.filter(plant=plant, growthPhase=state).first()
+    if not image:
+        return Response({"plant": "Plant not found."}, status=404)
+
+    return image.url.url

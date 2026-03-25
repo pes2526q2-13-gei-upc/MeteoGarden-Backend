@@ -309,6 +309,9 @@ class Image(models.Model):
         width_field="width",
         height_field="height",
     )
+    growthPhase = models.CharField(
+        max_length=50, choices=GrowthState.choices, null=True, blank=True
+    )
     width = models.PositiveIntegerField(null=True, blank=True)
     height = models.PositiveIntegerField(null=True, blank=True)
 

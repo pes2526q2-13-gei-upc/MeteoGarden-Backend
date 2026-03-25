@@ -6,9 +6,8 @@ from django.db import transaction
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from django.db.models import Q
 
-from ..models import Plant, Image
+from ..models import Image, Plant
 from .views_image import createPlantImages
 
 TEMPS_RANGES = [
@@ -183,7 +182,6 @@ def importPlant(request):
         else:
             return Response({"error": "Plant not found with that url"}, status=404)
 
-
     if not scientific_name:
         return Response({"error": "scientificName is required"}, status=400)
 
@@ -192,4 +190,3 @@ def importPlant(request):
         return Response(plant, status=200)
     except Exception as e:
         return Response({"error": str(e)}, status=500)
-

@@ -7,7 +7,7 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from ..models import Image, Plant, User, Inventory
+from ..models import Image, Inventory, Plant, User
 from .views_info import getInfoPlant
 
 PLANTNET_URL = "https://my-api.plantnet.org/v2/identify/all"

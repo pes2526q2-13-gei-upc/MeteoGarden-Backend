@@ -7,7 +7,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from ..models import Plant
+from ..models import Image, Plant
 from .views_image import createPlantImages
 
 TEMPS_RANGES = [
@@ -144,6 +144,9 @@ def getInfoPlant(scientific_name: str, lang: str) -> dict | None:
             desc = translate(desc, lang)
             print("traduir")
             commonName = translate(commonName, lang)
+        print(scientific_name)
+        image = Image.objects.filter(plant=scientific_name).first()
+        print(image.url)
 
         return {
             "scientificName": plant.scientificName,
@@ -159,22 +162,31 @@ def getInfoPlant(scientific_name: str, lang: str) -> dict | None:
 @api_view(["GET", "POST"])
 @permission_classes([AllowAny])
 def importPlant(request):
-    if request.method == "GET":
-        scientific_name = request.query_params.get("scientificName")
-        lang = request.query_params.get("lang")
+    if request.method == "POST":
+        data_source = request.data
     else:
-        scientific_name = request.data.get("scientificName")
-        lang = request.data.get("lang")
+        data_source = request.query_params
+
+    sc_name_input = data_source.get("scientificName")
+    url_param = data_source.get("url")
+    lang = data_source.get("lang")
+
+    scientific_name = None
+    if sc_name_input:
+        scientific_name = sc_name_input
+
+    elif url_param:
+        image = Image.objects.filter(url=url_param).first()
+        if image:
+            scientific_name = image.plant_id
+        else:
+            return Response({"error": "Plant not found with that url"}, status=404)
 
     if not scientific_name:
         return Response({"error": "scientificName is required"}, status=400)
 
     try:
         plant = getInfoPlant(scientific_name, lang)
+        return Response(plant, status=200)
     except Exception as e:
         return Response({"error": str(e)}, status=500)
-
-    if plant is None:
-        return Response({"error": "Plant not found"}, status=404)
-
-    return Response(plant, status=200)

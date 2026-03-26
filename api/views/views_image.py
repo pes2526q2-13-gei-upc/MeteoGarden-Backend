@@ -74,13 +74,16 @@ def getUserAlbum(request):
 
     list_of_albums = AlbumEntry.objects.filter(user=user).select_related("plant")
 
-    list_url = []
+    list = []
     for album in list_of_albums:
         image = Image.objects.filter(plant=album.plant).first()
         if image and image.url:
-            list_url.append(image.url.url)
+            list.append({
+                "url": image.url.url,
+                "scientificName": album.plant.scientificName
+            })
 
-    return Response(list_url)
+    return Response(list)
 
 
 @api_view(["GET"])

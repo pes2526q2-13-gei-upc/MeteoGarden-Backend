@@ -47,7 +47,7 @@ urlpatterns = [
     path("stations/", get_stations),
     path("plants/info/", importPlant),
     path("plants/identify", identifyPlant, name="identifyPlant"),
-    path("album/", getUserAlbum),
+    path("users/<str:username>/album/", getUserAlbum),
     path(
         "users/<str:username>/gardens/<str:garden_name>/pots/<int:pot_number>/water/",
         water_plant,

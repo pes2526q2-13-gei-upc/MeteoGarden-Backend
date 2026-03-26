@@ -77,10 +77,9 @@ def getUserAlbum(username):
     for album in list_of_albums:
         image = Image.objects.filter(plant=album.plant).first()
         if image and image.url:
-            list.append({
-                "url": image.url.url,
-                "scientificName": album.plant.scientificName
-            })
+            list.append(
+                {"url": image.url.url, "scientificName": album.plant.scientificName}
+            )
 
     return Response(list)
 

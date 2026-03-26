@@ -13,7 +13,7 @@ POLLINATIONS_URL = "https://gen.pollinations.ai/image"
 
 def createPlantImages(scientificName):
 
-    safe_name = urllib.parse.quote(scientificName)
+    safe_name = scientificName.replace(" ", "_").lower()
     plant = Plant.objects.get(scientificName=scientificName)
     if not plant:
         return Response({"plant": "Plant not found."}, status=404)
@@ -41,7 +41,7 @@ def createPlantImages(scientificName):
 
     for state_value, state_label in GrowthState.choices:
 
-        prompt = f"{safe_name} plant, {state_label} stage, {style}"
+        prompt = f"{scientificName} plant, {state_label} stage, {style}"
         encoded_prompt = urllib.parse.quote(prompt)
         image_url = f"{POLLINATIONS_URL}/{encoded_prompt}?model=flux"
 
@@ -52,7 +52,7 @@ def createPlantImages(scientificName):
         if response.status_code == 200:
             image_content = ContentFile(response.content)
 
-            new_image = Image(plant=plant)
+            new_image = Image(plant=plant, growthPhase=state_value)
 
             filename = f"{safe_name}_{state_value}.png"
             new_image.url.save(filename, image_content, save=True)
@@ -81,3 +81,20 @@ def getUserAlbum(request):
             list_url.append(image.url.url)
 
     return Response(list_url)
+
+
+@api_view(["GET"])
+def getPlantImage(request):
+    scientificName = request.query_params.get("plant")
+    if not scientificName:
+        return Response({"plant": "Plant not found."}, status=404)
+    state = request.query_params.get("state")
+    if not state:
+        return Response({"state": "State not found."}, status=404)
+    plant = Plant.objects.get(scientificName=scientificName)
+
+    image = Image.objects.filter(plant=plant, growthPhase=state).first()
+    if not image:
+        return Response({"plant": "Plant not found."}, status=404)
+
+    return image.url.url

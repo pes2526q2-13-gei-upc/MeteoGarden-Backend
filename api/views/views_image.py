@@ -61,8 +61,8 @@ def createPlantImages(scientificName):
 
 
 @api_view(["GET"])
-def getUserAlbum(username):
-
+def getUserAlbum(request):
+    username = request.query_params.get("username")
     if not username:
         return Response({"username": "This query param is required."}, status=400)
 

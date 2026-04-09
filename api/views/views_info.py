@@ -26,6 +26,9 @@ TEMPS_RANGES = [
     (15.6, 55),
 ]
 
+DEFAULT_MIN_TEMPERATURE = 2
+DEFAULT_MAX_TEMPERATURE = 30
+
 
 def translate(text: str | None, lang: str) -> str | None:
     if not text:
@@ -53,59 +56,159 @@ def getTemperature(zone_min, zone_max) -> tuple[float | None, float | None]:
     return float(TEMPS_RANGES[zone_min - 1][0]), float(TEMPS_RANGES[zone_max - 1][1])
 
 
+def inferCanFlowerFromGBIF(scientific_name: str) -> bool | None:
+    try:
+        response = requests.get(
+            "https://api.gbif.org/v1/species/match",
+            params={"name": scientific_name, "verbose": True},
+            timeout=5,
+        )
+        data = response.json()
+
+        clazz = data.get("class", "").lower()
+        phylum = data.get("phylum", "").lower()
+
+        FLOWERING_CLASSES = {"magnoliopsida", "liliopsida", "polypodiopsida"}
+        NON_FLOWERING_PHYLA = {"pinophyta", "cycadophyta", "ginkgophyta"}
+
+        if clazz in FLOWERING_CLASSES:
+            return True
+        if phylum in NON_FLOWERING_PHYLA:
+            return False
+        return None
+    except Exception:
+        return None
+
+
+def getInfoFromWikipedia(scientific_name: str) -> dict:
+    try:
+        response = requests.get(
+            "https://en.wikipedia.org/api/rest_v1/page/summary/"
+            + scientific_name.replace(" ", "_"),
+            headers={
+                "User-Agent": "MeteoGarden/1.0 https://github.com/pes2526q2-13-gei-upc/MeteoGarden-Backend"
+            },
+            timeout=5,
+        )
+
+        if response.status_code != 200:
+            return {"canFlower": None, "description": None}
+
+        extract = response.json().get("extract", "")
+        extract_lower = extract.lower()
+
+        if "flowering plant" in extract or "angiosperm" in extract_lower:
+            can_flower = True
+        elif (
+            "conifer" in extract
+            or "gymnosperm" in extract_lower
+            or "fern" in extract_lower
+        ):
+            can_flower = False
+        else:
+            can_flower = inferCanFlowerFromGBIF(scientific_name)
+
+        return {
+            "canFlower": can_flower,
+            "description": extract.split("\n")[0].strip("\"'") or None,
+        }
+
+    except Exception:
+        return {"canFlower": None, "description": None}
+
+
+def resolveScientificName(scientific_name: str) -> str:
+    try:
+        response = requests.get(
+            "https://api.gbif.org/v1/species/match",
+            params={"name": scientific_name, "verbose": True},
+            timeout=5,
+        )
+        response.raise_for_status()
+        data = response.json()
+
+        if data.get("synonym") and data.get("species"):
+            return data["species"]
+        return data.get("species", scientific_name)
+    except Exception:
+        return scientific_name
+
+
 def getPlantInfoFromAPI(scientific_name: str) -> dict | None:
     key = os.getenv("PERENUAL_API_KEY")
     if not key:
         raise RuntimeError("There's no API key for Perenual.")
 
-    url = "https://perenual.com/api/species-list?"
-    params = {"key": os.getenv("PERENUAL_API_KEY"), "q": scientific_name}
-    response = requests.get(url, params=params)
-    response.raise_for_status()
-    data = response.json()
+    resolved_name = resolveScientificName(scientific_name)
 
-    if not data.get("data"):
+    try:
+        url = "https://perenual.com/api/species-list?"
+        params = {"key": os.getenv("PERENUAL_API_KEY"), "q": resolved_name}
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        data = response.json()
+
+        if not data.get("data") and len(resolved_name.split()) > 2:
+            short_name = " ".join(resolved_name.split()[:2])
+            params["q"] = short_name
+            response = requests.get(url, params=params)
+            data = response.json()
+
+        if not data.get("data"):
+            return None
+
+        id = data["data"][0]["id"]
+        url_details = "https://perenual.com/api/v2/species/details/" + str(id)
+        params_details = {"key": os.getenv("PERENUAL_API_KEY")}
+        response_details = requests.get(url_details, params=params_details)
+        if response_details.status_code == 426:
+            return None
+        response_details.raise_for_status()
+        return response_details.json()
+
+    except Exception:
         return None
 
-    id = data["data"][0]["id"]
-    url_details = "https://perenual.com/api/v2/species/details/" + str(id)
-    params_details = {"key": os.getenv("PERENUAL_API_KEY")}
-    response_details = requests.get(url_details, params=params_details)
-    response_details.raise_for_status()
-    return response_details.json()
 
-
-def filterInfo(details: dict, lang: str) -> dict | None:
+def filterInfo(scientific_name: str, details: dict, lang: str) -> dict | None:
     if details is None:
-        return None
+        info_wiki = getInfoFromWikipedia(scientific_name)
+        info = {
+            "scientificName": scientific_name,
+            "commonName": None,
+            "family": None,
+            "canFlower": info_wiki.get("canFlower"),
+            "minTemperature": DEFAULT_MIN_TEMPERATURE,
+            "maxTemperature": DEFAULT_MAX_TEMPERATURE,
+            "description": info_wiki.get("description"),
+        }
 
-    sci_list = details.get("scientific_name") or []
-    sci = sci_list[0] if sci_list else None
+    else:
+        hard = details.get("hardiness") or {}
+        minTemperature, maxTemperature = getTemperature(
+            hard.get("min"), hard.get("max")
+        )
 
-    hard = details.get("hardiness") or {}
-    minTemperature, maxTemperature = getTemperature(hard.get("min"), hard.get("max"))
+        description = details.get("description")
 
-    description = details.get("description")
-
-    info = {
-        "scientificName": sci,
-        "commonName": details.get("common_name").capitalize(),
-        "family": details.get("family"),
-        "canFlower": details.get("flowers"),
-        "minTemperature": minTemperature,
-        "maxTemperature": maxTemperature,
-        "description": description,
-    }
+        info = {
+            "scientificName": scientific_name,
+            "commonName": details.get("common_name").capitalize(),
+            "family": details.get("family"),
+            "canFlower": details.get("flowers"),
+            "minTemperature": minTemperature,
+            "maxTemperature": maxTemperature,
+            "description": description,
+        }
 
     saveOrUpdatePlant(info)
-    if lang != "en" and lang != "EN":
+    if lang not in ("en", "EN") and details is not None:
         info.update(
             {
                 "commonName": translate(info["commonName"], lang),
-                "description": translate(description, lang),
+                "description": translate(info["description"], lang),
             }
         )
-
     return info
 
 
@@ -134,20 +237,19 @@ def getInfoPlant(scientific_name: str, lang: str) -> dict | None:
 
     if plant is None:
         details = getPlantInfoFromAPI(scientific_name)
-        return filterInfo(details, lang)
+        return filterInfo(scientific_name, details, lang)
 
     else:
         desc = plant.description
         commonName = plant.commonName
         if lang != "en" and lang != "EN":
-            print(lang)
             desc = translate(desc, lang)
-            print("traduir")
-            commonName = translate(commonName, lang)
+            if commonName is not None:
+                commonName = translate(commonName, lang)
 
         return {
             "scientificName": plant.scientificName,
-            "commonName": commonName.capitalize(),
+            "commonName": commonName,
             "family": plant.family,
             "canFlower": plant.canFlower,
             "minTemperature": plant.minTemperature,

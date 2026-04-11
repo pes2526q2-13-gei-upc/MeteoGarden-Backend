@@ -1,6 +1,6 @@
-from google.oauth2 import id_token
-from google.auth.transport import requests as google_requests
 from django.contrib.auth import authenticate
+from google.auth.transport import requests as google_requests
+from google.oauth2 import id_token
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -8,15 +8,17 @@ from rest_framework.response import Response
 
 from ..models import Garden, Inventory, Pot, User
 
-GOOGLE_CLIENT_ID = "413098408136-jci0fe83maj5uonf6s9v065cnobktrmt.apps.googleusercontent.com"
+GOOGLE_CLIENT_ID = (
+    "413098408136-jci0fe83maj5uonf6s9v065cnobktrmt.apps.googleusercontent.com"
+)
+
 
 def verify_google_token(token_str):
     info = id_token.verify_oauth2_token(
-        token_str,
-        google_requests.Request(),
-        GOOGLE_CLIENT_ID
+        token_str, google_requests.Request(), GOOGLE_CLIENT_ID
     )
     return info
+
 
 # Create your views here.
 @api_view(["GET"])
@@ -145,18 +147,22 @@ def google_verify(request):
     if user:
         # L'usuari existeix
         token, _ = Token.objects.get_or_create(user=user)
-        return Response({
-            "exists": True,
-            "token": token.key,
-            "username": user.username,
-        })
+        return Response(
+            {
+                "exists": True,
+                "token": token.key,
+                "username": user.username,
+            }
+        )
     else:
         # L'usuari no existeix, per tant ha de registrar-se
-        return Response({
-            "exists": False,
-            "email": email,
-            "name": name,
-        })
+        return Response(
+            {
+                "exists": False,
+                "email": email,
+                "name": name,
+            }
+        )
 
 
 @api_view(["POST"])
@@ -177,7 +183,9 @@ def google_register(request):
     email = info["email"]
 
     if User.objects.filter(google_id=google_id).exists():
-        return Response({"error": "User already exists, use /auth/google/verify"}, status=400)
+        return Response(
+            {"error": "User already exists, use /auth/google/verify"}, status=400
+        )
     if User.objects.filter(email=email).exists():
         return Response({"error": "Email already registered"}, status=400)
 
@@ -189,7 +197,12 @@ def google_register(request):
     garden_name = request.data.get("gardenName")
 
     if not all([username, city, language, station_code, garden_name]):
-        return Response({"error": "username, city, language, stationCode and gardenName are required"}, status=400)
+        return Response(
+            {
+                "error": "username, city, language, stationCode and gardenName are required"
+            },
+            status=400,
+        )
 
     if User.objects.filter(username=username).exists():
         return Response({"error": "Username already taken"}, status=400)
@@ -198,7 +211,7 @@ def google_register(request):
     user = User.objects.create_user(
         username=username,
         email=email,
-        password=None,          # Sense contrasenya
+        password=None,  # Sense contrasenya
         google_id=google_id,
         city=city,
         language=language,
@@ -221,8 +234,10 @@ def google_register(request):
 
     token, created = Token.objects.get_or_create(user=user)
 
-    return Response({
-        "token": token.key,
-        "username": user.username,
-        "message": "User created successfully"
-    })
+    return Response(
+        {
+            "token": token.key,
+            "username": user.username,
+            "message": "User created successfully",
+        }
+    )

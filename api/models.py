@@ -67,6 +67,7 @@ class User(AbstractUser):
     lastEntry = models.DateTimeField(auto_now=True)
     numPlantsCollected = models.PositiveIntegerField(default=0)
     stationCode = models.CharField(max_length=4)
+    google_id = models.CharField(max_length=128, unique=True, null=True, blank=True)
 
     @property
     def numPlantsUnlocked(self):

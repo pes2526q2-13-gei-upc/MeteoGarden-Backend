@@ -7,7 +7,7 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from ..models import Image, Plant, User
+from ..models import Image, Inventory, Plant, User
 from .views_info import getInfoPlant
 
 PLANTNET_URL = "https://my-api.plantnet.org/v2/identify/all"
@@ -89,11 +89,21 @@ def identifyPlant(request):
     getInfoPlant(scientificName, uploader.language)
     plant = Plant.objects.get(scientificName=scientificName)
 
+    if plant.commonName is None:
+        common_names = species.get("commonNames") or []
+        family = species.get("family") or []
+        plant.commonName = common_names[0] if common_names else None
+        plant.family = family[0] if family else None
+        plant.save()
+
     img = Image.objects.create(
         uploader=uploader,
         url=file_obj,
         plant=plant,
     )
+
+    inventory = Inventory.objects.get(user=uploader)
+    Inventory.addSeed(inventory, scientificName, 2)
 
     return Response(
         {

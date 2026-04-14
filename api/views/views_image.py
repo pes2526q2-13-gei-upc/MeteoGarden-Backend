@@ -6,9 +6,19 @@ from django.core.files.base import ContentFile
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+from config.settings import MEDIA_URL
+
 from ..models import AlbumEntry, GrowthState, Image, Plant, User
 
 POLLINATIONS_URL = "https://gen.pollinations.ai/image"
+STATE_DESCRIPTIONS = {
+    "seed": "a single small round brown seed, surface texture detailed",
+    "germination": "tiny green sprout emerging from a seed, two small cotyledon leaves, delicate stem",
+    "growth": "young plant, vibrant green leaves, developing stem, bushy and healthy growth",
+    "mature": "full-grown plant, lush foliage, complex leaf structure, thick sturdy stem, vigorous appearance",
+    "flowering": "fully mature plant with vibrant blooming flowers, petals visible, healthy foliage",
+    "dead": "withered and dried plant, brown and yellow shriveled leaves, drooping stem, brittle texture, decaying appearance",
+}
 
 
 def createPlantImages(scientificName):
@@ -21,27 +31,23 @@ def createPlantImages(scientificName):
     api_key = os.getenv("POLLINATION_API_KEY")
 
     style = f"""
-        game-ready 2D farming game sprite of a {scientificName} plant,
-        recognizable real-world characteristics of {scientificName},
-        botanically distinguishable silhouette,
-        stem, leaves and flowers only,
-        only the plant visible,
-        no pot, no flower pot, no planter, no container,
-        no soil, no dirt, no ground, no base tile, no surface,
-        no shadow underneath, no table,
-        floating plant, isolated object cutout, sticker-like sprite,
-        clean cut edges,
-        transparent background, PNG with alpha channel,
+        game-ready 2D farming game asset,
+        isolated object cutout on pure transparent background,
+        front-facing orthographic view,
         centered composition,
-        bright vibrant colors,
-        soft cartoon shading,
-        no realistic photo, no background scene, no environment, no decoration,
-        no text, no watermark
+        clean sharp edges, no blur,
+        botanically accurate {scientificName} characteristics,
+        stem and leaves only,
+        NO pot, NO container, NO soil, NO ground, NO shadow, NO surface,
+        bright vibrant colors, soft cel-shaded cartoon style,
+        high quality digital art, PNG format,
+        clean alpha channel
         """.strip()
 
     for state_value, state_label in GrowthState.choices:
+        state_desc = STATE_DESCRIPTIONS.get(state_value, state_label)
 
-        prompt = f"{scientificName} plant, {state_label} stage, {style}"
+        prompt = f"{state_desc}, {style}"
         encoded_prompt = urllib.parse.quote(prompt)
         image_url = f"{POLLINATIONS_URL}/{encoded_prompt}?model=flux"
 
@@ -78,7 +84,10 @@ def getUserAlbum(username):
         image = Image.objects.filter(plant=album.plant).first()
         if image and image.url:
             list.append(
-                {"url": image.url.url, "scientificName": album.plant.scientificName}
+                {
+                    "url": MEDIA_URL + image.url.url,
+                    "scientificName": album.plant.scientificName,
+                }
             )
 
     return Response(list)
@@ -98,4 +107,4 @@ def getPlantImage(request):
     if not image:
         return Response({"plant": "Plant not found."}, status=404)
 
-    return image.url.url
+    return MEDIA_URL + image.url.url

@@ -9,6 +9,7 @@ from rest_framework.response import Response
 
 from ..models import Plant
 from .views_image import createPlantImages
+from .views_translate import translate_text
 
 TEMPS_RANGES = [
     (-51.1, 20),
@@ -28,24 +29,6 @@ TEMPS_RANGES = [
 
 DEFAULT_MIN_TEMPERATURE = 2
 DEFAULT_MAX_TEMPERATURE = 30
-
-
-def translate(text: str | None, lang: str) -> str | None:
-    if not text:
-        return None
-
-    api_key = os.getenv("GOOGLE_TRANSLATE_API_KEY")
-    if not api_key:
-        # if there's no key, returns the original text
-        return text
-
-    url = "https://translation.googleapis.com/language/translate/v2"
-    params = {"q": text, "target": lang, "format": "text", "key": api_key}
-
-    response = requests.post(url, params=params, timeout=30)
-    response.raise_for_status()
-    data = response.json()
-    return data["data"]["translations"][0]["translatedText"]
 
 
 def getTemperature(zone_min, zone_max) -> tuple[float | None, float | None]:
@@ -205,8 +188,8 @@ def filterInfo(scientific_name: str, details: dict, lang: str) -> dict | None:
     if lang not in ("en", "EN") and details is not None:
         info.update(
             {
-                "commonName": translate(info["commonName"], lang),
-                "description": translate(info["description"], lang),
+                "commonName": translate_text(info["commonName"], lang),
+                "description": translate_text(info["description"], lang),
             }
         )
     return info
@@ -243,9 +226,9 @@ def getInfoPlant(scientific_name: str, lang: str) -> dict | None:
         desc = plant.description
         commonName = plant.commonName
         if lang != "en" and lang != "EN":
-            desc = translate(desc, lang)
+            desc = translate_text(desc, lang)
             if commonName is not None:
-                commonName = translate(commonName, lang)
+                commonName = translate_text(commonName, lang)
 
         return {
             "scientificName": plant.scientificName,

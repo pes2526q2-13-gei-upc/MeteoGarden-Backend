@@ -21,7 +21,7 @@ def identifyPlant(request):
 
     username = request.data.get("username")
     file_obj = request.FILES.get("image")
-    organ = request.data.get("organs", "leaf")
+    organ = request.data.get("organ")
 
     if not username:
         return Response({"error": "Username required"}, status=400)

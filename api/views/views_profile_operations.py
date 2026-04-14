@@ -1,3 +1,4 @@
+import requests
 from django.contrib.auth import authenticate
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
@@ -5,8 +6,6 @@ from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-
-import requests
 
 from ..models import Garden, Inventory, Pot, User
 
@@ -22,11 +21,9 @@ def verify_google_token(token_str):
             # Aquí pones tu Web Client ID de Google Cloud
             CLIENT_ID = "413098408136-jci0fe83maj5uonf6s9v065cnobktrmt.apps.googleusercontent.com"
             info = id_token.verify_oauth2_token(
-                token_str, 
-                google_requests.Request(), 
-                CLIENT_ID
+                token_str, google_requests.Request(), CLIENT_ID
             )
-            return info # Devuelve el dict con 'sub', 'email', 'name'
+            return info  # Devuelve el dict con 'sub', 'email', 'name'
         except ValueError:
             raise ValueError("ID Token inválido")
 
@@ -35,14 +32,14 @@ def verify_google_token(token_str):
         # Hacemos una petición al endpoint de userinfo de Google
         response = requests.get(
             "https://www.googleapis.com/oauth2/v3/userinfo",
-            params={"access_token": token_str}
+            params={"access_token": token_str},
         )
-        
+
         if response.status_code != 200:
             raise ValueError("Access Token inválido o expirado")
-            
+
         info = response.json()
-        
+
         # El endpoint de userinfo devuelve exactamente lo mismo que necesitamos
         # info["sub"] es el google_id
         # info["email"] es el correo

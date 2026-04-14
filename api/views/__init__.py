@@ -10,6 +10,7 @@ from .views_profile_operations import (  # noqa: F401
     login,
     register,
 )
+from .views_translate import translate  # noqa: F401
 from .views_visualitzarJardi import (  # noqa: F401
     garden_plants,
     plant_status,
@@ -19,4 +20,3 @@ from .views_visualitzarJardi import (  # noqa: F401
     water_plant,
 )
 from .views_xema import current_weather, get_stations  # noqa: F401
-from .views_translate import translate  # noqa: F401

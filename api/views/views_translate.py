@@ -33,7 +33,9 @@ def translate(request):
         if lang and text:
             text = translate_text(text, lang)
         else:
-            return Response("error: There's no text neither language to translate", status=500)
+            return Response(
+                "error: There's no text neither language to translate", status=500
+            )
     except Exception as e:
         return Response({"error": str(e)}, status=500)
 

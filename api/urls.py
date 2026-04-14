@@ -22,6 +22,7 @@ from .views import (
     plant_seed,
     plant_status,
     register,
+    translate,
     user_gardens,
     user_products,
     user_seeds,
@@ -77,4 +78,5 @@ urlpatterns = [
         collect_plant,
         name="collect_plant",
     ),
+    path("translate/", translate),
 ]

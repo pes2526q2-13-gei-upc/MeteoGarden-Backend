@@ -38,12 +38,12 @@ class LanguageType(models.TextChoices):
 # Main classes
 class Plant(models.Model):
     scientificName = models.CharField(max_length=100, primary_key=True)  # RT.1
-    commonName = models.CharField(max_length=100)
+    commonName = models.CharField(max_length=100, null=True)
     family = models.CharField(max_length=100, null=True)
     canFlower = models.BooleanField(default=False)
     minTemperature = models.FloatField(validators=[MinValueValidator(0.0)])  # RT.6
     maxTemperature = models.FloatField()  # RT.6
-    description = models.TextField(null=True)
+    description = models.TextField(blank=True, null=True)
 
     def clean(self):
         if self.minTemperature >= self.maxTemperature:
@@ -67,6 +67,7 @@ class User(AbstractUser):
     lastEntry = models.DateTimeField(auto_now=True)
     numPlantsCollected = models.PositiveIntegerField(default=0)
     stationCode = models.CharField(max_length=4)
+    google_id = models.CharField(max_length=128, unique=True, null=True, blank=True)
 
     @property
     def numPlantsUnlocked(self):
@@ -216,6 +217,7 @@ class PlantInGarden(models.Model):
         validators=[MinValueValidator(0.0), MaxValueValidator(100.0)]
     )  # RT.11
     lastWateredAt = models.DateTimeField(default=timezone.now)
+    lastSimulatedAt = models.DateTimeField(default=timezone.now)
 
     class Meta:
         unique_together = ("pot", "plant", "plantedAt")
@@ -352,6 +354,30 @@ class Station(models.Model):
     updateDate = models.DateTimeField(auto_now=True)
 
 
+class WeatherReading(models.Model):
+    station = models.ForeignKey(
+        Station,
+        on_delete=models.CASCADE,
+        related_name="weather_readings",
+    )
+    timestamp = models.DateTimeField()
+    temperature = models.FloatField(null=True, blank=True)  # ºC       (var 32)
+    precipitation = models.FloatField(null=True, blank=True)  # mm       (var 35)
+    solarIrradiance = models.FloatField(null=True, blank=True)  # W/m²     (var 36)
+    windSpeed = models.FloatField(null=True, blank=True)  # m/s      (var 30)
+    relativeHumidity = models.FloatField(null=True, blank=True)  # %        (var 33)
+
+    class Meta:
+        unique_together = ("station", "timestamp")
+        indexes = [
+            models.Index(fields=["station", "timestamp"]),
+        ]
+        ordering = ["timestamp"]
+
+    def __str__(self):
+        return f"{self.station.stationCode} @ {self.timestamp}"
+
+
 class Shop(models.Model):
     seeds = models.JSONField(default=dict, blank=True)
     products = models.JSONField(default=dict, blank=True)
@@ -369,3 +395,8 @@ class Shop(models.Model):
         elif item_type == "product" and name in self.products:
             del self.products[name]
         self.save()
+
+    def save(self, *args, **kwargs):
+        if not self.pk and Shop.objects.exists():
+            raise Exception("Shop already exists.")
+        return super().save(*args, **kwargs)

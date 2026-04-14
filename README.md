@@ -1,6 +1,6 @@
 # MeteoGarden-Backend
 
-We will follow a simple and reliable Git workflow to keep the codebase stable and make collaboration easier.
+We follow a simple and reliable Git workflow to keep the codebase stable and make collaboration easier.
 
 ### Branches
 - `main`: stable branch (release-ready). No direct pushes.
@@ -46,64 +46,48 @@ python -m flake8
 
 In order for the pipeline to pass as expected:
 
-All files changed by isort & black must be commited & pushed.
-All errors found by flake8 must be solved, commited and pushed. The output of flake8 command should be 0.
+All files changed by isort & black must be committed & pushed.
+All errors found by flake8 must be solved, committed and pushed. The output of flake8 command should be 0.
 
 Once all of this is done, the pipeline should pass!
+## Run the project with Docker
+Make sure you have installed:
+- Docker 
+- Docker Compose
 
-## Setup your local environment
-### 1) Create and activate a virtual environment
-#### Windows
-
-```bash
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-```
-
-#### macOs / Linux
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
-
-### 2) Install dependencies
-```bash
-pip install -r requirements.txt
-```
-
-### 3) Create your local environment file
+### 1) Create your environment file
 Create a `.env` file at the project root.
-Copy the .env.example file
-
-### 4) Create the PostgreSQL database/user locally
-Make sure PostgreSQL is running.
-
-Using `psql`:
-```sql
-CREATE USER meteogarden WITH PASSWORD 'meteodb';
-CREATE DATABASE meteogarden OWNER meteogarden;
-GRANT ALL PRIVILEGES ON DATABASE meteogarden TO meteogarden;
-```
-
-### 5) Apply migrations
+Copy the .env.example file:
 ```bash
-python manage.py migrate
+cp .env.example .env
 ```
 
-### 6) Run the development server
+### 2) Build and start the containers
 ```bash
-python manage.py runserver
+docker compose up --build
 ```
+This will start:
+- `pg`: PostgreSQL database.
+- `api`: Django backend.
 
-The server will start at:
+The API will be available at:
 - http://127.0.0.1:8000/
 
-### 7) Test the API
+### 3) Apply migrations
+In another terminal, run:
+```bash
+docker compose exec api python manage.py migrate
+```
+
+### 4) Test the API
 Open in your browser:
-- http://127.0.0.1:8000/api/health/
+- http://127.0.0.1:8000/api/health
 
 Expected response:
 ```json
 {"status":"ok"}
+```
+### 5) Stop the containers
+```bash
+docker compose down
 ```

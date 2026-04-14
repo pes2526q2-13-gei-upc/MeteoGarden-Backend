@@ -13,6 +13,8 @@ from .views import (
     get_profile,
     get_stations,
     getUserAlbum,
+    google_register,
+    google_verify,
     health,
     identifyPlant,
     importPlant,
@@ -20,6 +22,7 @@ from .views import (
     plant_seed,
     plant_status,
     register,
+    translate,
     user_gardens,
     user_products,
     user_seeds,
@@ -32,6 +35,8 @@ urlpatterns = [
     path("login/", login),
     path("get_profile/", get_profile),
     path("edit_profile/", edit_profile),
+    path("auth/google/verify", google_verify),
+    path("auth/google/register", google_register),
     path("users/<str:username>/gardens/", user_gardens, name="user_gardens"),
     path(
         "users/<str:username>/gardens/<str:garden_name>/plants/",
@@ -73,4 +78,5 @@ urlpatterns = [
         collect_plant,
         name="collect_plant",
     ),
+    path("translate/", translate),
 ]

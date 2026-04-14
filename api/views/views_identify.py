@@ -7,7 +7,7 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from ..models import Image, Inventory, Plant, User
+from ..models import AlbumEntry, Image, Inventory, Plant, User
 from .views_info import getInfoPlant
 
 PLANTNET_URL = "https://my-api.plantnet.org/v2/identify/all"
@@ -100,6 +100,14 @@ def identifyPlant(request):
         uploader=uploader,
         url=file_obj,
         plant=plant,
+    )
+
+    AlbumEntry.objects.get_or_create(
+        user=uploader,
+        plant=plant,
+        defaults={
+            "description": plant.description or "",
+        },
     )
 
     inventory = Inventory.objects.get(user=uploader)

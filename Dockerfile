@@ -12,4 +12,9 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+RUN chmod +x /app/devops/docker-entrypoint.sh \
+    && chmod +x /app/devops/run_app.sh
+
+ENTRYPOINT ["/app/devops/docker-entrypoint.sh"]
+CMD ["/app/devops/run_app.sh"]
+

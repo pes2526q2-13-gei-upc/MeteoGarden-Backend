@@ -11,6 +11,7 @@ from .views_profile_operations import (  # noqa: F401
     google_verify,
     login,
     register,
+    delete_profile,
 )
 from .views_translate import translate  # noqa: F401
 from .views_visualitzarJardi import (  # noqa: F401

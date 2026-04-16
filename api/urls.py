@@ -8,6 +8,7 @@ from django.urls import path
 from .views import (
     collect_plant,
     current_weather,
+    delete_profile,
     edit_profile,
     garden_plants,
     get_profile,
@@ -27,7 +28,6 @@ from .views import (
     user_products,
     user_seeds,
     water_plant,
-    delete_profile,
 )
 
 urlpatterns = [

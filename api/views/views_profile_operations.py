@@ -272,7 +272,9 @@ def google_register(request):
 
 # Register view
 @api_view(["DELETE"])
-@permission_classes([IsAuthenticated])     # Aqui s'envia el token i llavors django associa el token a l'usuari
+@permission_classes(
+    [IsAuthenticated]
+)  # Aqui s'envia el token i llavors django associa el token a l'usuari
 def delete_profile(request):
-    request.user.delete()   # eliminem l'usuari i, per casacada, s'eliminen les clases associades
+    request.user.delete()  # eliminem l'usuari i, per casacada, s'eliminen les clases associades
     return Response({"message": "User deleted successfully"})

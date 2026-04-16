@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from api.models import Image, Pot
+from api.models import Image, Pot, Plant
 
 
 class PotSerializer(serializers.ModelSerializer):
@@ -69,3 +69,27 @@ class PotSerializer(serializers.ModelSerializer):
             if planting and planting.lastWateredAt
             else None
         )
+
+
+class InventorySeedSerializer(serializers.Serializer):
+    scientificName = serializers.CharField()
+    amount = serializers.IntegerField()
+    image_url = serializers.SerializerMethodField()
+
+    def get_image_url(self, obj):
+        scientific_name = obj.get("scientificName")
+
+        try:
+            plant = Plant.objects.get(scientificName=scientific_name)
+        except Plant.DoesNotExist:
+            return None
+
+        image = (
+            Image.objects.filter(
+                plant=plant,
+                growthPhase="Mature"
+            )
+            .first()
+        )
+
+        return image.url.url if image and image.url else None

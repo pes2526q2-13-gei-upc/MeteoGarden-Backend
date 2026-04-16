@@ -27,6 +27,7 @@ from .views import (
     user_gardens,
     user_products,
     user_seeds,
+    validate_token,
     water_plant,
 )
 
@@ -39,6 +40,7 @@ urlpatterns = [
     path("delete_profile/", delete_profile),
     path("auth/google/verify", google_verify),
     path("auth/google/register", google_register),
+    path("validate_token/", validate_token),
     path("users/<str:username>/gardens/", user_gardens, name="user_gardens"),
     path(
         "users/<str:username>/gardens/<str:garden_name>/plants/",

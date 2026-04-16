@@ -382,6 +382,23 @@ class Shop(models.Model):
     seeds = models.JSONField(default=dict, blank=True)
     products = models.JSONField(default=dict, blank=True)
 
+    STARTER_SEEDS = {
+        "helianthus_annuus": 4,
+        "dianthus_caryophyllus": 4,
+        "rosa_canina": 2,
+        "lavandula_angustifolia": 3,
+        "menta_spicata": 2,
+    }
+
+    @classmethod
+    def get_solo(cls):
+        shop, _ = cls.objects.get_or_create(pk=1)
+        return shop
+
+    def initialize_starter_stock(self):
+        if not self.seeds:
+            self.seeds = self.STARTER_SEEDS.copy()
+            self.save()
     def update_stock(self, item_type, name, price):
         if item_type == "seed":
             self.seeds[name] = price

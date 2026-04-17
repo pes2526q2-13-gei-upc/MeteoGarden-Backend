@@ -278,3 +278,11 @@ def google_register(request):
 def delete_profile(request):
     request.user.delete()  # eliminem l'usuari i, per casacada, s'eliminen les clases associades
     return Response({"message": "User deleted successfully"})
+
+
+# Validate token
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def validate_token(request):
+    # Si la crida no dona error, llavors el token és correcte
+    return Response({"valid": True, "username": request.user.username})

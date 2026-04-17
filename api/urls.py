@@ -84,6 +84,5 @@ urlpatterns = [
         name="collect_plant",
     ),
     path("translate/", translate),
-
     path("shop/", get_shop, name="get_shop"),
 ]

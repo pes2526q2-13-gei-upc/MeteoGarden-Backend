@@ -27,7 +27,7 @@ def get_shop(request):
                     "image": image.url.url if image and image.url else None,
                 }
             )
-        except Plant.DoesNotExist: #per si alguna llavor no esta a la bd de Plant
+        except Plant.DoesNotExist:  # per si alguna llavor no esta a la bd de Plant
             continue
 
     return JsonResponse(

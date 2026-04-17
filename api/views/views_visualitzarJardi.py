@@ -4,12 +4,13 @@ from django.http import HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework.response import Response
 
 from api.models import Garden, GrowthState, Inventory, Pot, Station, User
 from api.plant_simulation import simulate_plant
-from api.serializer import PotSerializer, InventorySeedSerializer
+from api.serializer import InventorySeedSerializer, PotSerializer
 from api.xema_sync import ensure_station_synced
-from rest_framework.response import Response
+
 
 def _sync_user_station(user: User) -> Station | None:
     station = Station.objects.filter(stationCode=user.stationCode).first()
@@ -199,6 +200,7 @@ def user_seeds(request, username):
 
     serializer = InventorySeedSerializer(seeds_data, many=True)
     return JsonResponse(serializer.data, safe=False)
+
 
 def user_products(request, username):
     if request.method != "GET":

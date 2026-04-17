@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from api.models import Image, Pot, Plant
+from api.models import Image, Plant, Pot
 
 
 class PotSerializer(serializers.ModelSerializer):
@@ -84,12 +84,6 @@ class InventorySeedSerializer(serializers.Serializer):
         except Plant.DoesNotExist:
             return None
 
-        image = (
-            Image.objects.filter(
-                plant=plant,
-                growthPhase="mature"
-            )
-            .first()
-        )
+        image = Image.objects.filter(plant=plant, growthPhase="mature").first()
 
         return image.url.url if image and image.url else None

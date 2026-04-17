@@ -399,6 +399,7 @@ class Shop(models.Model):
         if not self.seeds:
             self.seeds = self.STARTER_SEEDS.copy()
             self.save()
+
     def update_stock(self, item_type, name, price):
         if item_type == "seed":
             self.seeds[name] = price

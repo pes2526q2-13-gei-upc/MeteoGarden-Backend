@@ -87,7 +87,7 @@ class InventorySeedSerializer(serializers.Serializer):
         image = (
             Image.objects.filter(
                 plant=plant,
-                growthPhase="Mature"
+                growthPhase="mature"
             )
             .first()
         )

@@ -12,6 +12,7 @@ from .views import (
     edit_profile,
     garden_plants,
     get_profile,
+    get_shop,
     get_stations,
     getUserAlbum,
     google_register,
@@ -83,4 +84,5 @@ urlpatterns = [
         name="collect_plant",
     ),
     path("translate/", translate),
+    path("shop/", get_shop, name="get_shop"),
 ]

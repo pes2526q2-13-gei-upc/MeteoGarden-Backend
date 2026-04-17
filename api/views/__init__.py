@@ -14,6 +14,7 @@ from .views_profile_operations import (  # noqa: F401
     register,
     validate_token,
 )
+from .views_shop import get_shop  # noqa: F401
 from .views_translate import translate  # noqa: F401
 from .views_visualitzarJardi import (  # noqa: F401
     garden_plants,

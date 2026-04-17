@@ -4,7 +4,6 @@ from django.http import HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework.response import Response
 
 from api.models import Garden, GrowthState, Inventory, Pot, Station, User
 from api.plant_simulation import simulate_plant

@@ -29,10 +29,15 @@ def get_shop(request):
         except Plant.DoesNotExist:  # per si alguna llavor no esta a la bd de Plant
             continue
 
+    products_with_info = [
+        {"name": name, "price": price}
+        for name, price in shop.products.items()
+    ]
+
     return JsonResponse(
         {
             "seeds": seeds_with_info,
-            "products": shop.products,
+            "products": products_with_info,
         },
         status=200,
     )

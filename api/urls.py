@@ -27,6 +27,7 @@ from .views import (
     user_products,
     user_seeds,
     water_plant,
+    save_fcm_token,
 )
 
 urlpatterns = [
@@ -79,4 +80,5 @@ urlpatterns = [
         name="collect_plant",
     ),
     path("translate/", translate),
+    path("save-token/", save_fcm_token),
 ]

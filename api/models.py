@@ -76,6 +76,11 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
 
+class Device(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    token = models.CharField(max_length=255)
+    createdAt = models.DateTimeField(auto_now_add=True)
+
 
 class Avatar(models.Model):
     user = models.OneToOneField(
@@ -218,6 +223,7 @@ class PlantInGarden(models.Model):
     )  # RT.11
     lastWateredAt = models.DateTimeField(default=timezone.now)
     lastSimulatedAt = models.DateTimeField(default=timezone.now)
+    lastNotificationAt = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         unique_together = ("pot", "plant", "plantedAt")

@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "storages",
     "corsheaders",
+    "django_celery_beat",
     # METEOGARDEN APPS
     "api",
 ]
@@ -192,3 +193,12 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "api.User"
+
+CELERY_BROKER_URL = 'redis://redis:6379/0'
+CELERY_TIMEZONE = 'Europe/Madrid'
+CELERY_BEAT_SCHEDULE = {
+    'simulate-all-plants': {
+        'task': 'api.tasks.simulate_all_plants',
+        'schedule': 1800, # cada 30 min
+    },
+}

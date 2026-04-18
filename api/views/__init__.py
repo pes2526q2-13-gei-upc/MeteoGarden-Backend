@@ -22,3 +22,4 @@ from .views_visualitzarJardi import (  # noqa: F401
     water_plant,
 )
 from .views_xema import current_weather, get_stations  # noqa: F401
+from .views_notifications import save_fcm_token # noqa: F401

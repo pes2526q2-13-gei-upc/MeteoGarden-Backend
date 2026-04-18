@@ -8,9 +8,11 @@ from django.urls import path
 from .views import (
     collect_plant,
     current_weather,
+    delete_profile,
     edit_profile,
     garden_plants,
     get_profile,
+    get_shop,
     get_stations,
     getUserAlbum,
     google_register,
@@ -26,6 +28,7 @@ from .views import (
     user_gardens,
     user_products,
     user_seeds,
+    validate_token,
     water_plant,
 )
 
@@ -35,8 +38,10 @@ urlpatterns = [
     path("login/", login),
     path("get_profile/", get_profile),
     path("edit_profile/", edit_profile),
+    path("delete_profile/", delete_profile),
     path("auth/google/verify", google_verify),
     path("auth/google/register", google_register),
+    path("validate_token/", validate_token),
     path("users/<str:username>/gardens/", user_gardens, name="user_gardens"),
     path(
         "users/<str:username>/gardens/<str:garden_name>/plants/",
@@ -79,4 +84,5 @@ urlpatterns = [
         name="collect_plant",
     ),
     path("translate/", translate),
+    path("shop/", get_shop, name="get_shop"),
 ]

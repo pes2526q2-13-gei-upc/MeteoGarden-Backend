@@ -5,13 +5,16 @@ from .views_image import getUserAlbum  # noqa: F401
 from .views_info import importPlant  # noqa: F401
 from .views_plantar_planta import plant_seed  # noqa: F401
 from .views_profile_operations import (  # noqa: F401
+    delete_profile,
     edit_profile,
     get_profile,
     google_register,
     google_verify,
     login,
     register,
+    validate_token,
 )
+from .views_shop import get_shop  # noqa: F401
 from .views_translate import translate  # noqa: F401
 from .views_visualitzarJardi import (  # noqa: F401
     garden_plants,

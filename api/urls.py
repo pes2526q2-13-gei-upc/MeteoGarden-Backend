@@ -6,6 +6,7 @@ URL configuration for api.
 from django.urls import path
 
 from .views import (
+    buy_item,
     collect_plant,
     current_weather,
     delete_profile,
@@ -85,4 +86,5 @@ urlpatterns = [
     ),
     path("translate/", translate),
     path("shop/", get_shop, name="get_shop"),
+    path("users/<str:username>/buy/", buy_item, name="buy_item"),
 ]

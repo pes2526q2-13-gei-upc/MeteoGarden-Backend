@@ -3,6 +3,7 @@ import urllib
 
 import requests
 from django.core.files.base import ContentFile
+from rembg import remove
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
@@ -56,7 +57,8 @@ def createPlantImages(scientificName):
         )
 
         if response.status_code == 200:
-            image_content = ContentFile(response.content)
+            transparent_image_bytes = remove(response.content)
+            image_content = ContentFile(transparent_image_bytes)
 
             new_image = Image(plant=plant, growthPhase=state_value)
 

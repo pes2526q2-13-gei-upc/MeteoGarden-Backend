@@ -121,6 +121,15 @@ AWS_SECRET_ACCESS_KEY = os.getenv("AWS_S3_SECRET_ACCESS_KEY")
 AWS_STORAGE_BUCKET_NAME = "meteogarden-images"
 AWS_S3_REGION_NAME = "eu-south-2"
 
+AWS_QUERYSTRING_AUTH = False
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL = None
+AWS_S3_CUSTOM_DOMAIN = (
+    f"{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
+)
+
+# Tell Django to use S3 for "media" files
+DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 
 # Tell Django to use S3 for "media" files (user images)
 DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"

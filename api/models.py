@@ -76,9 +76,10 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
 
+
 class Device(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    token = models.CharField(max_length=255)
+    token = models.CharField(max_length=255, unique=True)
     createdAt = models.DateTimeField(auto_now_add=True)
 
 

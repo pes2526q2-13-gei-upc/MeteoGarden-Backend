@@ -24,13 +24,13 @@ from .views import (
     plant_seed,
     plant_status,
     register,
+    save_fcm_token,
     translate,
     user_gardens,
     user_products,
     user_seeds,
     validate_token,
     water_plant,
-    save_fcm_token,
 )
 
 urlpatterns = [

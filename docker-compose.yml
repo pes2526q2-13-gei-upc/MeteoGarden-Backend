@@ -18,6 +18,12 @@ services:
       timeout: 5s
       retries: 10
 
+  redis:
+    image: redis:7-alpine
+    container_name: meteogarden_redis
+    ports:
+      - "6379:6379"
+
   api:
     build:
       context: .
@@ -30,6 +36,39 @@ services:
       - .django.env
     depends_on:
       pg:
-          condition: service_healthy
+        condition: service_healthy
+      redis:
+        condition: service_started
     volumes:
       - .:/app
+      - ./firebase-key.json:/app/firebase-key.json
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: meteogarden_worker
+    command: celery -A config worker -l info
+    depends_on:
+      - api
+      - redis
+    volumes:
+      - .:/app
+      - ./firebase-key.json:/app/firebase-key.json
+    env_file:
+      - .django.env
+
+  beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: meteogarden_beat
+    command: celery -A config beat -l info
+    depends_on:
+      - api
+      - redis
+    volumes:
+      - .:/app
+      - ./firebase-key.json:/app/firebase-key.json
+    env_file:
+      - .django.env

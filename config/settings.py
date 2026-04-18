@@ -194,11 +194,13 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "api.User"
 
-CELERY_BROKER_URL = 'redis://redis:6379/0'
-CELERY_TIMEZONE = 'Europe/Madrid'
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
+CELERY_TIMEZONE = "Europe/Madrid"
 CELERY_BEAT_SCHEDULE = {
-    'simulate-all-plants': {
-        'task': 'api.tasks.simulate_all_plants',
-        'schedule': 1800, # cada 30 min
+    "simulate-all-plants": {
+        "task": "api.tasks.simulate_all_plants",
+        "schedule": 1800,  # cada 30 min
     },
 }
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"

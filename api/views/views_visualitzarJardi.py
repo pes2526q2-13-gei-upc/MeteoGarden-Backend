@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from api.models import Garden, GrowthState, Inventory, Pot, Station, User
 from api.plant_simulation import simulate_plant
-from api.serializer import PotSerializer
+from api.serializer import InventorySeedSerializer, PotSerializer
 from api.xema_sync import ensure_station_synced
 
 
@@ -170,12 +170,26 @@ def water_plant(request, username, garden_name, pot_number):
     return JsonResponse(data, status=200)
 
 
+# def user_seeds(request, username):
+#     if request.method != "GET":
+#         return HttpResponseNotAllowed(["GET"])
+#
+#     user = get_object_or_404(User, username=username)
+#
+#     inventory, _ = Inventory.objects.get_or_create(user=user)
+#
+#     seeds_data = [
+#         {"scientificName": seed, "amount": amount}
+#         for seed, amount in inventory.seeds.items()
+#     ]
+#
+#     serializer = InventorySeedSerializer(seeds_data, many=True)
+#     return Response(serializer.data)
 def user_seeds(request, username):
     if request.method != "GET":
         return HttpResponseNotAllowed(["GET"])
 
     user = get_object_or_404(User, username=username)
-
     inventory, _ = Inventory.objects.get_or_create(user=user)
 
     seeds_data = [
@@ -183,7 +197,8 @@ def user_seeds(request, username):
         for seed, amount in inventory.seeds.items()
     ]
 
-    return JsonResponse(seeds_data, safe=False)
+    serializer = InventorySeedSerializer(seeds_data, many=True)
+    return JsonResponse(serializer.data, safe=False)
 
 
 def user_products(request, username):

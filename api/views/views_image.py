@@ -83,7 +83,6 @@ def getUserAlbum(request, username):
                 {
                     "name": album.plant.scientificName,
                     "image": image.url.url,
-
                 }
             )
 

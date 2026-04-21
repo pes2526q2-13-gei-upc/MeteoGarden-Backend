@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 
-from api.models import Image, Inventory, Plant, Shop, User
+from api.models import Inventory, Plant, Product, Shop, User
 from api.serializer import ShopSeedSerializer
 
 
@@ -18,19 +18,36 @@ def get_shop(request):
     for scientific_name, price in shop.seeds.items():
         try:
             plant = Plant.objects.get(scientificName=scientific_name)
-            seeds_data.append({
-                "scientificName": plant.scientificName,
-                "commonName": plant.commonName,
-                "family": plant.family,
-                "description": plant.description,
-                "price": price,
-            })
+            seeds_data.append(
+                {
+                    "scientificName": plant.scientificName,
+                    "commonName": plant.commonName,
+                    "family": plant.family,
+                    "description": plant.description,
+                    "price": price,
+                }
+            )
         except Plant.DoesNotExist:
             continue
 
-    products_data = [
-        {"name": name, "price": price} for name, price in shop.products.items()
-    ]
+    products_data = []
+    for name, price in shop.products.items():
+        try:
+            product = Product.objects.get(name=name)
+            products_data.append(
+                {
+                    "name": product.name,
+                    "description": product.description,
+                    "effectType": product.effectType,
+                    "value": product.value,
+                    "durationHours": product.durationHours,
+                    "isInstant": product.isInstant,
+                    "price": price,
+                    "image_url": product.image_url.url if product.image_url else None,
+                }
+            )
+        except Product.DoesNotExist:
+            continue
 
     return JsonResponse(
         {

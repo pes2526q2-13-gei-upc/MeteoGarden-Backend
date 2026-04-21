@@ -3,10 +3,10 @@ from datetime import timedelta
 from django.utils import timezone
 
 from .models import (
-    ActivePotion,
+    ActiveProduct,
     GrowthState,
     PlantInGarden,
-    Potion,
+    Product,
     Station,
     WeatherReading,
 )
@@ -265,7 +265,7 @@ def apply_product(user, plant, product_name):
     if product_name not in inventory.products:
         raise ValueError("No tens aquesta poció")
 
-    product = Potion.objects.get(name=product_name)
+    product = Product.objects.get(name=product_name)
 
     inventory.removeProduct(product_name, 1)
 
@@ -288,7 +288,7 @@ def apply_product(user, plant, product_name):
     # elif product.effectType == "revive":
     # fent..
     elif product.effectType == "growth2":
-        ActivePotion.objects.create(plant=plant, potion=product)
+        ActiveProduct.objects.create(plant=plant, potion=product)
 
     # pocions mixtes potser en un futur
     # elif potion.effectType == "mixed":

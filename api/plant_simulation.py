@@ -3,7 +3,7 @@ from datetime import timedelta
 from django.utils import timezone
 
 from .models import (
-    ActivePotion,
+    ActiveProduct,
     GrowthState,
     PlantInGarden,
     Product,

@@ -36,6 +36,12 @@ class LanguageType(models.TextChoices):
     SPANISH = "spanish", "Spanish"
     ENGLISH = "english", "English"
 
+class MissionAction(models.TextChoices):
+    PLANT = "PLANT"
+    COLLECT = "COLLECT"
+    WATER = "WATER"
+    FLOWER = "FLOWER"
+    DIE = "DIE"
 
 # Main classes
 class Plant(models.Model):
@@ -440,9 +446,17 @@ class ActiveProduct(models.Model):
 class Mission(models.Model):
     name = models.CharField(max_length=50, primary_key=True)  # RT.1
     description = models.TextField()
-    seed = models.ForeignKey(Plant, on_delete=models.CASCADE)
-    rewardCoins = models.PositiveIntegerField()
-    product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True)
+    action = models.CharField(
+        max_length=50,
+        choices=MissionAction.choices,
+        null=False
+    )
+    goal = models.PositiveIntegerField(default=1)
+    plant = models.ForeignKey(Plant, on_delete=models.CASCADE, null=True, blank=True)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
+    plantReward = models.ForeignKey(Plant, on_delete=models.CASCADE, null=True, blank=True)
+    rewardCoins = models.PositiveIntegerField(default=0)
+    productReward = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -451,6 +465,7 @@ class Mission(models.Model):
 class UserMission(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     mission = models.ForeignKey(Mission, on_delete=models.CASCADE)
+    current = models.PositiveIntegerField(default=0)
     missionState = models.CharField(max_length=50, choices=MissionState.choices)
     acquiredAt = models.DateTimeField()
 

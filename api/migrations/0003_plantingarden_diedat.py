@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0002_product_activeproduct'),
+        ("api", "0002_product_activeproduct"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='plantingarden',
-            name='diedAt',
+            model_name="plantingarden",
+            name="diedAt",
             field=models.DateTimeField(blank=True, null=True),
         ),
     ]

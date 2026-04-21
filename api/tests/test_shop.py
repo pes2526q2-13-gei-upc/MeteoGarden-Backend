@@ -1,8 +1,8 @@
 from unittest.mock import MagicMock, patch
 
-from django.test import TestCase, Client
+from django.test import Client, TestCase
 
-from api.models import Shop, Product
+from api.models import Product, Shop
 
 
 class ShopModelTest(TestCase):
@@ -170,7 +170,9 @@ class ShopViewTest(TestCase):
     @patch("api.models.Product.image_url")
     def test_product_with_image_returns_url(self, mock_image_url):
         """Un producto con imagen devuelve su URL de S3."""
-        mock_image_url.url = "https://mybucket.s3.amazonaws.com/products/health_potion.webp"
+        mock_image_url.url = (
+            "https://mybucket.s3.amazonaws.com/products/health_potion.webp"
+        )
 
         shop = Shop.get_solo()
         shop.products = {"health_potion": 15}

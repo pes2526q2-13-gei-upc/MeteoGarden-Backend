@@ -32,8 +32,7 @@ class PotSerializer(serializers.ModelSerializer):
             return None
 
         image = Image.objects.filter(
-            plant=planting.plant,
-            growthPhase=planting.growthPhase
+            plant=planting.plant, growthPhase=planting.growthPhase
         ).first()
         image_url = image.url.url if image and image.url else None
 

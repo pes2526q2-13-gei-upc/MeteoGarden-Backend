@@ -26,6 +26,7 @@ from .views import (
     plant_status,
     register,
     translate,
+    use_product,
     user_gardens,
     user_products,
     user_seeds,
@@ -89,6 +90,7 @@ urlpatterns = [
     path("translate/", translate),
     path("shop/", get_shop, name="get_shop"),
     path("users/<str:username>/buy/", buy_item, name="buy_item"),
+    path("use-product/", use_product),
     path("user/missions/", getUserMissions, name="getUserMissions"),
     path("missions/create/", createMission, name="getUserMissions"),
 ]

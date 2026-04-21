@@ -3,7 +3,6 @@ from datetime import timedelta
 from django.utils import timezone
 
 from .models import (
-    ActiveProduct,
     GrowthState,
     PlantInGarden,
     Product,
@@ -265,7 +264,7 @@ def apply_product(user, plant, product_name):
     if product_name not in inventory.products:
         raise ValueError("No tens aquesta poció")
 
-    product = Potion.objects.get(name=product_name)
+    product = Product.objects.get(name=product_name)
 
     inventory.removeProduct(product_name, 1)
 

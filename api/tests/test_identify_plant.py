@@ -28,7 +28,8 @@ def identify_url():
 
 @pytest.fixture
 def test_user(db):
-    from api.models import User, Inventory
+    from api.models import Inventory, User
+
     user = User.objects.create(username="testuser")
     Inventory.objects.create(user=user)
     return user
@@ -93,6 +94,7 @@ def test_identifyPlant_plantnet_non_200_returns_502(
     monkeypatch.setattr(os, "getenv", lambda k: "KEY")
 
     import api.views.views_identify as mod
+
     monkeypatch.setattr(
         mod.requests,
         "post",
@@ -119,6 +121,7 @@ def test_identifyPlant_no_results_returns_422(
     monkeypatch.setattr(os, "getenv", lambda k: "KEY")
 
     import api.views.views_identify as mod
+
     monkeypatch.setattr(
         mod.requests,
         "post",
@@ -145,6 +148,7 @@ def test_identifyPlant_missing_scientific_name_returns_422(
     monkeypatch.setattr(os, "getenv", lambda k: "KEY")
 
     import api.views.views_identify as mod
+
     monkeypatch.setattr(
         mod.requests,
         "post",
@@ -173,6 +177,7 @@ def test_identifyPlant_success_201_creates_image_and_returns_payload(
     monkeypatch.setattr(os, "getenv", lambda k: "KEY")
 
     import api.views.views_identify as mod
+
     monkeypatch.setattr(
         mod.requests,
         "post",

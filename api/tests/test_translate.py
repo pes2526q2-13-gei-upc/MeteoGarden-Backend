@@ -1,10 +1,9 @@
 import pytest
 from rest_framework.test import APIRequestFactory
 
-
 # Ajusta aquest import al path real del teu projecte:
 # ex: from api.views.views_translate import translate_text, translate
-from api.views.views_translate import translate_text, translate
+from api.views.views_translate import translate, translate_text
 
 
 class DummyResponse:

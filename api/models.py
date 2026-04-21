@@ -387,7 +387,7 @@ class Shop(models.Model):
         "dianthus_caryophyllus": 4,
         "rosa_canina": 2,
         "lavandula_angustifolia": 3,
-        "menta_spicata": 2,
+        "mentha_spicata": 2,
     }
 
     @classmethod

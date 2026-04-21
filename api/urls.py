@@ -31,6 +31,8 @@ from .views import (
     user_seeds,
     validate_token,
     water_plant,
+    getUserMissions,
+    createMission,
 )
 
 urlpatterns = [
@@ -87,4 +89,6 @@ urlpatterns = [
     path("translate/", translate),
     path("shop/", get_shop, name="get_shop"),
     path("users/<str:username>/buy/", buy_item, name="buy_item"),
+    path("user/missions/", getUserMissions, name="getUserMissions"),
+    path("missions/create/", createMission, name="getUserMissions"),
 ]

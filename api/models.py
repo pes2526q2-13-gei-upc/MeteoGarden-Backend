@@ -390,18 +390,16 @@ class Shop(models.Model):
         "dianthus_caryophyllus": 4,
         "rosa_canina": 2,
         "lavandula_angustifolia": 3,
-        "menta_spicata": 2,
+        "mentha_spicata": 2,
+    }
+    STARTER_PRODUCTS = {
+        "health_potion": 15,
     }
 
     @classmethod
     def get_solo(cls):
         shop, _ = cls.objects.get_or_create(pk=1)
         return shop
-
-    def initialize_starter_stock(self):
-        if not self.seeds:
-            self.seeds = self.STARTER_SEEDS.copy()
-            self.save()
 
     def update_stock(self, item_type, name, price):
         if item_type == "seed":
@@ -422,6 +420,14 @@ class Shop(models.Model):
             raise Exception("Shop already exists.")
         return super().save(*args, **kwargs)
 
+    def initialize_starter_stock(self):
+        if not self.seeds:
+            self.seeds = self.STARTER_SEEDS.copy()
+            self.save()
+        if not self.products:
+            self.products = self.STARTER_PRODUCTS.copy()
+            self.save()
+
 
 class Product(models.Model):
     EFFECT_TYPES = [
@@ -441,6 +447,9 @@ class Product(models.Model):
 
     price = models.PositiveIntegerField()
     isInstant = models.BooleanField(default=True)
+    image_url = models.ImageField(
+        upload_to="products/", null=True, blank=True  # subcarpeta dentro del bucket
+    )
     # rarity = models.CharField(max_length=20, default='common')
     # cooldown_hours = models.FloatField(default=0)
 

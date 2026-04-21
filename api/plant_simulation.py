@@ -199,8 +199,6 @@ def _apply_reading(
         pig.healthLevel = 0.0
         pig.waterLevel = new_water
         pig.lastSimulatedAt = reading.timestamp
-        pig.previousPhase = pig.growthPhase
-        pig.diedAt = timezone.now()
         return pig
 
     # Actualitzar vives
@@ -273,6 +271,11 @@ def apply_product(user, plant, product_name):
     # puja vida
     if product.effectType == "health":
         plant.healthLevel = min(100, plant.healthLevel + (product.value or 0))
+
+    # curar malaltia si es que ho fem
+    # elif product.effectType == "cure":
+    # placeholder per futur (plagues, etc.)
+    #    pass
 
     # avança x hores del creixement de la planta
     elif product.effectType == "growth":

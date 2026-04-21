@@ -29,6 +29,7 @@ from .views import (
     register,
     saveAvatar,
     translate,
+    use_product,
     user_gardens,
     user_products,
     user_seeds,

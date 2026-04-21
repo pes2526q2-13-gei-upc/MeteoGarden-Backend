@@ -3,7 +3,6 @@ from datetime import timedelta
 from django.utils import timezone
 
 from .models import (
-    ActivePotion,
     GrowthState,
     PlantInGarden,
     Product,
@@ -299,8 +298,8 @@ def apply_product(user, plant, product_name):
 
             plant.diedAt = None
 
-    elif product.effectType == "growth2":
-        ActivePotion.objects.create(plant=plant, potion=product)
+    # elif product.effectType == "growth2":
+    #    ActiveProduct.objects.create(plant=plant, product=product)
 
     # curar malaltia si es que ho fem
     # elif product.effectType == "cure":

@@ -14,8 +14,6 @@ def api_client():
 
 @pytest.fixture
 def image_file():
-    # No cal que sigui un PNG real per la majoria de casos; però si el teu ImageField valida imatges,
-    # pots posar bytes d'un PNG mínim.
     return SimpleUploadedFile(
         "test.png",
         b"\x89PNG\r\n\x1a\n" + b"0" * 100,
@@ -25,32 +23,32 @@ def image_file():
 
 @pytest.fixture
 def identify_url():
-    return reverse("identifyPlant")
+    return reverse("identifyPlant")  # "plants/identify" (sense slash final)
 
 
 @pytest.fixture
 def test_user(db):
-    from api.models import User
-
-    return User.objects.create(username="testuser")
+    from api.models import User, Inventory
+    user = User.objects.create(username="testuser")
+    Inventory.objects.create(user=user)
+    return user
 
 
 def _mock_plantnet_response(status_code=200, json_payload=None, text="ERR"):
     resp = Mock()
     resp.status_code = status_code
     resp.text = text
-    if json_payload is None:
-        json_payload = {}
-    resp.json.return_value = json_payload
+    resp.json.return_value = json_payload or {}
     return resp
 
 
 @pytest.mark.django_db
-def test_identifyPlant_missing_image_returns_400(
-    api_client, identify_url, test_user, monkeypatch
-):
+def test_identifyPlant_missing_image_returns_400(api_client, identify_url, test_user):
     r = api_client.post(
-        identify_url, data={"username": test_user.username}, format="multipart"
+        identify_url,
+        data={"username": test_user.username, "organ": "leaf"},
+        format="multipart",
+        follow=False,
     )
     assert r.status_code == 400
     assert r.json() == {"image": "Image file is required."}
@@ -58,12 +56,13 @@ def test_identifyPlant_missing_image_returns_400(
 
 @pytest.mark.django_db
 def test_identifyPlant_invalid_organ_returns_400(
-    api_client, identify_url, test_user, image_file, monkeypatch
+    api_client, identify_url, test_user, image_file
 ):
     r = api_client.post(
         identify_url,
-        data={"username": test_user.username, "image": image_file, "organs": "root"},
+        data={"username": test_user.username, "image": image_file, "organ": "root"},
         format="multipart",
+        follow=False,
     )
     assert r.status_code == 400
     body = r.json()
@@ -79,10 +78,11 @@ def test_identifyPlant_missing_api_key_returns_500(
 
     r = api_client.post(
         identify_url,
-        data={"username": test_user.username, "image": image_file},
+        data={"username": test_user.username, "image": image_file, "organ": "leaf"},
         format="multipart",
+        follow=False,
     )
-    assert r.status_code == 500
+    assert r.status_code == 500, r.json()
     assert r.json() == {"detail": "PLANTNET_API_KEY is not configured."}
 
 
@@ -91,17 +91,21 @@ def test_identifyPlant_plantnet_non_200_returns_502(
     api_client, identify_url, test_user, image_file, monkeypatch
 ):
     monkeypatch.setattr(os, "getenv", lambda k: "KEY")
+
+    import api.views.views_identify as mod
     monkeypatch.setattr(
-        "api.views.views_identify.requests.post",
+        mod.requests,
+        "post",
         lambda *a, **kw: _mock_plantnet_response(status_code=503, text="service down"),
     )
 
     r = api_client.post(
         identify_url,
-        data={"username": test_user.username, "image": image_file},
+        data={"username": test_user.username, "image": image_file, "organ": "leaf"},
         format="multipart",
+        follow=False,
     )
-    assert r.status_code == 502
+    assert r.status_code == 502, r.json()
     body = r.json()
     assert body["detail"] == "PlantNet identification failed."
     assert body["status_code"] == 503
@@ -113,8 +117,11 @@ def test_identifyPlant_no_results_returns_422(
     api_client, identify_url, test_user, image_file, monkeypatch
 ):
     monkeypatch.setattr(os, "getenv", lambda k: "KEY")
+
+    import api.views.views_identify as mod
     monkeypatch.setattr(
-        "api.views.views_identify.requests.post",
+        mod.requests,
+        "post",
         lambda *a, **kw: _mock_plantnet_response(
             status_code=200,
             json_payload={"results": []},
@@ -123,10 +130,11 @@ def test_identifyPlant_no_results_returns_422(
 
     r = api_client.post(
         identify_url,
-        data={"username": test_user.username, "image": image_file},
+        data={"username": test_user.username, "image": image_file, "organ": "leaf"},
         format="multipart",
+        follow=False,
     )
-    assert r.status_code == 422
+    assert r.status_code == 422, r.json()
     assert r.json() == {"detail": "No identification results."}
 
 
@@ -135,8 +143,11 @@ def test_identifyPlant_missing_scientific_name_returns_422(
     api_client, identify_url, test_user, image_file, monkeypatch
 ):
     monkeypatch.setattr(os, "getenv", lambda k: "KEY")
+
+    import api.views.views_identify as mod
     monkeypatch.setattr(
-        "api.views.views_identify.requests.post",
+        mod.requests,
+        "post",
         lambda *a, **kw: _mock_plantnet_response(
             status_code=200,
             json_payload={"results": [{"species": {}}]},
@@ -145,10 +156,11 @@ def test_identifyPlant_missing_scientific_name_returns_422(
 
     r = api_client.post(
         identify_url,
-        data={"username": test_user.username, "image": image_file},
+        data={"username": test_user.username, "image": image_file, "organ": "leaf"},
         format="multipart",
+        follow=False,
     )
-    assert r.status_code == 422
+    assert r.status_code == 422, r.json()
     assert r.json() == {"detail": "PlantNet response missing scientific name."}
 
 
@@ -156,11 +168,14 @@ def test_identifyPlant_missing_scientific_name_returns_422(
 def test_identifyPlant_success_201_creates_image_and_returns_payload(
     api_client, identify_url, test_user, image_file, monkeypatch
 ):
-    from api.models import Image, Plant, User
+    from api.models import Image, Plant
 
     monkeypatch.setattr(os, "getenv", lambda k: "KEY")
+
+    import api.views.views_identify as mod
     monkeypatch.setattr(
-        "api.views.views_identify.requests.post",
+        mod.requests,
+        "post",
         lambda *a, **kw: _mock_plantnet_response(
             status_code=200,
             json_payload={
@@ -186,14 +201,15 @@ def test_identifyPlant_success_201_creates_image_and_returns_payload(
         )
         return plant
 
-    monkeypatch.setattr("api.views.views_identify.getInfoPlant", fake_getInfoPlant)
+    monkeypatch.setattr(mod, "getInfoPlant", fake_getInfoPlant)
 
     r = api_client.post(
         identify_url,
-        data={"username": test_user.username, "image": image_file, "organs": "leaf"},
+        data={"username": test_user.username, "image": image_file, "organ": "leaf"},
         format="multipart",
+        follow=False,
     )
-    assert r.status_code == 201
+    assert r.status_code == 201, r.json()
     body = r.json()
 
     assert body["plant"]["scientificName"] == "Rosa canina"

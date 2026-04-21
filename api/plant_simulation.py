@@ -1,6 +1,14 @@
+from datetime import timedelta
+
 from django.utils import timezone
 
-from .models import GrowthState, PlantInGarden, Station, WeatherReading
+from .models import (
+    GrowthState,
+    PlantInGarden,
+    Product,
+    Station,
+    WeatherReading,
+)
 
 # Paràmetres de simulació
 
@@ -191,6 +199,8 @@ def _apply_reading(
         pig.healthLevel = 0.0
         pig.waterLevel = new_water
         pig.lastSimulatedAt = reading.timestamp
+        pig.previousPhase = pig.growthPhase
+        pig.diedAt = timezone.now()
         return pig
 
     # Actualitzar vives
@@ -248,3 +258,57 @@ def _next_phase(phase: str, can_flower: bool) -> str | None:
 
 def _clamp(v: float, lo: float, hi: float) -> float:
     return max(lo, min(hi, v))
+
+
+def apply_product(user, plant, product_name):
+    inventory = user.inventory
+
+    if product_name not in inventory.products:
+        raise ValueError("No tens aquesta poció")
+
+    product = Product.objects.get(name=product_name)
+
+    inventory.removeProduct(product_name, 1)
+
+    # puja vida
+    if product.effectType == "health":
+        plant.healthLevel = min(100, plant.healthLevel + (product.value or 0))
+
+    # avança x hores del creixement de la planta
+    elif product.effectType == "growth":
+        hours = product.value or 24
+        plant.plantedAt -= timedelta(hours=hours)
+        new_phase = _recalculate_phase(plant, plant.healthLevel, timezone.now())
+        plant.growthPhase = new_phase
+
+    # reviu la planta i li posa les hores que tenia abans de morir
+    elif product.effectType == "revive":
+        if plant.growthPhase == GrowthState.DEAD:
+            # plant.healthLevel = potion.value or 30
+            if plant.diedAt:
+                time_dead = timezone.now() - plant.diedAt
+                plant.plantedAt += time_dead
+
+            # per a poder recalcular la fase
+            plant.growthPhase = GrowthState.SEED
+
+            plant.growthPhase = _recalculate_phase(
+                plant, plant.healthLevel, timezone.now()
+            )
+
+            plant.diedAt = None
+
+    # elif product.effectType == "growth2":
+    #    ActiveProduct.objects.create(plant=plant, product=product)
+
+    # curar malaltia si es que ho fem
+    # elif product.effectType == "cure":
+    # placeholder per futur (plagues, etc.)
+    #    pass
+
+    # pocions mixtes potser en un futur
+    # elif potion.effectType == "mixed":
+    #    plant.waterLevel = min(100, plant.waterLevel + 10)
+    #    plant.healthLevel = min(100, plant.healthLevel + 10)
+
+    plant.save()

@@ -91,6 +91,7 @@ urlpatterns = [
     path("translate/", translate),
     path("shop/", get_shop, name="get_shop"),
     path("users/<str:username>/buy/", buy_item, name="buy_item"),
+    path("use-product/", use_product),
     path("avatar/", getImages, name="avatar_images"),
     path("users/<str:username>/avatar", getUserAvatar, name="user_avatar"),
     path("users/<str:username>/save/avatar", saveAvatar, name="save_avatar"),

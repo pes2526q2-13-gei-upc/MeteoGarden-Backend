@@ -1,7 +1,7 @@
-import pytest
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
+import pytest
 from rest_framework.test import APIRequestFactory
 
 MODULE_PATH = "api.views.views_info"
@@ -28,7 +28,9 @@ class TestHelpers:
         infer = mod.inferCanFlowerFromGBIF
 
         def fake_get(*args, **kwargs):
-            return SimpleNamespace(json=lambda: {"class": "Magnoliopsida", "phylum": "Tracheophyta"})
+            return SimpleNamespace(
+                json=lambda: {"class": "Magnoliopsida", "phylum": "Tracheophyta"}
+            )
 
         monkeypatch.setattr(mod.requests, "get", fake_get)
         assert infer("Rosa canina") is True
@@ -38,7 +40,9 @@ class TestHelpers:
         infer = mod.inferCanFlowerFromGBIF
 
         def fake_get(*args, **kwargs):
-            return SimpleNamespace(json=lambda: {"class": "Unknown", "phylum": "Pinophyta"})
+            return SimpleNamespace(
+                json=lambda: {"class": "Unknown", "phylum": "Pinophyta"}
+            )
 
         monkeypatch.setattr(mod.requests, "get", fake_get)
         assert infer("Pinus sylvestris") is False
@@ -93,12 +97,18 @@ class TestHelpers:
 
 @pytest.mark.django_db
 class TestFilterAndPersistence:
-    def test_filterInfo_details_none_uses_wikipedia_defaults_and_saves(self, monkeypatch):
+    def test_filterInfo_details_none_uses_wikipedia_defaults_and_saves(
+        self, monkeypatch
+    ):
         mod = __import__(MODULE_PATH, fromlist=["filterInfo"])
         filterInfo = mod.filterInfo
 
         # evita crida real a wikipedia
-        monkeypatch.setattr(mod, "getInfoFromWikipedia", lambda name: {"canFlower": True, "description": "Desc"})
+        monkeypatch.setattr(
+            mod,
+            "getInfoFromWikipedia",
+            lambda name: {"canFlower": True, "description": "Desc"},
+        )
         # espies/mocks sobre persistència i imatges
         save_mock = MagicMock()
         monkeypatch.setattr(mod, "saveOrUpdatePlant", save_mock)
@@ -114,7 +124,9 @@ class TestFilterAndPersistence:
         assert info["description"] == "Desc"
         save_mock.assert_called_once()
 
-    def test_filterInfo_details_translates_when_lang_not_en_and_details_present(self, monkeypatch):
+    def test_filterInfo_details_translates_when_lang_not_en_and_details_present(
+        self, monkeypatch
+    ):
         mod = __import__(MODULE_PATH, fromlist=["filterInfo"])
         filterInfo = mod.filterInfo
 
@@ -157,7 +169,9 @@ class TestImportPlantEndpoint:
         monkeypatch.setattr(mod, "getInfoPlant", lambda scientific_name, lang: None)
 
         factory = APIRequestFactory()
-        req = factory.get("/importPlant", data={"scientificName": "Unknown", "lang": "en"})
+        req = factory.get(
+            "/importPlant", data={"scientificName": "Unknown", "lang": "en"}
+        )
         resp = view(req)
 
         assert resp.status_code == 404
@@ -173,7 +187,9 @@ class TestImportPlantEndpoint:
         monkeypatch.setattr(mod, "getInfoPlant", boom)
 
         factory = APIRequestFactory()
-        req = factory.get("/importPlant", data={"scientificName": "Rosa canina", "lang": "en"})
+        req = factory.get(
+            "/importPlant", data={"scientificName": "Rosa canina", "lang": "en"}
+        )
         resp = view(req)
 
         assert resp.status_code == 500
@@ -198,7 +214,9 @@ class TestImportPlantEndpoint:
         )
 
         factory = APIRequestFactory()
-        req = factory.get("/importPlant", data={"scientificName": "Rosa canina", "lang": "en"})
+        req = factory.get(
+            "/importPlant", data={"scientificName": "Rosa canina", "lang": "en"}
+        )
         resp = view(req)
 
         assert resp.status_code == 200

@@ -209,6 +209,7 @@ class PlantInGarden(models.Model):
     pot = models.OneToOneField(Pot, on_delete=models.CASCADE)
     plant = models.ForeignKey(Plant, on_delete=models.CASCADE)
     plantedAt = models.DateTimeField(default=timezone.now)
+    diedAt = models.DateTimeField(null=True, blank=True)
     growthPhase = models.CharField(
         max_length=50, choices=GrowthState.choices, default=GrowthState.SEED
     )
@@ -450,7 +451,7 @@ class ActiveProduct(models.Model):
     applied_at = models.DateTimeField(auto_now_add=True)
 
     def is_active(self):
-        if not self.prodcut.durationHours:
+        if not self.product.durationHours:
             return False
 
         return timezone.now() < self.applied_at + timedelta(

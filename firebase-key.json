@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "meteogarden-be539",
+  "private_key_id": "094be6c65dfbcfb871dc7434d19661d7238d2087",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQChPY2qT764K94e\nXzWfKEzu2gGZrbALq3tIIkU/CKkA1BKzyEu0Eivm0PbS0pBPMZxBQh1DXlf3hjKd\n0hcwNdPdBixpJ4zHDm7lRqjlHNkwGXo4YVTHysVCa1si0eO90PWlUJodLBbZ+LOG\nXkWF5bsSAwCxtFIUrYAf4hUAKw41nY79j+Z3nnK3qduSjMahVmktO9JY0UySQ9sx\nrACwqRMgm9vWh3QmKzg3yLlIUZCf2RlcHvpc4tzapZrGsfsy2/0OEVohHTHYY/ge\ncZZyCg9QwwgnK6a5Itb27aVUGi96FS4Wsq8loJWNc8FTEFLZ6e7OUZw5GR6DrFlU\nBeJnj2DnAgMBAAECggEAETte1IDJRS2LA3vxYx0Pe8dYvG/PjK+68S6Yb/Ag/7Gq\nfgQ98vSuNHDIsCdIvO30YRULw5Nlm1KAPlWhnMlj5w8t198eMHfeaipvCm1W2Mkg\nQr5ELUYCZuLKTqJX0IVwe0Zt8ggwOQNXTFju3Sx8HaSsglFfJE6WjtG+pNH1Js2Q\nd2C9raHmskK0f6J4RDVVjMUW+mWjBiEzPymQqdwzmzO0Yeq3GXuJQCimU10N/GN6\noi9zRKcdor+NN9OBpD/xSZ4sdJddAL+He+5rwTqw9UIPQWThl0cgW8/U0gNFmMON\nnej2Upfw2HpYixMEoEUzvUm0+tU7vxrJHpcxpA+UwQKBgQDPGriwKf2aMRRmx+N/\nCRyF6RmIlS07lz6/sfL4jrCP6dqkQWk4Y1bnsPmI3G4tflOUv1aY1kkFuGvUOj1S\nT4vpslBaryCaXU8ZW9BQ5fJjmf9tXOjQ7UJyLLTo5e9PtY+tG4gQS7Di2ySl5Sck\nb3WLXTj7b6pCwrWCk2OFinHovwKBgQDHTtcG/kGCjYzgKitBy3wNln7X5Diztkv3\nFNG/DXiINOEauK2e4P8ytmbbL2IYXm8vUNPgt8iwB5LQXe/awHVyep9LqWdoQN+k\n4klE+aeZljJoOV6mkTkm1sm+2S8g04nNiZ6M4nrBvXMuh6iSJteoy/solsQlbWPl\nwtDYuWWp2QKBgFjIjMpAhg5W4fcZ0+X+wvKJNj/+K5DzSpwlLhLuILThPLDTtcbN\nl1Dl5mOMk9L+59fJmtcUbeN85wTpHqatoT5DCf2GPATQ4XruiERV/25Bc2WvwcLn\nI2gM0FVTVR8np3s/ZToPKLpn1bMkpH4TJiHjie0INsY98FAU3UI/UovDAoGBAJDf\n2CG3M7tIVTykqmjbFsNxv6YCuMy5GCL0OTqc+h5YAcDAuUOh3R7pw35TxQRdsIg+\nQqU4MmLyPl/DyJPEDhs20w/WhdocPfTGn+fJaXCU4vMrsId3TInU2zUk/cLowWRs\nQpm6Du1BXrZV2czS+zQxgdGRNebWyyS6JcFDkoiRAoGBAITmotMgloxDiboeoG0u\n5YHD5ko6b53s1NsGFZ8s1bSVJv+DhKTq6dKaBeqHQdp0bdyytjYseP0SvmpkLGG0\nmGrpDfHofrT1ixmliA3mT39INp7HxpZHY+0iHii6RJM98fgWQ8a1vmAiqnQzZEZs\nm2dB4wNoNiBQoVjB2HFRd5fl\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-fbsvc@meteogarden-be539.iam.gserviceaccount.com",
+  "client_id": "106366365079787107360",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40meteogarden-be539.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

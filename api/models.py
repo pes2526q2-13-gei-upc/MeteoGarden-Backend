@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -418,3 +420,39 @@ class Shop(models.Model):
         if not self.pk and Shop.objects.exists():
             raise Exception("Shop already exists.")
         return super().save(*args, **kwargs)
+
+
+class Product(models.Model):
+    EFFECT_TYPES = [
+        ("health", "Health"),
+        ("growth", "Growth"),
+        ("sun", "Sun"),
+        ("protection", "Protection"),
+        ("mixed", "Mixed"),
+    ]
+    name = models.CharField(max_length=50, primary_key=True)
+
+    description = models.TextField()
+
+    effectType = models.CharField(max_length=20, choices=EFFECT_TYPES)
+    value = models.FloatField(null=True, blank=True)
+    durationHours = models.FloatField(null=True, blank=True)
+
+    price = models.PositiveIntegerField()
+    isInstant = models.BooleanField(default=True)
+    # rarity = models.CharField(max_length=20, default='common')
+    # cooldown_hours = models.FloatField(default=0)
+
+
+class ActiveProduct(models.Model):
+    plant = models.ForeignKey(PlantInGarden, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    applied_at = models.DateTimeField(auto_now_add=True)
+
+    def is_active(self):
+        if not self.prodcut.durationHours:
+            return False
+
+        return timezone.now() < self.applied_at + timedelta(
+            hours=self.product.durationHours
+        )

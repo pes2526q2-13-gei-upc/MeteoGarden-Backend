@@ -3,6 +3,7 @@ import urllib
 
 import requests
 from django.core.files.base import ContentFile
+from rembg import remove
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
@@ -56,7 +57,8 @@ def createPlantImages(scientificName):
         )
 
         if response.status_code == 200:
-            image_content = ContentFile(response.content)
+            transparent_image_bytes = remove(response.content)
+            image_content = ContentFile(transparent_image_bytes)
 
             new_image = Image(plant=plant, growthPhase=state_value)
 
@@ -67,11 +69,7 @@ def createPlantImages(scientificName):
 
 
 @api_view(["GET"])
-def getUserAlbum(request):
-    username = request.query_params.get("username")
-    if not username:
-        return Response({"username": "This query param is required."}, status=400)
-
+def getUserAlbum(request, username):
     try:
         user = User.objects.get(username=username)
     except User.DoesNotExist:
@@ -81,12 +79,12 @@ def getUserAlbum(request):
 
     list = []
     for album in list_of_albums:
-        image = Image.objects.filter(plant=album.plant).first()
+        image = Image.objects.filter(uploader=user, plant=album.plant).first()
         if image and image.url:
             list.append(
                 {
-                    "url": MEDIA_URL + image.url.url,
-                    "scientificName": album.plant.scientificName,
+                    "name": album.plant.scientificName,
+                    "image": image.url.url,
                 }
             )
 

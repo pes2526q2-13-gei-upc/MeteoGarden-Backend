@@ -265,7 +265,7 @@ def apply_product(user, plant, product_name):
     if product_name not in inventory.products:
         raise ValueError("No tens aquesta poció")
 
-    product = Product.objects.get(name=product_name)
+    product = Potion.objects.get(name=product_name)
 
     inventory.removeProduct(product_name, 1)
 
@@ -285,10 +285,30 @@ def apply_product(user, plant, product_name):
         new_phase = _recalculate_phase(plant, plant.healthLevel, timezone.now())
         plant.growthPhase = new_phase
 
-    # elif product.effectType == "revive":
-    # fent..
-    elif product.effectType == "growth2":
-        ActiveProduct.objects.create(plant=plant, potion=product)
+    # reviu la planta i li posa les hores que tenia abans de morir
+    elif product.effectType == "revive":
+        if plant.growthPhase == GrowthState.DEAD:
+            # plant.healthLevel = potion.value or 30
+            if plant.diedAt:
+                time_dead = timezone.now() - plant.diedAt
+                plant.plantedAt += time_dead
+
+            # per a poder recalcular la fase
+            plant.growthPhase = GrowthState.SEED
+
+            plant.growthPhase = _recalculate_phase(
+                plant, plant.healthLevel, timezone.now()
+            )
+
+            plant.diedAt = None
+
+    # elif product.effectType == "growth2":
+    #    ActiveProduct.objects.create(plant=plant, product=product)
+
+    # curar malaltia si es que ho fem
+    # elif product.effectType == "cure":
+    # placeholder per futur (plagues, etc.)
+    #    pass
 
     # pocions mixtes potser en un futur
     # elif potion.effectType == "mixed":

@@ -323,27 +323,6 @@ class Image(models.Model):
         return f"Image of {self.plant.scientificName} by " f"{self.uploader.username}"
 
 
-class Mission(models.Model):
-    name = models.CharField(max_length=50, primary_key=True)  # RT.1
-    description = models.TextField()
-    seed = models.ForeignKey(Plant, on_delete=models.CASCADE)
-    rewardCoins = models.PositiveIntegerField()
-    product = models.CharField(max_length=50)
-
-    def __str__(self):
-        return self.name
-
-
-class UserMission(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    mission = models.ForeignKey(Mission, on_delete=models.CASCADE)
-    missionState = models.CharField(max_length=50, choices=MissionState.choices)
-    acquiredAt = models.DateTimeField()
-
-    class Meta:
-        unique_together = ("user", "mission")
-
-
 class Station(models.Model):
     stationCode = models.CharField(max_length=4, primary_key=True)  # RT.1
     station = models.CharField(max_length=50)
@@ -456,3 +435,24 @@ class ActiveProduct(models.Model):
         return timezone.now() < self.applied_at + timedelta(
             hours=self.product.durationHours
         )
+
+class Mission(models.Model):
+    name = models.CharField(max_length=50, primary_key=True)  # RT.1
+    description = models.TextField()
+    seed = models.ForeignKey(Plant, on_delete=models.CASCADE)
+    rewardCoins = models.PositiveIntegerField()
+    product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+
+class UserMission(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    mission = models.ForeignKey(Mission, on_delete=models.CASCADE)
+    missionState = models.CharField(max_length=50, choices=MissionState.choices)
+    acquiredAt = models.DateTimeField()
+
+    class Meta:
+        unique_together = ("user", "mission")
+

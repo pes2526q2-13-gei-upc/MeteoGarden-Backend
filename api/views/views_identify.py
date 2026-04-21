@@ -110,7 +110,7 @@ def identifyPlant(request):
         },
     )
 
-    inventory = Inventory.objects.get(user=uploader)
+    inventory, _ = Inventory.objects.get_or_create(user=uploader)
     Inventory.addSeed(inventory, scientificName, 2)
 
     return Response(

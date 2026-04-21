@@ -87,3 +87,21 @@ class InventorySeedSerializer(serializers.Serializer):
         image = Image.objects.filter(plant=plant, growthPhase="mature").first()
 
         return image.url.url if image and image.url else None
+
+
+class ShopSeedSerializer(serializers.Serializer):
+    scientificName = serializers.CharField()
+    commonName = serializers.CharField()
+    family = serializers.CharField()
+    description = serializers.CharField()
+    price = serializers.IntegerField()
+    image_url = serializers.SerializerMethodField()
+
+    def get_image_url(self, obj):
+        scientific_name = obj.get("scientificName")
+        try:
+            plant = Plant.objects.get(scientificName=scientific_name)
+        except Plant.DoesNotExist:
+            return None
+        image = Image.objects.filter(plant=plant, growthPhase="seed").first()
+        return image.url.url if image and image.url else None

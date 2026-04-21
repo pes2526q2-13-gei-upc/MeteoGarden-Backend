@@ -6,6 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 
 from api.models import Image, Inventory, Plant, Shop, User
+from api.serializer import ShopSeedSerializer
 
 
 @require_GET
@@ -13,34 +14,28 @@ def get_shop(request):
     shop = Shop.get_solo()
     shop.initialize_starter_stock()
 
-    seeds_with_info = []
-
+    seeds_data = []
     for scientific_name, price in shop.seeds.items():
         try:
             plant = Plant.objects.get(scientificName=scientific_name)
-            image = Image.objects.filter(plant=plant).first()
-
-            seeds_with_info.append(
-                {
-                    "scientificName": plant.scientificName,
-                    "commonName": plant.commonName,
-                    "family": plant.family,
-                    "description": plant.description,
-                    "price": price,
-                    "image": image.url.url if image and image.url else None,
-                }
-            )
-        except Plant.DoesNotExist:  # per si alguna llavor no esta a la bd de Plant
+            seeds_data.append({
+                "scientificName": plant.scientificName,
+                "commonName": plant.commonName,
+                "family": plant.family,
+                "description": plant.description,
+                "price": price,
+            })
+        except Plant.DoesNotExist:
             continue
 
-    products_with_info = [
+    products_data = [
         {"name": name, "price": price} for name, price in shop.products.items()
     ]
 
     return JsonResponse(
         {
-            "seeds": seeds_with_info,
-            "products": products_with_info,
+            "seeds": ShopSeedSerializer(seeds_data, many=True).data,
+            "products": products_data,
         },
         status=200,
     )

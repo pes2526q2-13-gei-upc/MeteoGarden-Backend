@@ -3,7 +3,6 @@ import urllib
 
 import requests
 from django.core.files.base import ContentFile
-from rembg import remove
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
@@ -23,6 +22,7 @@ STATE_DESCRIPTIONS = {
 
 
 def createPlantImages(scientificName):
+    from rembg import remove
 
     safe_name = scientificName.replace(" ", "_").lower()
     plant = Plant.objects.get(scientificName=scientificName)

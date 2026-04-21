@@ -144,7 +144,7 @@ STORAGES = {
 }
 
 # Public URL to access the photos
-MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/"
+MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:62057",

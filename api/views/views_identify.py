@@ -93,7 +93,9 @@ def identifyPlant(request):
         common_names = species.get("commonNames", [])
 
         family_data = species.get("family")
-        family_name = family_data.get("scientificNameWithoutAuthor") if family_data else None
+        family_name = (
+            family_data.get("scientificNameWithoutAuthor") if family_data else None
+        )
 
         if common_names:
             plant.commonName = common_names[0]

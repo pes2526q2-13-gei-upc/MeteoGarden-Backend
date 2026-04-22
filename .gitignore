@@ -3,7 +3,9 @@
 __pycache__/
 *.pyc
 db.sqlite3
+.postgres.env
 *.env
 staticfiles/
 media/
 
+firebase-key.json

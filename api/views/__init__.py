@@ -5,6 +5,8 @@ from .views_event import events  # noqa: F401
 from .views_identify import identifyPlant  # noqa: F401
 from .views_image import getUserAlbum  # noqa: F401
 from .views_info import importPlant  # noqa: F401
+from .views_notifications import save_fcm_token  # noqa: F401
+from .views_plantar_planta import plant_seed  # noqa: F401
 from .views_plantar_planta import delete_plant, plant_seed  # noqa: F401
 from .views_products import use_product  # noqa: F401
 from .views_profile_operations import (  # noqa: F401

@@ -9,6 +9,7 @@ from .views import (
     buy_item,
     collect_plant,
     current_weather,
+    delete_plant,
     delete_profile,
     edit_profile,
     events,
@@ -96,5 +97,10 @@ urlpatterns = [
     path("avatar/", getImages, name="avatar_images"),
     path("users/<str:username>/avatar", getUserAvatar, name="user_avatar"),
     path("users/<str:username>/save/avatar", saveAvatar, name="save_avatar"),
+    path(
+        "users/<str:username>/gardens/<str:garden_name>/pots/<int:pot_number>/delete/",
+        delete_plant,
+        name="delete_plant",
+    ),
     path("events/", events, name="events"),
 ]

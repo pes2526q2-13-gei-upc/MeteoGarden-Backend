@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from django.contrib.auth.models import AbstractUser
+from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -466,3 +467,18 @@ class ActiveProduct(models.Model):
         return timezone.now() < self.applied_at + timedelta(
             hours=self.product.durationHours
         )
+
+
+class Event(models.Model):
+    id = models.CharField(primary_key=True, max_length=50)
+    title = models.CharField(max_length=50)
+    subtitle = models.CharField(max_length=50, null=True, blank=True)
+    description = models.TextField()
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+    category = models.CharField(max_length=50)
+    price = models.PositiveIntegerField()
+    tags = ArrayField(models.CharField(max_length=100), default=list, blank=True)
+    image_url = models.ImageField(upload_to="events/", null=True, blank=True)
+    city = models.CharField(max_length=50)
+    street = models.CharField(max_length=50)

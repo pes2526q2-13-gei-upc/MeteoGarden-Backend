@@ -11,6 +11,7 @@ from .views import (
     current_weather,
     delete_profile,
     edit_profile,
+    events,
     garden_plants,
     get_profile,
     get_shop,
@@ -95,4 +96,5 @@ urlpatterns = [
     path("avatar/", getImages, name="avatar_images"),
     path("users/<str:username>/avatar", getUserAvatar, name="user_avatar"),
     path("users/<str:username>/save/avatar", saveAvatar, name="save_avatar"),
+    path("events/", events, name="events"),
 ]

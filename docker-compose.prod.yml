@@ -1,0 +1,32 @@
+volumes:
+  pgdata:
+  static_files:
+
+services:
+  pg:
+    image: postgres:16-alpine
+    container_name: meteogarden_pg
+    restart: unless-stopped
+    env_file:
+      - .postgres.env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: meteogarden_api
+    restart: unless-stopped
+    env_file:
+      - .django.env
+    depends_on:
+      pg:
+        condition: service_healthy
+    ports:
+      - "8000:8000"

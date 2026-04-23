@@ -125,7 +125,7 @@ class PotAdmin(admin.ModelAdmin):
 
 @admin.register(Avatar)
 class AvatarAdmin(admin.ModelAdmin):
-    list_display = ("user", "expression", "hairColor", "clothing")
+    list_display = ("user", "expression", "hair_color", "clothing")
     search_fields = ("user__username",)
 
 

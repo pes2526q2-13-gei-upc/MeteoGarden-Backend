@@ -80,31 +80,23 @@ class User(AbstractUser):
 
 
 class Avatar(models.Model):
-    user = models.OneToOneField(
-        User, on_delete=models.CASCADE, primary_key=True
-    )  # RT.1
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+
+    accessories = models.CharField(max_length=50, blank=True)
     body = models.CharField(max_length=50)
-    skinTone = models.CharField(max_length=50)
-    eyeColor = models.CharField(max_length=50)
-    expression = models.CharField(max_length=50, choices=AvatarExpression.choices)
-    hairColor = models.CharField(max_length=50)
-    hairStyle = models.CharField(max_length=50)
-    facialHair = models.CharField(max_length=50, blank=True)
-    accessories = models.JSONField(default=list, blank=True)
     clothing = models.CharField(max_length=50)
+    eye = models.CharField(max_length=50)
+    expression = models.CharField(max_length=50)
+    expression_variant = models.CharField(max_length=50, default="0")
 
-    def addAccessory(self, accessory):
-        if accessory not in self.accessories:
-            self.accessories.append(accessory)
-            self.save()
+    hair_color = models.CharField(max_length=50)
+    hair_style = models.CharField(max_length=50)
 
-    def removeAccessory(self, accessory):
-        if accessory in self.accessories:
-            self.accessories.remove(accessory)
-            self.save()
+    facial_hair = models.CharField(max_length=50, blank=True)
+    facial_hair_color = models.CharField(max_length=50, blank=True)
 
     def __str__(self):
-        return self.user.username
+        return f"Avatar de {self.user.username}"
 
 
 class Inventory(models.Model):

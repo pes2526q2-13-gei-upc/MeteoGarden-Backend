@@ -82,17 +82,17 @@ class User(AbstractUser):
 class Avatar(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
 
-    accessories = models.CharField(max_length=50, blank=True)
+    accessories = models.IntegerField(default=0, blank=True)
     body = models.CharField(max_length=50)
-    clothing = models.CharField(max_length=50)
-    eye = models.CharField(max_length=50)
+    clothing = models.IntegerField(default=0)
+    eye = models.IntegerField(default=0)
     expression = models.CharField(max_length=50)
-    expression_variant = models.CharField(max_length=50, default="0")
+    expression_variant = models.IntegerField(default=0)
 
     hair_color = models.CharField(max_length=50)
-    hair_style = models.CharField(max_length=50)
+    hair_style = models.IntegerField(default=0)
 
-    facial_hair = models.CharField(max_length=50, blank=True)
+    facial_hair = models.IntegerField(default=0, blank=True)
     facial_hair_color = models.CharField(max_length=50, blank=True)
 
     def __str__(self):

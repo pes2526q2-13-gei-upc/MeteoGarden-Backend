@@ -114,9 +114,9 @@ class AvatarViewsTests(APITestCase):
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
         avatar = Avatar.objects.get(user=self.user)
-        self.assertEqual(avatar.body, 3)
+        self.assertEqual(avatar.body, '3')
         self.assertEqual(avatar.expression, "sad")
-        self.assertEqual(avatar.expression_variant, 2)
+        self.assertEqual(avatar.expression_variant, '2')
 
         data = res.json()
         self.assertTrue(data["body"].endswith("/avatar/body/3.png"))
@@ -145,5 +145,5 @@ class AvatarViewsTests(APITestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
         avatar = Avatar.objects.get(user=self.user)
-        self.assertEqual(avatar.body, 4)
+        self.assertEqual(avatar.body, '4')
         self.assertEqual(avatar.hair_color, "dark")

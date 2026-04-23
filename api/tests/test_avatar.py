@@ -90,7 +90,11 @@ class AvatarViewsTests(APITestCase):
 
         self.assertIn(
             res.status_code,
-            (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN, status.HTTP_404_NOT_FOUND),
+            (
+                status.HTTP_401_UNAUTHORIZED,
+                status.HTTP_403_FORBIDDEN,
+                status.HTTP_404_NOT_FOUND,
+            ),
         )
 
     def test_save_avatar_post_creates_avatar_and_returns_201(self):
@@ -114,9 +118,9 @@ class AvatarViewsTests(APITestCase):
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
         avatar = Avatar.objects.get(user=self.user)
-        self.assertEqual(avatar.body, '3')
+        self.assertEqual(avatar.body, "3")
         self.assertEqual(avatar.expression, "sad")
-        self.assertEqual(avatar.expression_variant, '2')
+        self.assertEqual(avatar.expression_variant, "2")
 
         data = res.json()
         self.assertTrue(data["body"].endswith("/avatar/body/3.png"))
@@ -140,10 +144,12 @@ class AvatarViewsTests(APITestCase):
         )
 
         url = reverse("save_avatar", kwargs={"username": self.user.username})
-        res = self.client.put(url, data={"body": 4, "hair_color": "dark"}, format="json")
+        res = self.client.put(
+            url, data={"body": 4, "hair_color": "dark"}, format="json"
+        )
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
         avatar = Avatar.objects.get(user=self.user)
-        self.assertEqual(avatar.body, '4')
+        self.assertEqual(avatar.body, "4")
         self.assertEqual(avatar.hair_color, "dark")

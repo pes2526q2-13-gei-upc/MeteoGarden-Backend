@@ -6,6 +6,7 @@ URL configuration for api.
 from django.urls import path
 
 from .views import (
+    avatar,
     buy_item,
     collect_plant,
     current_weather,
@@ -16,7 +17,6 @@ from .views import (
     get_profile,
     get_shop,
     get_stations,
-    avatar,
     getUserAlbum,
     getUserAvatar,
     google_register,

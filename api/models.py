@@ -77,7 +77,7 @@ class User(AbstractUser):
 
     def increment_plants(self):
         self.numPlantsCollected = self.numPlantsCollected + 1
-        self.save(update_fields=['numPlantsCollected'])
+        self.save(update_fields=["numPlantsCollected"])
 
     def __str__(self):
         return self.username

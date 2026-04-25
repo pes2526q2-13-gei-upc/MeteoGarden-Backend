@@ -19,9 +19,8 @@ class TestProductsLogicComprehensive:
 
     @pytest.fixture
     def plant_base(self):
-        # Fem servir un MagicMock però amb atributs de dades reals
         plant = MagicMock()
-        plant.id = 1  # ID numèric per evitar l'error de Django
+        plant.id = 1
         plant.healthLevel = 50.0
         plant.waterLevel = 50.0
         plant.growthPhase = GrowthState.SEED
@@ -31,8 +30,6 @@ class TestProductsLogicComprehensive:
         plant.plant.maxTemperature = 25.0
         plant.plant.canFlower = True
         return plant
-
-    # --- 1. LÒGICA D'APLICACIÓ DE PRODUCTES ---
 
     def test_apply_health_overflow(self, mock_user, plant_base):
         plant_base.healthLevel = 95.0
@@ -44,7 +41,6 @@ class TestProductsLogicComprehensive:
     def test_apply_growth_phase_jump(self, mock_user, plant_base):
         plant_base.growthPhase = GrowthState.SEED
         plant_base.healthLevel = 100.0
-        # Simulem que el producte dóna 200 hores de cop
         with patch('api.models.Product.objects.get') as m:
             m.return_value = MagicMock(isInstant=True, effectType="growth", value=200)
             apply_product(mock_user, plant_base, "Fertilitzant")
@@ -61,10 +57,7 @@ class TestProductsLogicComprehensive:
             assert plant_base.growthPhase != GrowthState.DEAD
             assert plant_base.plantedAt > original_planted_at
 
-    # --- 2. LÒGICA DE SIMULACIÓ I PROTECCIONS ---
-
     def test_extreme_weather_damage_without_protection(self, plant_base):
-        # IMPORTANT: timestamp ha de ser una data real, no un MagicMock
         reading = MagicMock()
         reading.temperature = 0.0
         reading.precipitation = 0.0
@@ -100,7 +93,6 @@ class TestProductsLogicComprehensive:
             mock_filter.return_value = [eff_sun, eff_wind]
             _apply_reading(plant_base, reading, 5.0)
 
-            # L'aigua només hauria de baixar la base (4% * 5h = 20%) -> 50 - 20 = 30
             assert plant_base.waterLevel >= 30.0
             assert plant_base.healthLevel >= 50.0
 
@@ -126,14 +118,13 @@ class TestProductsLogicComprehensive:
         reading.precipitation = 0.0
         reading.solarIrradiance = 200.0
         reading.windSpeed = 0.0
-        reading.relativeHumidity = 60.0  # Afegim això per evitar el TypeError
+        reading.relativeHumidity = 60.0
         reading.timestamp = timezone.now()
 
         with patch('api.models.ActiveProduct.objects.filter') as mock_filter:
             mock_filter.return_value = []
             _apply_reading(plant_base, reading, 1.0)
 
-            # Comprovem que la lògica de mort s'ha disparat
             assert plant_base.growthPhase == GrowthState.DEAD
             assert plant_base.healthLevel == 0.0
 
@@ -142,7 +133,6 @@ class TestProductsLogicComprehensive:
         plant_base.growthPhase = GrowthState.SEED
         current_time = plant_base.plantedAt + timedelta(hours=100)
 
-        # Cridem directament la funció de càlcul de fase
         from api.plant_simulation import _recalculate_phase
         new_phase = _recalculate_phase(plant_base, plant_base.healthLevel, current_time)
 

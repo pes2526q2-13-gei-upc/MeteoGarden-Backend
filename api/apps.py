@@ -8,7 +8,8 @@ class ApiConfig(AppConfig):
     def ready(self):
         from django.core.management import call_command
 
-        try:
-            call_command("sync_products")
-        except Exception:
-            pass
+        for command in ("sync_plants", "sync_products", "sync_shop", "sync_images"):
+            try:
+                call_command(command)
+            except Exception:
+                pass

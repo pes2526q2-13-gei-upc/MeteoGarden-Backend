@@ -1,4 +1,6 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from api.models import Avatar, User
@@ -51,19 +53,21 @@ def getImages():
 
 
 @api_view(["GET"])
+@permission_classes([AllowAny])
 def avatar(request):
     return Response(getImages())
 
 
 @api_view(["GET"])
-def getUserAvatar(username, request):
+@permission_classes([AllowAny])
+def getUserAvatar(request, username):
 
     try:
         user = User.objects.get(username=username)
     except User.DoesNotExist:
         return Response({"user": "User not found."}, status=404)
 
-    avatar = Avatar.objects.filter(user=user)
+    avatar = get_object_or_404(Avatar, user=user)
 
     data = {
         "accessories": f"{MEDIA_URL}/avatar/accessories/{avatar.accessories}.png",
@@ -79,9 +83,9 @@ def getUserAvatar(username, request):
 
 
 @api_view(["POST", "PUT"])
-def saveAvatar(request):
+def saveAvatar(request, username):
     try:
-        user = User.objects.get(username=request.user.username)
+        user = User.objects.get(username=username)
     except User.DoesNotExist:
         return Response({"error": "User not found."}, status=404)
 

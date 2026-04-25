@@ -1,5 +1,5 @@
 from .views import health  # noqa: F401
-from .views_avatar import getImages, getUserAvatar, saveAvatar  # noqa: F401
+from .views_avatar import avatar, getUserAvatar, saveAvatar  # noqa: F401
 from .views_collect import collect_plant  # noqa: F401
 from .views_identify import identifyPlant  # noqa: F401
 from .views_image import getUserAlbum  # noqa: F401

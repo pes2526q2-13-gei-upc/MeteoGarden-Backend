@@ -1,9 +1,11 @@
-import pytest
-from unittest.mock import MagicMock, patch
 from datetime import timedelta
+from unittest.mock import MagicMock, patch
+
+import pytest
 from django.utils import timezone
-from api.models import GrowthState, Product, ActiveProduct
-from api.plant_simulation import apply_product, _apply_reading
+
+from api.models import ActiveProduct, GrowthState, Product
+from api.plant_simulation import _apply_reading, apply_product
 
 
 @pytest.mark.django_db
@@ -13,7 +15,10 @@ class TestProductsLogicComprehensive:
     def mock_user(self):
         user = MagicMock()
         user.inventory.products = {
-            "Poció Vida": 1, "Fertilitzant": 1, "Escut": 1, "Fènix": 1
+            "Poció Vida": 1,
+            "Fertilitzant": 1,
+            "Escut": 1,
+            "Fènix": 1,
         }
         return user
 
@@ -33,7 +38,7 @@ class TestProductsLogicComprehensive:
 
     def test_apply_health_overflow(self, mock_user, plant_base):
         plant_base.healthLevel = 95.0
-        with patch('api.models.Product.objects.get') as m:
+        with patch("api.models.Product.objects.get") as m:
             m.return_value = MagicMock(isInstant=True, effectType="health", value=20)
             apply_product(mock_user, plant_base, "Poció Vida")
             assert plant_base.healthLevel == 100.0
@@ -41,7 +46,7 @@ class TestProductsLogicComprehensive:
     def test_apply_growth_phase_jump(self, mock_user, plant_base):
         plant_base.growthPhase = GrowthState.SEED
         plant_base.healthLevel = 100.0
-        with patch('api.models.Product.objects.get') as m:
+        with patch("api.models.Product.objects.get") as m:
             m.return_value = MagicMock(isInstant=True, effectType="growth", value=200)
             apply_product(mock_user, plant_base, "Fertilitzant")
             assert plant_base.growthPhase in (GrowthState.MATURE, GrowthState.FLOWERING)
@@ -51,7 +56,7 @@ class TestProductsLogicComprehensive:
         plant_base.diedAt = timezone.now() - timedelta(hours=10)
         original_planted_at = plant_base.plantedAt
 
-        with patch('api.models.Product.objects.get') as m:
+        with patch("api.models.Product.objects.get") as m:
             m.return_value = MagicMock(isInstant=True, effectType="revive")
             apply_product(mock_user, plant_base, "Fènix")
             assert plant_base.growthPhase != GrowthState.DEAD
@@ -66,7 +71,7 @@ class TestProductsLogicComprehensive:
         reading.relativeHumidity = 60.0
         reading.timestamp = timezone.now()
 
-        with patch('api.models.ActiveProduct.objects.filter') as mock_filter:
+        with patch("api.models.ActiveProduct.objects.filter") as mock_filter:
             mock_filter.return_value = []  # Cap protecció
             initial_health = plant_base.healthLevel
             _apply_reading(plant_base, reading, 1.0)
@@ -89,7 +94,7 @@ class TestProductsLogicComprehensive:
         eff_wind.product.effectType = "wind_protection"
         eff_wind.is_active.return_value = True
 
-        with patch('api.models.ActiveProduct.objects.filter') as mock_filter:
+        with patch("api.models.ActiveProduct.objects.filter") as mock_filter:
             mock_filter.return_value = [eff_sun, eff_wind]
             _apply_reading(plant_base, reading, 5.0)
 
@@ -106,7 +111,7 @@ class TestProductsLogicComprehensive:
         reading.relativeHumidity = 60.0
         reading.timestamp = timezone.now()
 
-        with patch('api.models.ActiveProduct.objects.filter') as mock_filter:
+        with patch("api.models.ActiveProduct.objects.filter") as mock_filter:
             mock_filter.return_value = []
             _apply_reading(plant_base, reading, 1.0)
             assert plant_base.healthLevel < 50.0
@@ -121,7 +126,7 @@ class TestProductsLogicComprehensive:
         reading.relativeHumidity = 60.0
         reading.timestamp = timezone.now()
 
-        with patch('api.models.ActiveProduct.objects.filter') as mock_filter:
+        with patch("api.models.ActiveProduct.objects.filter") as mock_filter:
             mock_filter.return_value = []
             _apply_reading(plant_base, reading, 1.0)
 
@@ -134,6 +139,7 @@ class TestProductsLogicComprehensive:
         current_time = plant_base.plantedAt + timedelta(hours=100)
 
         from api.plant_simulation import _recalculate_phase
+
         new_phase = _recalculate_phase(plant_base, plant_base.healthLevel, current_time)
 
         assert new_phase == GrowthState.SEED

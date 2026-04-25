@@ -75,6 +75,10 @@ class User(AbstractUser):
     def numPlantsUnlocked(self):
         return self.albumentry_set.count()
 
+    def increment_plants(self):
+        self.numPlantsCollected = self.numPlantsCollected + 1
+        self.save(update_fields=["numPlantsCollected"])
+
     def __str__(self):
         return self.username
 

@@ -108,6 +108,7 @@ class ShopSeedSerializer(serializers.Serializer):
         image = Image.objects.filter(plant=plant, growthPhase="seed").first()
         return image.url.url if image and image.url else None
 
+
 class InventoryProductSerializer(serializers.Serializer):
     productName = serializers.CharField()
     amount = serializers.IntegerField()

@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
-from api.models import Product
+
 from api.game_config.products import PRODUCTS
+from api.models import Product
 
 
 class Command(BaseCommand):
@@ -8,9 +9,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         for p in PRODUCTS:
-            Product.objects.update_or_create(
-                name=p["name"],
-                defaults=p
-            )
+            Product.objects.update_or_create(name=p["name"], defaults=p)
 
         self.stdout.write(self.style.SUCCESS("Products synced successfully"))

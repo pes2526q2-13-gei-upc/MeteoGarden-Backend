@@ -1,6 +1,7 @@
-from django.test import TestCase
 from django.contrib.auth import get_user_model
-from api.models import Product, PlantInGarden, ActiveProduct
+from django.test import TestCase
+
+from api.models import ActiveProduct, PlantInGarden, Product
 from api.plant_simulation import apply_product
 
 User = get_user_model()
@@ -19,18 +20,18 @@ class ProductLogicTest(TestCase):
         )
 
         # mock inventory (important!)
-        self.user.inventory = type("obj", (), {
-            "products": ["Small Heal", "Hydration Shield"],
-            "removeProduct": lambda *args, **kwargs: None
-        })()
+        self.user.inventory = type(
+            "obj",
+            (),
+            {
+                "products": ["Small Heal", "Hydration Shield"],
+                "removeProduct": lambda *args, **kwargs: None,
+            },
+        )()
 
     def test_instant_health_product(self):
         Product.objects.create(
-            name="Small Heal",
-            effectType="health",
-            value=20,
-            isInstant=True,
-            price=10
+            name="Small Heal", effectType="health", value=20, isInstant=True, price=10
         )
 
         apply_product(self.user, self.plant, "Small Heal")
@@ -43,7 +44,7 @@ class ProductLogicTest(TestCase):
             effectType="water_protection",
             durationHours=24,
             isInstant=False,
-            price=10
+            price=10,
         )
 
         apply_product(self.user, self.plant, "Hydration Shield")
@@ -59,20 +60,20 @@ class ProductLogicTest(TestCase):
             effectType="water_protection",
             durationHours=24,
             isInstant=False,
-            price=10
+            price=10,
         )
 
         apply_product(self.user, self.plant, "Hydration Shield")
         apply_product(self.user, self.plant, "Hydration Shield")
 
-        self.assertEqual(
-            ActiveProduct.objects.filter(plant=self.plant).count(),
-            1
-        )
+        self.assertEqual(ActiveProduct.objects.filter(plant=self.plant).count(), 1)
 
-#sim
-from api.plant_simulation import _apply_reading
+
 from api.models import WeatherReading
+
+# sim
+from api.plant_simulation import _apply_reading
+
 
 def test_hydration_shield_prevents_water_loss(self):
     product = Product.objects.create(
@@ -80,20 +81,17 @@ def test_hydration_shield_prevents_water_loss(self):
         effectType="water_protection",
         durationHours=24,
         isInstant=False,
-        price=10
+        price=10,
     )
 
-    ActiveProduct.objects.create(
-        plant=self.plant,
-        product=product
-    )
+    ActiveProduct.objects.create(plant=self.plant, product=product)
 
     reading = WeatherReading(
         temperature=30,
         precipitation=0,
         solarIrradiance=500,
         windSpeed=2,
-        relativeHumidity=20
+        relativeHumidity=20,
     )
 
     water_before = self.plant.waterLevel

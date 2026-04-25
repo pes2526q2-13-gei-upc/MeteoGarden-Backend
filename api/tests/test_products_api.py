@@ -1,4 +1,5 @@
-from django.test import TestCase, Client
+from django.test import Client, TestCase
+
 
 class UseProductAPITest(TestCase):
     def setUp(self):
@@ -12,24 +13,25 @@ class UseProductAPITest(TestCase):
             effectType="water_protection",
             durationHours=24,
             isInstant=False,
-            price=10
+            price=10,
         )
 
         # crea plant amb pot/garden segons el teu model
 
-        self.user.inventory = type("obj", (), {
-            "products": ["Hydration Shield"],
-            "removeProduct": lambda *args, **kwargs: None
-        })()
+        self.user.inventory = type(
+            "obj",
+            (),
+            {
+                "products": ["Hydration Shield"],
+                "removeProduct": lambda *args, **kwargs: None,
+            },
+        )()
 
     def test_use_product_returns_active_effect_data(self):
         response = self.client.post(
             "/api/use_product",
-            data={
-                "pot_id": 1,
-                "product_name": "Hydration Shield"
-            },
-            content_type="application/json"
+            data={"pot_id": 1, "product_name": "Hydration Shield"},
+            content_type="application/json",
         )
 
         self.assertEqual(response.status_code, 200)
@@ -42,9 +44,7 @@ class UseProductAPITest(TestCase):
 
     def test_missing_data_returns_400(self):
         response = self.client.post(
-            "/api/use_product",
-            data={},
-            content_type="application/json"
+            "/api/use_product", data={}, content_type="application/json"
         )
 
         self.assertEqual(response.status_code, 400)
@@ -53,11 +53,8 @@ class UseProductAPITest(TestCase):
     def test_plant_not_found_returns_404(self):
         response = self.client.post(
             "/api/use_product",
-            data={
-                "pot_id": 999,
-                "product_name": "Hydration Shield"
-            },
-            content_type="application/json"
+            data={"pot_id": 999, "product_name": "Hydration Shield"},
+            content_type="application/json",
         )
 
         self.assertEqual(response.status_code, 404)
@@ -65,11 +62,8 @@ class UseProductAPITest(TestCase):
     def test_product_not_found_returns_400(self):
         response = self.client.post(
             "/api/use_product",
-            data={
-                "pot_id": 1,
-                "product_name": "Fake Product"
-            },
-            content_type="application/json"
+            data={"pot_id": 1, "product_name": "Fake Product"},
+            content_type="application/json",
         )
 
         self.assertEqual(response.status_code, 400)

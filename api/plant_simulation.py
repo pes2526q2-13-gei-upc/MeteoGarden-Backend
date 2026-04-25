@@ -3,12 +3,12 @@ from datetime import timedelta
 from django.utils import timezone
 
 from .models import (
+    ActiveProduct,
     GrowthState,
     PlantInGarden,
     Product,
     Station,
     WeatherReading,
-    ActiveProduct,
 )
 
 # Paràmetres de simulació
@@ -113,8 +113,7 @@ def _apply_reading(
 
     # mirar si la planta té alguna poció activa
     active_effects = [
-        e for e in ActiveProduct.objects.filter(plant=pig)
-        if e.is_active()
+        e for e in ActiveProduct.objects.filter(plant=pig) if e.is_active()
     ]
 
     no_water_loss = False
@@ -176,7 +175,6 @@ def _apply_reading(
                 MAX_HUMIDITY_EXTRA_LOSS,
             )
             loss += humidity_extra
-
 
         net_water_per_hour = -loss
 
@@ -332,14 +330,8 @@ def apply_product(user, plant, product_name):
                 plant.diedAt = None
 
     else:
-        ActiveProduct.objects.filter(
-            plant=plant,
-            product=product
-        ).delete()
+        ActiveProduct.objects.filter(plant=plant, product=product).delete()
 
-        ActiveProduct.objects.create(
-            plant=plant,
-            product=product
-        )
+        ActiveProduct.objects.create(plant=plant, product=product)
 
     plant.save()

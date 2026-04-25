@@ -3,15 +3,15 @@ from datetime import timedelta
 
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
 from api.models import (
-    PlantInGarden,
     ActiveProduct,
+    PlantInGarden,
+    Pot,
     Product,
     User,
-    Pot,
 )
 from api.plant_simulation import apply_product
 
@@ -34,10 +34,7 @@ def use_product(request):
     try:
         user = get_object_or_404(User, username=username)
         pot = get_object_or_404(
-            Pot,
-            garden__user=user,
-            garden__name=garden_name,
-            number=pot_number
+            Pot, garden__user=user, garden__name=garden_name, number=pot_number
         )
         plant = get_object_or_404(PlantInGarden, pot=pot)
         product = get_object_or_404(Product, name=product_name)
@@ -53,23 +50,24 @@ def use_product(request):
                 "health": plant.healthLevel,
                 "water": plant.waterLevel,
                 "growthPhase": plant.growthPhase,
-            }
+            },
         }
 
         if not product.isInstant:
-            active = ActiveProduct.objects.filter(
-                plant=plant,
-                product=product
-            ).latest("applied_at")
+            active = ActiveProduct.objects.filter(plant=plant, product=product).latest(
+                "applied_at"
+            )
 
             applied_at = active.applied_at
             expires_at = applied_at + timedelta(hours=product.durationHours or 0)
 
-            response.update({
-                "durationHours": product.durationHours,
-                "appliedAt": applied_at.isoformat(),
-                "expiresAt": expires_at.isoformat(),
-            })
+            response.update(
+                {
+                    "durationHours": product.durationHours,
+                    "appliedAt": applied_at.isoformat(),
+                    "expiresAt": expires_at.isoformat(),
+                }
+            )
 
         return JsonResponse(response)
 

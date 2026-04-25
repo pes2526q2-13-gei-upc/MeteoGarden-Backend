@@ -1,5 +1,3 @@
-from django.db import migrations
-
 PRODUCTS = [
     {
         "name": "Small Heal",

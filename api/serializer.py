@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from api.models import Image, Plant, Pot
+from api.models import Image, Plant, Pot, Product
 
 
 class PotSerializer(serializers.ModelSerializer):
@@ -107,3 +107,16 @@ class ShopSeedSerializer(serializers.Serializer):
             return None
         image = Image.objects.filter(plant=plant, growthPhase="seed").first()
         return image.url.url if image and image.url else None
+
+class InventoryProductSerializer(serializers.Serializer):
+    productName = serializers.CharField()
+    amount = serializers.IntegerField()
+    image_url = serializers.SerializerMethodField()
+
+    def get_image_url(self, obj):
+        product_name = obj.get("productName")
+        try:
+            product = Product.objects.get(name=product_name)
+        except Product.DoesNotExist:
+            return None
+        return product.image_url.url if product.image_url else None

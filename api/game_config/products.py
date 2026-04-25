@@ -7,7 +7,7 @@ PRODUCTS = [
         "isInstant": True,
         "price": 10,
         "rarity": "common",
-        "image_url": "pocio_salut_mini",
+        "image_url": "https://meteogarden-images.s3.eu-south-2.amazonaws.com/products/pocio_salut_mini.png",
     },
     {
         "name": "Medium Heal",
@@ -17,7 +17,7 @@ PRODUCTS = [
         "isInstant": True,
         "price": 25,
         "rarity": "common",
-        "image_url": "pocio_salut",
+        "image_url": "https://meteogarden-images.s3.eu-south-2.amazonaws.com/products/pocio_salut.png",
     },
     {
         "name": "Full Heal",
@@ -27,7 +27,7 @@ PRODUCTS = [
         "isInstant": True,
         "price": 50,
         "rarity": "rare",
-        "image_url": "pocio_salut_max",
+        "image_url": "https://meteogarden-images.s3.eu-south-2.amazonaws.com/products/pocio_salut_max.jpeg",
     },
     {
         "name": "Phase Boost",
@@ -37,7 +37,7 @@ PRODUCTS = [
         "isInstant": True,
         "price": 80,
         "rarity": "rare",
-        "image_url": "pocio_creixement",
+        "image_url": "https://meteogarden-images.s3.eu-south-2.amazonaws.com/products/pocio_creixement.png",
     },
     {
         "name": "Revive",
@@ -47,7 +47,7 @@ PRODUCTS = [
         "isInstant": True,
         "price": 90,
         "rarity": "epic",
-        "image_url": "pocio_reviure",
+        "image_url": "https://meteogarden-images.s3.eu-south-2.amazonaws.com/products/pocio_reviure.jpeg",
     },
     {
         "name": "Hydration Shield",
@@ -58,7 +58,7 @@ PRODUCTS = [
         "isInstant": False,
         "price": 30,
         "rarity": "common",
-        "image_url": "pocio_aigua",
+        "image_url": "https://meteogarden-images.s3.eu-south-2.amazonaws.com/products/pocio_aigua.png",
     },
     {
         "name": "Protection Shield",
@@ -69,7 +69,7 @@ PRODUCTS = [
         "isInstant": False,
         "price": 60,
         "rarity": "rare",
-        "image_url": "pocio_meteo",
+        "image_url": "https://meteogarden-images.s3.eu-south-2.amazonaws.com/products/pocio_meteo.jpeg",
     },
     {
         "name": "Solar Shield",
@@ -79,6 +79,7 @@ PRODUCTS = [
         "isInstant": False,
         "price": 20,
         "rarity": "common",
+        "image_url": "https://meteogarden-images.s3.eu-south-2.amazonaws.com/products/solar_shield.png",
     },
     {
         "name": "Wind Shield",
@@ -88,6 +89,7 @@ PRODUCTS = [
         "isInstant": False,
         "price": 20,
         "rarity": "common",
+        "image_url": "https://meteogarden-images.s3.eu-south-2.amazonaws.com/products/wind_shield.png",
     },
     {
         "name": "Temperature Shield",
@@ -97,5 +99,6 @@ PRODUCTS = [
         "isInstant": False,
         "price": 20,
         "rarity": "rare",
+        "image_url": "https://meteogarden-images.s3.eu-south-2.amazonaws.com/products/temp_shield.png",
     },
 ]

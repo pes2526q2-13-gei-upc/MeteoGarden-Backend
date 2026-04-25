@@ -445,12 +445,12 @@ class Product(models.Model):
     value = models.FloatField(null=True, blank=True)
     durationHours = models.FloatField(null=True, blank=True)
 
-    price = models.PositiveIntegerField()
+    price = models.PositiveIntegerField() #por si acaso
     isInstant = models.BooleanField(default=True)
     image_url = models.ImageField(
         upload_to="products/", null=True, blank=True  # subcarpeta dentro del bucket
     )
-    # rarity = models.CharField(max_length=20, default='common')
+    rarity = models.CharField(max_length=20, default='common')
     # cooldown_hours = models.FloatField(default=0)
 
 
@@ -466,3 +466,6 @@ class ActiveProduct(models.Model):
         return timezone.now() < self.applied_at + timedelta(
             hours=self.product.durationHours
         )
+
+    class Meta:
+        ordering = ["-applied_at"]

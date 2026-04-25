@@ -1,31 +1,46 @@
 import json
+from datetime import timedelta
+
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_POST
-from datetime import timedelta
 from django.views.decorators.csrf import csrf_exempt
-from api.models import PlantInGarden, ActiveProduct, Product, User
+
+from api.models import (
+    PlantInGarden,
+    ActiveProduct,
+    Product,
+    User,
+    Pot,
+)
 from api.plant_simulation import apply_product
+
 
 @csrf_exempt
 @require_POST
 def use_product(request):
-    body = json.loads(request.body)
+    try:
+        body = json.loads(request.body)
+    except Exception:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
 
     username = body.get("username")
-    pot_id = body.get("pot_id")
+    garden_name = body.get("garden_name")
+    pot_number = body.get("pot_number")
     product_name = body.get("product_name")
 
-    if not pot_id or not product_name:
+    if not username or not garden_name or not pot_number or not product_name:
         return JsonResponse({"error": "Missing data"}, status=400)
-
     try:
         user = get_object_or_404(User, username=username)
-        plant = PlantInGarden.objects.get(
-            pot__id=pot_id,
-            pot__garden__user=user
+        pot = get_object_or_404(
+            Pot,
+            garden__user=user,
+            garden__name=garden_name,
+            number=pot_number
         )
-        product = Product.objects.get(name=product_name)
+        plant = get_object_or_404(PlantInGarden, pot=pot)
+        product = get_object_or_404(Product, name=product_name)
 
         apply_product(user, plant, product_name)
         plant.refresh_from_db()
@@ -58,11 +73,8 @@ def use_product(request):
 
         return JsonResponse(response)
 
-    except PlantInGarden.DoesNotExist:
-        return JsonResponse({"error": "Plant not found"}, status=404)
-
-    except Product.DoesNotExist:
-        return JsonResponse({"error": "Product not found"}, status=404)
+    except ActiveProduct.DoesNotExist:
+        return JsonResponse({"error": "Active product not found"}, status=404)
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=400)

@@ -7,7 +7,11 @@ from django.views.decorators.csrf import csrf_exempt
 
 from api.models import Garden, GrowthState, Inventory, Pot, Station, User
 from api.plant_simulation import simulate_plant
-from api.serializer import InventorySeedSerializer, PotSerializer
+from api.serializer import (
+    InventoryProductSerializer,
+    InventorySeedSerializer,
+    PotSerializer,
+)
 from api.xema_sync import ensure_station_synced
 
 
@@ -209,11 +213,9 @@ def user_products(request, username):
     inventory, _ = Inventory.objects.get_or_create(user=user)
 
     products_data = [
-        {
-            "productName": product,
-            "amount": amount,
-        }
+        {"productName": product, "amount": amount}
         for product, amount in sorted(inventory.products.items())
     ]
 
-    return JsonResponse(products_data, safe=False)
+    serializer = InventoryProductSerializer(products_data, many=True)
+    return JsonResponse(serializer.data, safe=False)

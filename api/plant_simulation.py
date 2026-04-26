@@ -3,6 +3,7 @@ from datetime import timedelta
 from django.utils import timezone
 
 from .models import (
+    ActiveProduct,
     GrowthState,
     PlantInGarden,
     Product,
@@ -109,7 +110,33 @@ def _apply_reading(
     reading: WeatherReading,
     interval_hours: float,
 ) -> PlantInGarden:
-    # Si variable no disponible valors optims
+
+    # mirar si la planta té alguna poció activa
+    active_effects = [
+        e for e in ActiveProduct.objects.filter(plant=pig) if e.is_active()
+    ]
+
+    no_water_loss = False
+    ignore_weather_damage = False
+    ignore_solar = False
+    ignore_humidity = False
+    ignore_wind = False
+    ignore_temperature = False
+
+    for effect in active_effects:
+        if effect.product.effectType == "water_protection":
+            no_water_loss = True
+        if effect.product.effectType == "meteo_protection":
+            ignore_weather_damage = True
+        if effect.product.effectType == "sun_protection":
+            ignore_solar = True
+            ignore_humidity = True
+        if effect.product.effectType == "wind_protection":
+            ignore_wind = True
+        if effect.product.effectType == "temp_protection":
+            ignore_temperature = True
+
+    # Si variable meteo no disponible valors optims
     temperature = reading.temperature if reading.temperature is not None else 20.0
     precipitation = reading.precipitation if reading.precipitation is not None else 0.0
     solar = (
@@ -130,17 +157,19 @@ def _apply_reading(
             precipitation * RAIN_MM_TO_WATER_PERCENT,
             MAX_RAIN_WATER_GAIN,
         )
+    elif no_water_loss:
+        loss = 0
     else:
         loss = BASE_WATER_LOSS_PER_HOUR
 
-        if solar > SOLAR_BASE_WM2:
+        if solar > SOLAR_BASE_WM2 and not ignore_solar:
             solar_extra = min(
                 (solar - SOLAR_BASE_WM2) * SOLAR_WM2_TO_WATER_LOSS,
                 MAX_SOLAR_EXTRA_LOSS,
             )
             loss += solar_extra
 
-        if humidity < HUMIDITY_OPTIMAL:
+        if humidity < HUMIDITY_OPTIMAL and not ignore_humidity:
             humidity_extra = min(
                 (HUMIDITY_OPTIMAL - humidity) * HUMIDITY_TO_WATER_LOSS,
                 MAX_HUMIDITY_EXTRA_LOSS,
@@ -157,33 +186,35 @@ def _apply_reading(
     min_temp = pig.plant.minTemperature
     max_temp = pig.plant.maxTemperature
 
-    if temperature < min_temp:
-        degrees_out = min_temp - temperature
-        health_delta_per_hour -= min(
-            degrees_out * TEMP_DEGREE_TO_HEALTH_LOSS,
-            MAX_TEMP_HEALTH_LOSS,
-        )
-    elif temperature > max_temp:
-        degrees_out = temperature - max_temp
-        health_delta_per_hour -= min(
-            degrees_out * TEMP_DEGREE_TO_HEALTH_LOSS,
-            MAX_TEMP_HEALTH_LOSS,
-        )
+    if not ignore_weather_damage:
+        if not ignore_temperature:
+            if temperature < min_temp:
+                degrees_out = min_temp - temperature
+                health_delta_per_hour -= min(
+                    degrees_out * TEMP_DEGREE_TO_HEALTH_LOSS,
+                    MAX_TEMP_HEALTH_LOSS,
+                )
+            elif temperature > max_temp:
+                degrees_out = temperature - max_temp
+                health_delta_per_hour -= min(
+                    degrees_out * TEMP_DEGREE_TO_HEALTH_LOSS,
+                    MAX_TEMP_HEALTH_LOSS,
+                )
 
-    if wind > WIND_SAFE_MS:
-        health_delta_per_hour -= min(
-            (wind - WIND_SAFE_MS) * WIND_MS_TO_HEALTH_LOSS,
-            MAX_WIND_HEALTH_LOSS,
-        )
+        if wind > WIND_SAFE_MS and not ignore_wind:
+            health_delta_per_hour -= min(
+                (wind - WIND_SAFE_MS) * WIND_MS_TO_HEALTH_LOSS,
+                MAX_WIND_HEALTH_LOSS,
+            )
 
-    avg_water = (
-        pig.waterLevel + new_water
-    ) / 2.0  # nivell mitjà de l'aigua durant l'interval
-    if avg_water < DEHYDRATION_THRESHOLD:
-        health_delta_per_hour -= min(
-            (DEHYDRATION_THRESHOLD - avg_water) * DEHYDRATION_TO_HEALTH,
-            MAX_DEHYDRATION_HEALTH_LOSS,
-        )
+        avg_water = (
+            pig.waterLevel + new_water
+        ) / 2.0  # nivell mitjà de l'aigua durant l'interval
+        if avg_water < DEHYDRATION_THRESHOLD:
+            health_delta_per_hour -= min(
+                (DEHYDRATION_THRESHOLD - avg_water) * DEHYDRATION_TO_HEALTH,
+                MAX_DEHYDRATION_HEALTH_LOSS,
+            )
 
     # Recuperació si tot va bé
     if health_delta_per_hour == 0.0:
@@ -199,6 +230,7 @@ def _apply_reading(
         pig.healthLevel = 0.0
         pig.waterLevel = new_water
         pig.lastSimulatedAt = reading.timestamp
+        pig.diedAt = timezone.now()
         return pig
 
     # Actualitzar vives
@@ -268,50 +300,38 @@ def apply_product(user, plant, product_name):
 
     inventory.removeProduct(product_name, 1)
 
-    # puja vida
-    if product.effectType == "health":
-        plant.healthLevel = min(100, plant.healthLevel + (product.value or 0))
+    if product.isInstant:
 
-    # curar malaltia si es que ho fem
-    # elif product.effectType == "cure":
-    # placeholder per futur (plagues, etc.)
-    #    pass
+        # puja vida
+        if product.effectType == "health":
+            plant.healthLevel = min(100, plant.healthLevel + (product.value or 0))
 
-    # avança x hores del creixement de la planta
-    elif product.effectType == "growth":
-        hours = product.value or 24
-        plant.plantedAt -= timedelta(hours=hours)
-        new_phase = _recalculate_phase(plant, plant.healthLevel, timezone.now())
-        plant.growthPhase = new_phase
+        # avança x hores del creixement de la planta
+        elif product.effectType == "growth":
+            hours = product.value or 24
+            plant.plantedAt -= timedelta(hours=hours)
+            new_phase = _recalculate_phase(plant, plant.healthLevel, timezone.now())
+            plant.growthPhase = new_phase
 
-    # reviu la planta i li posa les hores que tenia abans de morir
-    elif product.effectType == "revive":
-        if plant.growthPhase == GrowthState.DEAD:
-            # plant.healthLevel = potion.value or 30
-            if plant.diedAt:
-                time_dead = timezone.now() - plant.diedAt
-                plant.plantedAt += time_dead
+        # reviu la planta i li posa les hores que tenia abans de morir
+        elif product.effectType == "revive":
+            if plant.growthPhase == GrowthState.DEAD:
+                if plant.diedAt:
+                    time_dead = timezone.now() - plant.diedAt
+                    plant.plantedAt += time_dead
 
-            # per a poder recalcular la fase
-            plant.growthPhase = GrowthState.SEED
+                # per a poder recalcular la fase
+                plant.growthPhase = GrowthState.SEED
 
-            plant.growthPhase = _recalculate_phase(
-                plant, plant.healthLevel, timezone.now()
-            )
+                plant.growthPhase = _recalculate_phase(
+                    plant, plant.healthLevel, timezone.now()
+                )
 
-            plant.diedAt = None
+                plant.diedAt = None
 
-    # elif product.effectType == "growth2":
-    #    ActiveProduct.objects.create(plant=plant, product=product)
+    else:
+        ActiveProduct.objects.filter(plant=plant, product=product).delete()
 
-    # curar malaltia si es que ho fem
-    # elif product.effectType == "cure":
-    # placeholder per futur (plagues, etc.)
-    #    pass
-
-    # pocions mixtes potser en un futur
-    # elif potion.effectType == "mixed":
-    #    plant.waterLevel = min(100, plant.waterLevel + 10)
-    #    plant.healthLevel = min(100, plant.healthLevel + 10)
+        ActiveProduct.objects.create(plant=plant, product=product)
 
     plant.save()

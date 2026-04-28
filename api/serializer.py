@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from api.models import Image, Plant, Pot
+from api.models import Event, Image, Plant, Pot
 
 
 class PotSerializer(serializers.ModelSerializer):
@@ -107,3 +107,18 @@ class ShopSeedSerializer(serializers.Serializer):
             return None
         image = Image.objects.filter(plant=plant, growthPhase="seed").first()
         return image.url.url if image and image.url else None
+
+
+class EventSeedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = "__all__"
+
+
+class EventSerializer(serializers.ModelSerializer):
+    title = serializers.CharField()
+    subtitle = serializers.CharField()
+
+    class Meta:
+        model = Event
+        fields = ["id", "title", "subtitle", "city", "end_date", "price", "image"]

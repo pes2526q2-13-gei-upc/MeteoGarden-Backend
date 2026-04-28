@@ -477,15 +477,15 @@ class ActiveProduct(models.Model):
 
 
 class Event(models.Model):
-    id = models.CharField(primary_key=True, max_length=50)
-    title = models.CharField(max_length=50)
-    subtitle = models.CharField(max_length=50, null=True, blank=True)
+    id = models.CharField(primary_key=True, max_length=100)
+    title = models.CharField(max_length=255)
+    subtitle = models.CharField(max_length=255, null=True, blank=True)
     description = models.TextField()
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
-    category = models.CharField(max_length=50)
+    category = models.CharField(max_length=100)
     price = models.PositiveIntegerField()
     tags = ArrayField(models.CharField(max_length=100), default=list, blank=True)
-    image_url = models.ImageField(upload_to="events/", null=True, blank=True)
-    city = models.CharField(max_length=50)
-    street = models.CharField(max_length=50)
+    image = models.ImageField(upload_to="events/", null=True, blank=True)
+    city = models.CharField(max_length=150)
+    street = models.CharField(max_length=255)

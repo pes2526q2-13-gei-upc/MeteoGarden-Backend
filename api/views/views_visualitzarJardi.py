@@ -8,7 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from api.models import Garden, GrowthState, Inventory, Pot, Station, User
 from api.plant_simulation import simulate_plant
 from api.serializer import InventorySeedSerializer, PotSerializer
-from api.xema_sync import ensure_station_synced
+from api.services.xema_sync import ensure_station_synced
 
 
 def _sync_user_station(user: User) -> Station | None:

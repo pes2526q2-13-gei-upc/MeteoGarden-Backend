@@ -42,6 +42,7 @@ class MissionAction(models.TextChoices):
     WATER = "WATER"
     FLOWER = "FLOWER"
     DIE = "DIE"
+    USE = "USE"
 
 # Main classes
 class Plant(models.Model):
@@ -458,14 +459,16 @@ class Mission(models.Model):
     action = models.CharField(
         max_length=50,
         choices=MissionAction.choices,
-        null=False
+        null=False,
+        default=None,
+        blank=False,
     )
     goal = models.PositiveIntegerField(default=1)
-    plant = models.ForeignKey(Plant, on_delete=models.CASCADE, null=True, blank=True)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
-    plantReward = models.ForeignKey(Plant, on_delete=models.CASCADE, null=True, blank=True)
+    plant = models.ForeignKey(Plant, on_delete=models.CASCADE, null=True, blank=True, related_name="missions_requiring_plant")
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True, related_name="missions_requiring_product")
+    plantReward = models.ForeignKey(Plant, on_delete=models.CASCADE, null=True, blank=True, related_name="missions_rewarding_plant")
     rewardCoins = models.PositiveIntegerField(default=0)
-    productReward = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True)
+    productReward = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True, related_name="missions_rewarding_product")
 
     def __str__(self):
         return self.name

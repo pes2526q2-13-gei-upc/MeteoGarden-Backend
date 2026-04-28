@@ -1,8 +1,8 @@
-from gunicorn.dirty.stash import exists
 from rest_framework.decorators import permission_classes, api_view
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework.response import Response
-from ..models import Mission, UserMission, Plant, MissionAction, Product
+from ..models import Mission, UserMission, Plant, MissionAction, Product, User, MissionState
+from django.utils import timezone
 
 
 # Get missions
@@ -15,12 +15,12 @@ def getUserMissions(request):
         "Description": mission.mission.description,
         "Goal": mission.mission.goal,
         "Action": mission.mission.action,
-        "Plant needed scientific name": mission.mission.plant.name,
-        "Product needed": mission.mission.product.name,
-        "Plant reward common name": mission.mission.plantReward.commonName,
-        "Plant reward scientific name": mission.mission.plantReward.scientificName,
+        "Plant needed scientific name": mission.mission.plant.scientificName if mission.mission.plant else None,
+        "Product needed": mission.mission.product.name if mission.mission.product else None,
+        "Plant reward common name": mission.mission.plantReward.commonName if mission.mission.plantReward else None,
+        "Plant reward scientific name": mission.mission.plantReward.scientificName if mission.mission.plantReward else None,
         "Reward coins": mission.mission.rewardCoins,
-        "Product reward": mission.mission.productReward.name,
+        "Product reward": mission.mission.productReward.name if mission.mission.productReward else None,
         "Mission state": mission.missionState,
         "Current number": mission.current,
         "acquired at": mission.acquiredAt,
@@ -49,43 +49,43 @@ def createMission(request):
             },
             status=400,
         )
-    if not Plant.objects.filter(name=plant).exists():
+    if plant and not Plant.objects.filter(scientificName=plant).exists():
         return Response(
             {
-                "error": f"Plant with scientific name '{seed}' does not exist"
+                "error": f"Plant with scientific name '{plant}' does not exist"
             },
             status=400,
         )
-    if not Plant.objects.filter(name=plantReward).exists():
+    if plantReward and not Plant.objects.filter(scientificName=plantReward).exists():
         return Response(
             {
-                "error": f"Plant with scientific name '{seed}' does not exist"
+                "error": f"Plant with scientific name '{plantReward}' does not exist"
             },
             status=400,
         )
-    if not Plant.objects.filter(name=product).exists():
+    if product and not Product.objects.filter(name=product).exists():
         return Response(
             {
                 "error": f"Product '{product}' does not exist"
             }
         )
-    if not Plant.objects.filter(name=productReward).exists():
+    if productReward and not Product.objects.filter(name=productReward).exists():
         return Response(
             {
                 "error": f"Product '{productReward}' does not exist"
             }
         )
-    if not MissionAction.objects.filter(name=action).exists():
+    if action not in MissionAction.values:
         return Response(
             {
                 "error": "action must be: PLANT, COLLECT, WATER, FLOWER or DIE"
              },
             status=400,
         )
-    plantIns = Plant.objects.get(name=name)
-    plantRewardIns = Plant.objects.get(name=plantReward)
-    productIns = Product.objects.get(name=product)
-    productRewardIns = Product.objects.get(name=productReward)
+    plantIns = Plant.objects.get(scientificName=plant) if plant else None
+    plantRewardIns = Plant.objects.get(scientificName=plantReward) if plantReward else None
+    productIns = Product.objects.get(name=product) if product else None
+    productRewardIns = Product.objects.get(name=productReward) if productReward else None
     Mission.objects.create(
         name=name,
         description=description,
@@ -118,3 +118,28 @@ def getMissions(request):
         "rewardCoins": mission.rewardCoins,
         "productReward": mission.productReward,
     } for mission in missions]})
+
+# Assign mission to user
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def assignMission(request):
+    try:
+        mission = Mission.objects.get(name=request.data["mission"])
+    except Mission.DoesNotExist:
+        return Response({"error": "Mission does not exist"}, status=400)
+
+    try:
+        user = User.objects.get(username=request.data["user"])
+    except User.DoesNotExist:
+        return Response({"error": "User does not exist"}, status=400)
+
+    UserMission.objects.create(
+        user = user,
+        mission = mission,
+        current = 0,
+        missionState = MissionState.IN_PROGRESS,
+        acquiredAt = timezone.now()
+    )
+    return Response(
+        f"Mission assigned to user '{user.username}'",
+    )

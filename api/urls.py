@@ -37,6 +37,8 @@ from .views import (
     water_plant,
     getUserMissions,
     createMission,
+    getMissions,
+    assignMission,
 )
 
 urlpatterns = [
@@ -98,5 +100,7 @@ urlpatterns = [
     path("users/<str:username>/avatar", getUserAvatar, name="user_avatar"),
     path("users/<str:username>/save/avatar", saveAvatar, name="save_avatar"),
     path("user/missions/", getUserMissions, name="getUserMissions"),
-    path("missions/create/", createMission, name="getUserMissions"),
+    path("missions/create/", createMission, name="createMission"),
+    path("missions/", getMissions, name="getMissions"),
+    path("missions/assign/", assignMission, name="assignMission"),
 ]

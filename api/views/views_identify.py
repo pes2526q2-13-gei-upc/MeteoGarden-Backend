@@ -90,10 +90,17 @@ def identifyPlant(request):
     plant = Plant.objects.get(scientificName=scientificName)
 
     if plant.commonName is None:
-        common_names = species.get("commonNames") or []
-        family = species.get("family") or []
-        plant.commonName = common_names[0] if common_names else None
-        plant.family = family[0] if family else None
+        common_names = species.get("commonNames", [])
+
+        family_data = species.get("family")
+        family_name = (
+            family_data.get("scientificNameWithoutAuthor") if family_data else None
+        )
+
+        if common_names:
+            plant.commonName = common_names[0]
+        if family_name:
+            plant.family = family_name
         plant.save()
 
     img = Image.objects.create(

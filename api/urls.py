@@ -6,6 +6,7 @@ URL configuration for api.
 from django.urls import path
 
 from .views import (
+    avatar,
     buy_item,
     collect_plant,
     current_weather,
@@ -99,8 +100,8 @@ urlpatterns = [
     path("shop/", get_shop, name="get_shop"),
     path("save-token/", save_fcm_token),
     path("users/<str:username>/buy/", buy_item, name="buy_item"),
-    path("use-product/", use_product),
-    path("avatar/", getImages, name="avatar_images"),
+    path("use_product/", use_product),
+    path("avatar/", avatar, name="avatar_images"),
     path("users/<str:username>/avatar", getUserAvatar, name="user_avatar"),
     path("users/<str:username>/save/avatar", saveAvatar, name="save_avatar"),
     path(

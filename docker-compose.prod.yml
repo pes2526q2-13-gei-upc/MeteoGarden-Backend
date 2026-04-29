@@ -1,5 +1,6 @@
 volumes:
   pgdata:
+  static_files:
 
 services:
   pg:
@@ -17,7 +18,9 @@ services:
       retries: 10
 
   api:
-    image: ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: meteogarden_api
     restart: unless-stopped
     env_file:

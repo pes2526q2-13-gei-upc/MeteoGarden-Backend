@@ -12,8 +12,6 @@ from api.serializer import (
     InventorySeedSerializer,
     PotSerializer,
 )
-from api.xema_sync import ensure_station_synced
-from api.serializer import InventorySeedSerializer, PotSerializer
 from api.services.xema_sync import ensure_station_synced
 
 

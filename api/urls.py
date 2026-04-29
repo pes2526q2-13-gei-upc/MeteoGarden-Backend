@@ -21,7 +21,6 @@ from .views import (
     getEvents,
     getEventsByCategory,
     getEventsByCity,
-    getImages,
     getNumEvents,
     getUserAlbum,
     getUserAvatar,

@@ -6,9 +6,11 @@ URL configuration for api.
 from django.urls import path
 
 from .views import (
+    assignMission,
     avatar,
     buy_item,
     collect_plant,
+    createMission,
     current_weather,
     delete_plant,
     delete_profile,
@@ -21,9 +23,11 @@ from .views import (
     getEvents,
     getEventsByCategory,
     getEventsByCity,
+    getMissions,
     getNumEvents,
     getUserAlbum,
     getUserAvatar,
+    getUserMissions,
     google_register,
     google_verify,
     health,
@@ -113,4 +117,8 @@ urlpatterns = [
     path("events/detail", getEventDetail, name="event_detail"),
     path("events/city", getEventsByCity, name="events_by_city"),
     path("events/category", getEventsByCategory, name="events_by_category"),
+    path("user/missions/", getUserMissions, name="getUserMissions"),
+    path("missions/create/", createMission, name="createMission"),
+    path("missions/", getMissions, name="getMissions"),
+    path("missions/assign/", assignMission, name="assignMission"),
 ]

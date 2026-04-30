@@ -24,10 +24,10 @@ jobs:
           POSTGRES_USER: meteogarden
           POSTGRES_PASSWORD: meteogarden
         options: >-
-           --health-cmd "pg_isready -U meteogarden -d meteogarden_test"
-            --health-interval 5s
-            --health-timeout 5s
-            --health-retries 10
+          --health-cmd "pg_isready -U meteogarden -d meteogarden_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
         ports:
           - 5432:5432
 

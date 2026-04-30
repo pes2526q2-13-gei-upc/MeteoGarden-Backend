@@ -10,10 +10,10 @@ from .views_missions import (  # noqa: F401
     getMissions,
     getUserMissions,
 )
-from .views_plantar_planta import plant_seed  # noqa: F401
+from .views_plantar_planta import delete_plant, plant_seed  # noqa: F401
 from .views_products import use_product  # noqa: F401
 from .views_profile_operations import delete_profile  # noqa: F401
-from .views_profile_operations import (
+from .views_profile_operations import (  # noqa: F401
     edit_profile,
     get_profile,
     google_register,
@@ -25,7 +25,7 @@ from .views_profile_operations import (
 from .views_shop import buy_item, get_shop  # noqa: F401
 from .views_translate import translate  # noqa: F401
 from .views_visualitzarJardi import plant_status  # noqa: F401
-from .views_visualitzarJardi import (
+from .views_visualitzarJardi import (  # noqa: F401
     garden_plants,
     user_gardens,
     user_products,
@@ -33,4 +33,3 @@ from .views_visualitzarJardi import (
     water_plant,
 )
 from .views_xema import current_weather, get_stations  # noqa: F401
-from .views_missions import getUserMissions, createMission, getMissions, assignMission # noqa: F401

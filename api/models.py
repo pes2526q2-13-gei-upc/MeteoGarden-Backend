@@ -1,7 +1,6 @@
 from datetime import timedelta
 
 from django.contrib.auth.models import AbstractUser
-from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -484,7 +483,7 @@ class Event(models.Model):
     end_date = models.DateTimeField()
     category = models.CharField(max_length=100)
     price = models.PositiveIntegerField()
-    tags = ArrayField(models.CharField(max_length=100), default=list, blank=True)
+    tags = models.JSONField(default=list)
     image = models.ImageField(upload_to="events/", null=True, blank=True)
     city = models.CharField(max_length=150)
     street = models.CharField(max_length=255)

@@ -19,6 +19,7 @@ from .views import (
     get_profile,
     get_shop,
     get_stations,
+    getImages,
     getMissions,
     getUserAlbum,
     getUserAvatar,
@@ -40,6 +41,10 @@ from .views import (
     user_seeds,
     validate_token,
     water_plant,
+    getUserMissions,
+    createMission,
+    getMissions,
+    assignMission,
 )
 
 urlpatterns = [

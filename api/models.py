@@ -36,7 +36,6 @@ class LanguageType(models.TextChoices):
     SPANISH = "spanish", "Spanish"
     ENGLISH = "english", "English"
 
-
 class MissionAction(models.TextChoices):
     PLANT = "PLANT"
     COLLECT = "COLLECT"
@@ -44,7 +43,6 @@ class MissionAction(models.TextChoices):
     FLOWER = "FLOWER"
     DIE = "DIE"
     USE = "USE"
-
 
 # Main classes
 class Plant(models.Model):
@@ -509,3 +507,4 @@ class UserMission(models.Model):
 
     class Meta:
         unique_together = ("user", "mission")
+

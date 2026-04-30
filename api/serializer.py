@@ -42,7 +42,9 @@ class PotSerializer(serializers.ModelSerializer):
             {
                 "name": ap.product.name,
                 "applied_at": ap.applied_at.isoformat(),
-                "expires_at": (ap.applied_at + timedelta(hours=ap.product.durationHours)).isoformat(),
+                "expires_at": (
+                    ap.applied_at + timedelta(hours=ap.product.durationHours)
+                ).isoformat(),
             }
             for ap in ActiveProduct.objects.filter(plant=planting)
             if ap.is_active()

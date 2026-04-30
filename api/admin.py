@@ -1,8 +1,21 @@
 from django.contrib import admin
 
-from .models import (AlbumEntry, Avatar, Garden, Image, Inventory, Mission,
-                     Plant, PlantInGarden, Pot, Shop, Station, User,
-                     UserMission, WeatherReading)
+from .models import (
+    AlbumEntry,
+    Avatar,
+    Garden,
+    Image,
+    Inventory,
+    Mission,
+    Plant,
+    PlantInGarden,
+    Pot,
+    Shop,
+    Station,
+    User,
+    UserMission,
+    WeatherReading,
+)
 
 # Register your models here.
 

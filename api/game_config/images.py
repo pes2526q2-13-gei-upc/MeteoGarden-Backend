@@ -2,36 +2,36 @@ from api.models import GrowthState
 
 STARTER_IMAGES = [
     # --- citrus_sinensis ---
-    {
-        "plant": "citrus_sinensis",
-        "phase": GrowthState.SEED,
-        "url": "plants/citrus_sinensis/citrus_sinensis_seed.png",
-    },
-    {
-        "plant": "citrus_sinensis",
-        "phase": GrowthState.GERMINATION,
-        "url": "plants/citrus_sinensis/citrus_sinensis_germination.png",
-    },
-    {
-        "plant": "citrus_sinensis",
-        "phase": GrowthState.GROWTH,
-        "url": "plants/citrus_sinensis/citrus_sinensis_growth.png",
-    },
-    {
-        "plant": "citrus_sinensis",
-        "phase": GrowthState.MATURE,
-        "url": "plants/citrus_sinensis/citrus_sinensis_mature.png",
-    },
-    {
-        "plant": "citrus_sinensis",
-        "phase": GrowthState.FLOWERING,
-        "url": "plants/citrus_sinensis/citrus_sinensis_flowering.png",
-    },
-    {
-        "plant": "citrus_sinensis",
-        "phase": GrowthState.DEAD,
-        "url": "plants/citrus_sinensis/citrus_sinensis_dead.png",
-    },
+    # {
+    #    "plant": "citrus_sinensis",
+    #    "phase": GrowthState.SEED,
+    #    "url": "plants/citrus_sinensis/citrus_sinensis_seed.png",
+    # },
+    # {
+    #    "plant": "citrus_sinensis",
+    #    "phase": GrowthState.GERMINATION,
+    #    "url": "plants/citrus_sinensis/citrus_sinensis_germination.png",
+    # },
+    # {
+    #    "plant": "citrus_sinensis",
+    #    "phase": GrowthState.GROWTH,
+    #    "url": "plants/citrus_sinensis/citrus_sinensis_growth.png",
+    # },
+    # {
+    #    "plant": "citrus_sinensis",
+    #    "phase": GrowthState.MATURE,
+    #    "url": "plants/citrus_sinensis/citrus_sinensis_mature.png",
+    # },
+    # {
+    #    "plant": "citrus_sinensis",
+    #    "phase": GrowthState.FLOWERING,
+    #    "url": "plants/citrus_sinensis/citrus_sinensis_flowering.png",
+    # },
+    # {
+    #    "plant": "citrus_sinensis",
+    #    "phase": GrowthState.DEAD,
+    #    "url": "plants/citrus_sinensis/citrus_sinensis_dead.png",
+    # },
     # --- dianthus_caryophyllus ---
     {
         "plant": "dianthus_caryophyllus",
@@ -98,7 +98,7 @@ STARTER_IMAGES = [
     {
         "plant": "mentha_spicata",
         "phase": GrowthState.SEED,
-        "url": "plants/mentha_spicata/mentha_spicata_seed_MtlVPcW.png",
+        "url": "plants/mentha_spicata/mentha_spicata_seed_MtIVPcW.png",
     },
     {
         "plant": "mentha_spicata",

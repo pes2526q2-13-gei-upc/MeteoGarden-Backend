@@ -70,7 +70,6 @@ class ProductLogicTest(TestCase):
 
 
 from api.models import WeatherReading
-
 # sim
 from api.plant_simulation import _apply_reading
 

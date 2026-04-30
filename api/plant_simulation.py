@@ -2,14 +2,8 @@ from datetime import timedelta
 
 from django.utils import timezone
 
-from .models import (
-    ActiveProduct,
-    GrowthState,
-    PlantInGarden,
-    Product,
-    Station,
-    WeatherReading,
-)
+from .models import (ActiveProduct, GrowthState, PlantInGarden, Product,
+                     Station, WeatherReading)
 
 # Paràmetres de simulació
 

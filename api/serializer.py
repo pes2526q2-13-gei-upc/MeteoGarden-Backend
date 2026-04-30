@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from api.models import Image, Plant, Pot, Product, ActiveProduct
+from api.models import ActiveProduct, Image, Plant, Pot, Product
 
 
 class PotSerializer(serializers.ModelSerializer):

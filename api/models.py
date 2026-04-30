@@ -36,6 +36,7 @@ class LanguageType(models.TextChoices):
     SPANISH = "spanish", "Spanish"
     ENGLISH = "english", "English"
 
+
 class MissionAction(models.TextChoices):
     PLANT = "PLANT"
     COLLECT = "COLLECT"
@@ -43,6 +44,7 @@ class MissionAction(models.TextChoices):
     FLOWER = "FLOWER"
     DIE = "DIE"
     USE = "USE"
+
 
 # Main classes
 class Plant(models.Model):
@@ -453,6 +455,7 @@ class ActiveProduct(models.Model):
             hours=self.product.durationHours
         )
 
+
 class Mission(models.Model):
     name = models.CharField(max_length=50, primary_key=True)  # RT.1
     description = models.TextField()
@@ -464,11 +467,35 @@ class Mission(models.Model):
         blank=False,
     )
     goal = models.PositiveIntegerField(default=1)
-    plant = models.ForeignKey(Plant, on_delete=models.CASCADE, null=True, blank=True, related_name="missions_requiring_plant")
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True, related_name="missions_requiring_product")
-    plantReward = models.ForeignKey(Plant, on_delete=models.CASCADE, null=True, blank=True, related_name="missions_rewarding_plant")
+    plant = models.ForeignKey(
+        Plant,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="missions_requiring_plant",
+    )
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="missions_requiring_product",
+    )
+    plantReward = models.ForeignKey(
+        Plant,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="missions_rewarding_plant",
+    )
     rewardCoins = models.PositiveIntegerField(default=0)
-    productReward = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True, related_name="missions_rewarding_product")
+    productReward = models.ForeignKey(
+        Product,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="missions_rewarding_product",
+    )
 
     def __str__(self):
         return self.name
@@ -483,4 +510,3 @@ class UserMission(models.Model):
 
     class Meta:
         unique_together = ("user", "mission")
-

@@ -7,57 +7,91 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0002_product_activeproduct'),
+        ("api", "0002_product_activeproduct"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='mission',
-            name='seed',
+            model_name="mission",
+            name="seed",
         ),
         migrations.AddField(
-            model_name='mission',
-            name='action',
-            field=models.CharField(choices=[('PLANT', 'Plant'), ('COLLECT', 'Collect'), ('WATER', 'Water'), ('FLOWER', 'Flower'), ('DIE', 'Die')], default=None, max_length=50),
+            model_name="mission",
+            name="action",
+            field=models.CharField(
+                choices=[
+                    ("PLANT", "Plant"),
+                    ("COLLECT", "Collect"),
+                    ("WATER", "Water"),
+                    ("FLOWER", "Flower"),
+                    ("DIE", "Die"),
+                ],
+                default=None,
+                max_length=50,
+            ),
         ),
         migrations.AddField(
-            model_name='mission',
-            name='goal',
+            model_name="mission",
+            name="goal",
             field=models.PositiveIntegerField(default=1),
         ),
         migrations.AddField(
-            model_name='mission',
-            name='plant',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='missions_requiring_plant', to='api.plant'),
+            model_name="mission",
+            name="plant",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="missions_requiring_plant",
+                to="api.plant",
+            ),
         ),
         migrations.AddField(
-            model_name='mission',
-            name='plantReward',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='missions_rewarding_plant', to='api.plant'),
+            model_name="mission",
+            name="plantReward",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="missions_rewarding_plant",
+                to="api.plant",
+            ),
         ),
         migrations.AddField(
-            model_name='mission',
-            name='productReward',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='missions_rewarding_product', to='api.product'),
+            model_name="mission",
+            name="productReward",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="missions_rewarding_product",
+                to="api.product",
+            ),
         ),
         migrations.AddField(
-            model_name='plantingarden',
-            name='diedAt',
+            model_name="plantingarden",
+            name="diedAt",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='usermission',
-            name='current',
+            model_name="usermission",
+            name="current",
             field=models.PositiveIntegerField(default=0),
         ),
         migrations.AlterField(
-            model_name='mission',
-            name='product',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='missions_requiring_product', to='api.product'),
+            model_name="mission",
+            name="product",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="missions_requiring_product",
+                to="api.product",
+            ),
         ),
         migrations.AlterField(
-            model_name='mission',
-            name='rewardCoins',
+            model_name="mission",
+            name="rewardCoins",
             field=models.PositiveIntegerField(default=0),
         ),
     ]

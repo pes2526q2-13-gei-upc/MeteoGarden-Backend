@@ -6,8 +6,10 @@ URL configuration for api.
 from django.urls import path
 
 from .views import (
+    assignMission,
     buy_item,
     collect_plant,
+    createMission,
     current_weather,
     delete_profile,
     edit_profile,
@@ -16,8 +18,10 @@ from .views import (
     get_shop,
     get_stations,
     getImages,
+    getMissions,
     getUserAlbum,
     getUserAvatar,
+    getUserMissions,
     google_register,
     google_verify,
     health,
@@ -35,10 +39,6 @@ from .views import (
     user_seeds,
     validate_token,
     water_plant,
-    getUserMissions,
-    createMission,
-    getMissions,
-    assignMission,
 )
 
 urlpatterns = [

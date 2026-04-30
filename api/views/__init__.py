@@ -4,6 +4,12 @@ from .views_collect import collect_plant  # noqa: F401
 from .views_identify import identifyPlant  # noqa: F401
 from .views_image import getUserAlbum  # noqa: F401
 from .views_info import importPlant  # noqa: F401
+from .views_missions import (  # noqa: F401
+    assignMission,
+    createMission,
+    getMissions,
+    getUserMissions,
+)
 from .views_plantar_planta import plant_seed  # noqa: F401
 from .views_products import use_product  # noqa: F401
 from .views_profile_operations import (  # noqa: F401
@@ -27,4 +33,3 @@ from .views_visualitzarJardi import (  # noqa: F401
     water_plant,
 )
 from .views_xema import current_weather, get_stations  # noqa: F401
-from .views_missions import getUserMissions, createMission, getMissions, assignMission # noqa: F401

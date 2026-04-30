@@ -1,5 +1,6 @@
 volumes:
   pgdata:
+  static_files:
 
 services:
   pg:

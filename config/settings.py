@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 
+from celery.schedules import crontab
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -47,6 +48,8 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "storages",
     "corsheaders",
+    "django_celery_beat",
+    "django.contrib.postgres",
     # METEOGARDEN APPS
     "api",
 ]
@@ -192,3 +195,22 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "api.User"
+
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
+CELERY_TIMEZONE = "Europe/Madrid"
+CELERY_BEAT_SCHEDULE = {
+    "simulate-all-plants": {
+        "task": "api.tasks.simulate_all_plants",
+        "schedule": 1800,  # cada 30 min
+    },
+    "sync-gresca-nightly": {
+        "task": "api.tasks.sync_events_task",
+        "schedule": crontab(hour=3, minute=30),
+    },
+    "cleanup-old-events-nightly": {
+        "task": "api.tasks.cleanup_old_events",
+        "schedule": crontab(hour=4, minute=0),
+    },
+}
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"

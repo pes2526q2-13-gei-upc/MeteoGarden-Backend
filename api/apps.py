@@ -13,3 +13,7 @@ class ApiConfig(AppConfig):
                 call_command(command)
             except Exception:
                 pass
+
+        from .firebase import initialize_firebase
+
+        initialize_firebase()

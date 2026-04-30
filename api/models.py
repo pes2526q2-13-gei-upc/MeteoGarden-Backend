@@ -92,6 +92,12 @@ class User(AbstractUser):
         return self.username
 
 
+class Device(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    token = models.CharField(max_length=255, unique=True)
+    createdAt = models.DateTimeField(auto_now_add=True)
+
+
 class Avatar(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
 
@@ -226,6 +232,7 @@ class PlantInGarden(models.Model):
     )  # RT.11
     lastWateredAt = models.DateTimeField(default=timezone.now)
     lastSimulatedAt = models.DateTimeField(default=timezone.now)
+    lastNotificationAt = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         unique_together = ("pot", "plant", "plantedAt")
@@ -453,6 +460,21 @@ class ActiveProduct(models.Model):
 
     class Meta:
         ordering = ["-applied_at"]
+
+
+class Event(models.Model):
+    id = models.CharField(primary_key=True, max_length=100)
+    title = models.CharField(max_length=255)
+    subtitle = models.CharField(max_length=255, null=True, blank=True)
+    description = models.TextField()
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+    category = models.CharField(max_length=100)
+    price = models.PositiveIntegerField()
+    tags = models.JSONField(default=list)
+    image = models.ImageField(upload_to="events/", null=True, blank=True)
+    city = models.CharField(max_length=150)
+    street = models.CharField(max_length=255)
 
 
 class Mission(models.Model):

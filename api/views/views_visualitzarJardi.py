@@ -12,7 +12,7 @@ from api.serializer import (
     InventorySeedSerializer,
     PotSerializer,
 )
-from api.xema_sync import ensure_station_synced
+from api.services.xema_sync import ensure_station_synced
 
 
 def _sync_user_station(user: User) -> Station | None:

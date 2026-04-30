@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from rest_framework import serializers
 
+from api.models import Event, Image, Plant, Pot, Product
 from api.models import ActiveProduct, Image, Plant, Pot, Product
 
 
@@ -135,3 +136,18 @@ class InventoryProductSerializer(serializers.Serializer):
         except Product.DoesNotExist:
             return None
         return product.image_url.url if product.image_url else None
+
+
+class EventSeedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = "__all__"
+
+
+class EventSerializer(serializers.ModelSerializer):
+    title = serializers.CharField()
+    subtitle = serializers.CharField()
+
+    class Meta:
+        model = Event
+        fields = ["id", "title", "subtitle", "city", "end_date", "price", "image"]

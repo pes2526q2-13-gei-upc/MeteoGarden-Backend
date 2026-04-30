@@ -6,8 +6,12 @@ SECRET_KEY = "test-secret-key"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "test.sqlite3",  # noqa: F405
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "meteogarden_test",  # noqa: F405
+        "USER": "meteogarden",
+        "PASSWORD": "meteogarden",
+        "HOST": "localhost",
+        "PORT": "5432",
     }
 }
 

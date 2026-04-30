@@ -384,7 +384,7 @@ class Shop(models.Model):
         "mentha_spicata": 2,
     }
     STARTER_PRODUCTS = {
-        "health_potion": 15,
+        "Small Heal": 15,
     }
 
     @classmethod

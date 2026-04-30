@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from api.models import Image, Plant, Pot, Product
+from api.models import Image, Plant, Pot, Product, ActiveProduct
 
 
 class PotSerializer(serializers.ModelSerializer):
@@ -36,6 +36,15 @@ class PotSerializer(serializers.ModelSerializer):
         ).first()
         image_url = image.url.url if image and image.url else None
 
+        active_products = [
+            {
+                "name": ap.product.name,
+                "applied_at": ap.applied_at.isoformat(),
+            }
+            for ap in ActiveProduct.objects.filter(plant=planting)
+            if ap.is_active()
+        ]
+
         return {
             "scientific_name": planting.plant.scientificName,
             "common_name": planting.plant.commonName,
@@ -44,6 +53,7 @@ class PotSerializer(serializers.ModelSerializer):
             "min_temperature": planting.plant.minTemperature,
             "max_temperature": planting.plant.maxTemperature,
             "image_url": image_url,
+            "active_products": active_products,
         }
 
     def get_growth_phase(self, obj):

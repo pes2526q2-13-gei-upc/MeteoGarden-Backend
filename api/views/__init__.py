@@ -17,10 +17,8 @@ from .views_missions import (  # noqa: F401
     getMissions,
     getUserMissions,
 )
-from .views_plantar_planta import delete_plant, plant_seed  # noqa: F401
 from .views_notifications import save_fcm_token  # noqa: F401
-from .views_plantar_planta import delete_plant  # noqa: F401
-from .views_plantar_planta import plant_seed  # noqa: F401
+from .views_plantar_planta import delete_plant, plant_seed  # noqa: F401
 from .views_products import use_product  # noqa: F401
 from .views_profile_operations import (  # noqa: F401
     delete_profile,

@@ -2,8 +2,7 @@ from datetime import timedelta
 
 from rest_framework import serializers
 
-from api.models import Event, Image, Plant, Pot, Product
-from api.models import ActiveProduct, Image, Plant, Pot, Product
+from api.models import ActiveProduct, Event, Image, Plant, Pot, Product
 
 
 class PotSerializer(serializers.ModelSerializer):

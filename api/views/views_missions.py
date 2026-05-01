@@ -1,9 +1,10 @@
 from django.utils import timezone
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from ..models import (
+    Inventory,
     Mission,
     MissionAction,
     MissionState,
@@ -153,7 +154,7 @@ def getMissions(request):
 
 # Assign mission to user
 @api_view(["POST"])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def assignMission(request):
     try:
         mission = Mission.objects.get(name=request.data["mission"])
@@ -175,3 +176,43 @@ def assignMission(request):
     return Response(
         f"Mission assigned to user '{user.username}'",
     )
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def claimReward(request):
+    mission = Mission.objects.get(name=request.data["mission"])
+    userMission = UserMission.objects.get(user=request.user, mission=mission)
+    inventory = Inventory.objects.get(user=request.user)
+    if userMission:
+        if userMission.missionState == MissionState.CLAIMED:
+            return Response({"error": "Mission already claimed"})
+        else:
+            if mission.rewardCoins:
+                # Reclamar monedes
+                inventory.coins += int(mission.rewardCoins)
+            if mission.productReward:
+                inventory.addProduct(mission.productReward.name, 1)
+            if mission.plantReward:
+                inventory.addSeed(mission.plantReward.scientificName, 1)
+            inventory.save()
+            userMission.missionState = MissionState.CLAIMED
+            userMission.save()
+            return Response(
+                {
+                    "message": "Mission claimed successfully",
+                    "coins": f"{mission.rewardCoins} coins claimed successfully",
+                    "product": (
+                        f"{mission.productReward.name} claimed successfully"
+                        if mission.productReward
+                        else None
+                    ),
+                    "plant": (
+                        f"{mission.plantReward.name} claimed successfully"
+                        if mission.plantReward
+                        else None
+                    ),
+                }
+            )
+    else:
+        return Response({"error": "Mission does not exist"}, status=400)

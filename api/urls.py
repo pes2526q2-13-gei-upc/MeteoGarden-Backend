@@ -8,6 +8,7 @@ from django.urls import path
 from .views import (
     assignMission,
     buy_item,
+    claimReward,
     collect_plant,
     createMission,
     current_weather,
@@ -103,4 +104,5 @@ urlpatterns = [
     path("missions/create/", createMission, name="createMission"),
     path("missions/", getMissions, name="getMissions"),
     path("missions/assign/", assignMission, name="assignMission"),
+    path("user/missions/claim/", claimReward, name="claimReward"),
 ]

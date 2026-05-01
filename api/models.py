@@ -44,6 +44,7 @@ class MissionAction(models.TextChoices):
     FLOWER = "FLOWER"
     DIE = "DIE"
     USE = "USE"
+    PHOTO = "PHOTO"
 
 
 # Main classes

@@ -5,11 +5,23 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
-from api.models import Garden, GrowthState, Inventory, Pot, Station, User
+from api.models import Garden, GrowthState, Inventory, Pot, Station, User, UserMission, MissionState, MissionAction, \
+    Plant
 from api.plant_simulation import simulate_plant
 from api.serializer import InventorySeedSerializer, PotSerializer
 from api.xema_sync import ensure_station_synced
 
+def updateWaterMissions (user, plant):
+    allUserMissions = UserMission.objects.filter(
+        user=user, missionState=MissionState.IN_PROGRESS
+    )
+    for mission in allUserMissions:
+        if mission.mission.action == MissionAction.WATER:
+            if mission.mission.plant is None or mission.mission.plant == plant:
+                mission.current += 1
+                if mission.mission.goal <= mission.current:
+                    mission.missionState = MissionState.COMPLETED
+                mission.save()
 
 def _sync_user_station(user: User) -> Station | None:
     station = Station.objects.filter(stationCode=user.stationCode).first()
@@ -154,6 +166,10 @@ def water_plant(request, username, garden_name, pot_number):
     planting.healthLevel = min(100.0, planting.healthLevel + 5.0)
     planting.lastWateredAt = now
     planting.save()
+
+    user = get_object_or_404(User, username=username)
+    plant = Plant.objects.get(scientificName=planting.plant.scientificName)
+    updateWaterMissions(user, plant)
 
     data = {
         "message": "Plant watered successfully.",

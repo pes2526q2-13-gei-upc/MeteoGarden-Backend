@@ -187,6 +187,8 @@ def claimReward(request):
     if userMission:
         if userMission.missionState == MissionState.CLAIMED:
             return Response({"error": "Mission already claimed"})
+        elif userMission.missionState == MissionState.IN_PROGRESS:
+            return Response({"error": "Mission in progress"})
         else:
             if mission.rewardCoins:
                 # Reclamar monedes

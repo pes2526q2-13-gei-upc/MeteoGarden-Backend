@@ -71,6 +71,7 @@ def collect_plant(request, username, garden_name, pot_number):
         inventory.addSeed(scientificName, 1)
     inventory.save()
 
+    user.increment_plants()
     updateCollectMissions(user, plant)
 
     return Response(

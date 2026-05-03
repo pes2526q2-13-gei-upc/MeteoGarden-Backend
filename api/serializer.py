@@ -1,6 +1,8 @@
+from datetime import timedelta
+
 from rest_framework import serializers
 
-from api.models import Image, Plant, Pot
+from api.models import ActiveProduct, Event, Image, Plant, Pot, Product
 
 
 class PotSerializer(serializers.ModelSerializer):
@@ -31,9 +33,22 @@ class PotSerializer(serializers.ModelSerializer):
         if planting is None:
             return None
 
-        image = Image.objects.filter(plant=planting.plant).first()
+        image = Image.objects.filter(
+            plant=planting.plant, growthPhase=planting.growthPhase
+        ).first()
         image_url = image.url.url if image and image.url else None
 
+        active_products = [
+            {
+                "name": ap.product.name,
+                "applied_at": ap.applied_at.isoformat(),
+                "expires_at": (
+                    ap.applied_at + timedelta(hours=ap.product.durationHours)
+                ).isoformat(),
+            }
+            for ap in ActiveProduct.objects.filter(plant=planting)
+            if ap.is_active()
+        ]
         return {
             "scientific_name": planting.plant.scientificName,
             "common_name": planting.plant.commonName,
@@ -42,6 +57,7 @@ class PotSerializer(serializers.ModelSerializer):
             "min_temperature": planting.plant.minTemperature,
             "max_temperature": planting.plant.maxTemperature,
             "image_url": image_url,
+            "active_products": active_products,
         }
 
     def get_growth_phase(self, obj):
@@ -105,3 +121,32 @@ class ShopSeedSerializer(serializers.Serializer):
             return None
         image = Image.objects.filter(plant=plant, growthPhase="seed").first()
         return image.url.url if image and image.url else None
+
+
+class InventoryProductSerializer(serializers.Serializer):
+    productName = serializers.CharField()
+    amount = serializers.IntegerField()
+    image_url = serializers.SerializerMethodField()
+
+    def get_image_url(self, obj):
+        product_name = obj.get("productName")
+        try:
+            product = Product.objects.get(name=product_name)
+        except Product.DoesNotExist:
+            return None
+        return product.image_url.url if product.image_url else None
+
+
+class EventSeedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = "__all__"
+
+
+class EventSerializer(serializers.ModelSerializer):
+    title = serializers.CharField()
+    subtitle = serializers.CharField()
+
+    class Meta:
+        model = Event
+        fields = ["id", "title", "subtitle", "city", "end_date", "price", "image"]

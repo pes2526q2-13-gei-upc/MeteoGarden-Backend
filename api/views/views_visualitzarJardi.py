@@ -18,8 +18,12 @@ from api.models import (
     UserMission,
 )
 from api.plant_simulation import simulate_plant
-from api.serializer import InventorySeedSerializer, PotSerializer
-from api.xema_sync import ensure_station_synced
+from api.serializer import (
+    InventoryProductSerializer,
+    InventorySeedSerializer,
+    PotSerializer,
+)
+from api.services.xema_sync import ensure_station_synced
 
 
 def updateWaterMissions(user, plant):
@@ -93,7 +97,6 @@ def user_gardens(request, username):
 
 def plant_status(request, username, garden_name, pot_number):
     garden = get_object_or_404(Garden, user__username=username, name=garden_name)
-
     pot = get_object_or_404(Pot, garden=garden, number=pot_number)
 
     planting = getattr(pot, "plantingarden", None)
@@ -104,24 +107,8 @@ def plant_status(request, username, garden_name, pot_number):
             planting = simulate_plant(planting, station)
             planting.save()
 
-    if planting is None:
-        data = {"pot_number": pot.number, "plant": None}
-    else:
-        data = {
-            "pot_number": pot.number,
-            "plant": {
-                "scientific_name": planting.plant.scientificName,
-                "common_name": planting.plant.commonName,
-                "family": planting.plant.family,
-            },
-            "growth_phase": planting.growthPhase,
-            "health_level": planting.healthLevel,
-            "water_level": planting.waterLevel,
-            "planted_at": planting.plantedAt.isoformat(),
-            "last_watered_at": planting.lastWateredAt.isoformat(),
-        }
-
-    return JsonResponse(data)
+    serializer = PotSerializer(pot)
+    return JsonResponse(serializer.data)
 
 
 @csrf_exempt
@@ -237,11 +224,9 @@ def user_products(request, username):
     inventory, _ = Inventory.objects.get_or_create(user=user)
 
     products_data = [
-        {
-            "productName": product,
-            "amount": amount,
-        }
+        {"productName": product, "amount": amount}
         for product, amount in sorted(inventory.products.items())
     ]
 
-    return JsonResponse(products_data, safe=False)
+    serializer = InventoryProductSerializer(products_data, many=True)
+    return JsonResponse(serializer.data, safe=False)

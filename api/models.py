@@ -85,36 +85,38 @@ class User(AbstractUser):
     def numPlantsUnlocked(self):
         return self.albumentry_set.count()
 
+    def increment_plants(self):
+        self.numPlantsCollected = self.numPlantsCollected + 1
+        self.save(update_fields=["numPlantsCollected"])
+
     def __str__(self):
         return self.username
 
 
+class Device(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    token = models.CharField(max_length=255, unique=True)
+    createdAt = models.DateTimeField(auto_now_add=True)
+
+
 class Avatar(models.Model):
-    user = models.OneToOneField(
-        User, on_delete=models.CASCADE, primary_key=True
-    )  # RT.1
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+
+    accessories = models.IntegerField(default=0, blank=True)
     body = models.CharField(max_length=50)
-    skinTone = models.CharField(max_length=50)
-    eyeColor = models.CharField(max_length=50)
-    expression = models.CharField(max_length=50, choices=AvatarExpression.choices)
-    hairColor = models.CharField(max_length=50)
-    hairStyle = models.CharField(max_length=50)
-    facialHair = models.CharField(max_length=50, blank=True)
-    accessories = models.JSONField(default=list, blank=True)
-    clothing = models.CharField(max_length=50)
+    clothing = models.IntegerField(default=0)
+    eye = models.IntegerField(default=0)
+    expression = models.CharField(max_length=50)
+    expression_variant = models.IntegerField(default=0)
 
-    def addAccessory(self, accessory):
-        if accessory not in self.accessories:
-            self.accessories.append(accessory)
-            self.save()
+    hair_color = models.CharField(max_length=50)
+    hair_style = models.IntegerField(default=0)
 
-    def removeAccessory(self, accessory):
-        if accessory in self.accessories:
-            self.accessories.remove(accessory)
-            self.save()
+    facial_hair = models.IntegerField(default=0, blank=True)
+    facial_hair_color = models.CharField(max_length=50, blank=True)
 
     def __str__(self):
-        return self.user.username
+        return f"Avatar de {self.user.username}"
 
 
 class Inventory(models.Model):
@@ -231,6 +233,7 @@ class PlantInGarden(models.Model):
     )  # RT.11
     lastWateredAt = models.DateTimeField(default=timezone.now)
     lastSimulatedAt = models.DateTimeField(default=timezone.now)
+    lastNotificationAt = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         unique_together = ("pot", "plant", "plantedAt")
@@ -382,7 +385,7 @@ class Shop(models.Model):
         "mentha_spicata": 2,
     }
     STARTER_PRODUCTS = {
-        "health_potion": 15,
+        "Small Heal": 15,
     }
 
     @classmethod
@@ -434,12 +437,12 @@ class Product(models.Model):
     value = models.FloatField(null=True, blank=True)
     durationHours = models.FloatField(null=True, blank=True)
 
-    price = models.PositiveIntegerField()
+    price = models.PositiveIntegerField()  # por si acaso
     isInstant = models.BooleanField(default=True)
     image_url = models.ImageField(
         upload_to="products/", null=True, blank=True  # subcarpeta dentro del bucket
     )
-    # rarity = models.CharField(max_length=20, default='common')
+    rarity = models.CharField(max_length=20, default="common")
     # cooldown_hours = models.FloatField(default=0)
 
 
@@ -455,6 +458,24 @@ class ActiveProduct(models.Model):
         return timezone.now() < self.applied_at + timedelta(
             hours=self.product.durationHours
         )
+
+    class Meta:
+        ordering = ["-applied_at"]
+
+
+class Event(models.Model):
+    id = models.CharField(primary_key=True, max_length=100)
+    title = models.CharField(max_length=255)
+    subtitle = models.CharField(max_length=255, null=True, blank=True)
+    description = models.TextField()
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+    category = models.CharField(max_length=100)
+    price = models.PositiveIntegerField()
+    tags = models.JSONField(default=list)
+    image = models.ImageField(upload_to="events/", null=True, blank=True)
+    city = models.CharField(max_length=150)
+    street = models.CharField(max_length=255)
 
 
 class Mission(models.Model):

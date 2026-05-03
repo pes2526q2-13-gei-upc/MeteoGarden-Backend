@@ -7,7 +7,16 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from ..models import AlbumEntry, Image, Inventory, Plant, User, UserMission, MissionState, MissionAction
+from ..models import (
+    AlbumEntry,
+    Image,
+    Inventory,
+    MissionAction,
+    MissionState,
+    Plant,
+    User,
+    UserMission,
+)
 from .views_info import getInfoPlant
 
 PLANTNET_URL = "https://my-api.plantnet.org/v2/identify/all"
@@ -25,6 +34,7 @@ def updatePhotoMissions(user, plant):
                 if mission.mission.goal <= mission.current:
                     mission.missionState = MissionState.COMPLETED
                 mission.save()
+
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
@@ -125,7 +135,7 @@ def identifyPlant(request):
     inventory, _ = Inventory.objects.get_or_create(user=uploader)
     Inventory.addSeed(inventory, scientificName, 2)
 
-    updatePhotoMissions (uploader, plant)
+    updatePhotoMissions(uploader, plant)
 
     return Response(
         {

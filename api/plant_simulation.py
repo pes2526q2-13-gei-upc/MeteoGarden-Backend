@@ -4,10 +4,13 @@ from django.utils import timezone
 
 from .models import (
     GrowthState,
+    MissionAction,
+    MissionState,
     PlantInGarden,
     Product,
     Station,
-    WeatherReading, UserMission, MissionAction, MissionState,
+    UserMission,
+    WeatherReading,
 )
 
 # Paràmetres de simulació
@@ -58,7 +61,8 @@ PHASE_ORDER = [
     GrowthState.FLOWERING,
 ]
 
-def updateMissions (plantInGarden, action):
+
+def updateMissions(plantInGarden, action):
     user = plantInGarden.pot.garden.user
     plant = plantInGarden.plant
     allUserMissions = UserMission.objects.filter(
@@ -71,6 +75,7 @@ def updateMissions (plantInGarden, action):
                 if mission.mission.goal <= mission.current:
                     mission.missionState = MissionState.COMPLETED
                 mission.save()
+
 
 def simulate_plant(plant_in_garden: PlantInGarden, station: Station) -> PlantInGarden:
     if plant_in_garden.growthPhase == GrowthState.DEAD:

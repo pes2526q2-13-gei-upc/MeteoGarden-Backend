@@ -5,13 +5,24 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
-from api.models import Garden, GrowthState, Inventory, Pot, Station, User, UserMission, MissionState, MissionAction, \
-    Plant
+from api.models import (
+    Garden,
+    GrowthState,
+    Inventory,
+    MissionAction,
+    MissionState,
+    Plant,
+    Pot,
+    Station,
+    User,
+    UserMission,
+)
 from api.plant_simulation import simulate_plant
 from api.serializer import InventorySeedSerializer, PotSerializer
 from api.xema_sync import ensure_station_synced
 
-def updateWaterMissions (user, plant):
+
+def updateWaterMissions(user, plant):
     allUserMissions = UserMission.objects.filter(
         user=user, missionState=MissionState.IN_PROGRESS
     )
@@ -22,6 +33,7 @@ def updateWaterMissions (user, plant):
                 if mission.mission.goal <= mission.current:
                     mission.missionState = MissionState.COMPLETED
                 mission.save()
+
 
 def _sync_user_station(user: User) -> Station | None:
     station = Station.objects.filter(stationCode=user.stationCode).first()

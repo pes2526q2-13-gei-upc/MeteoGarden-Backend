@@ -1,12 +1,15 @@
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
-from api.models import PlantInGarden, UserMission, MissionState, Product, MissionAction
+from api.models import MissionAction, MissionState, PlantInGarden, Product, UserMission
 from api.plant_simulation import apply_product
+
 
 def updateUseMissions(user, productName):
     # Obtenim totes les missions en progres
-    allUserMisions = UserMission.objects.filter(user=user, misssionState=MissionState.IN_PROGRESS)
+    allUserMisions = UserMission.objects.filter(
+        user=user, misssionState=MissionState.IN_PROGRESS
+    )
     product = Product.objects.get(name=productName)
     for mission in allUserMisions:
         if mission.mission.action == MissionAction.USE:

@@ -478,8 +478,6 @@ class Event(models.Model):
     street = models.CharField(max_length=255)
 
 
-<<<<<<< HEAD
-=======
 class Mission(models.Model):
     name = models.CharField(max_length=50, primary_key=True)  # RT.1
     description = models.TextField()
@@ -534,4 +532,3 @@ class UserMission(models.Model):
 
     class Meta:
         unique_together = ("user", "mission")
->>>>>>> ddaf57e01ab25c18135f255e63f7c4392313e078

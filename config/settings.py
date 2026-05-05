@@ -65,6 +65,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -151,7 +152,7 @@ STORAGES = {
 MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:62057",
+    "http://localhost:62338",
     "http://127.0.0.1:62057",
 ]
 
@@ -215,3 +216,5 @@ CELERY_BEAT_SCHEDULE = {
 }
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"

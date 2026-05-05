@@ -37,6 +37,16 @@ class LanguageType(models.TextChoices):
     ENGLISH = "english", "English"
 
 
+class MissionAction(models.TextChoices):
+    PLANT = "PLANT"
+    COLLECT = "COLLECT"
+    WATER = "WATER"
+    FLOWER = "FLOWER"
+    DIE = "DIE"
+    USE = "USE"
+    PHOTO = "PHOTO"
+
+
 # Main classes
 class Plant(models.Model):
     scientificName = models.CharField(max_length=100, primary_key=True)  # RT.1
@@ -327,27 +337,6 @@ class Image(models.Model):
         return f"Image of {self.plant.scientificName} by " f"{self.uploader.username}"
 
 
-class Mission(models.Model):
-    name = models.CharField(max_length=50, primary_key=True)  # RT.1
-    description = models.TextField()
-    seed = models.ForeignKey(Plant, on_delete=models.CASCADE)
-    rewardCoins = models.PositiveIntegerField()
-    product = models.CharField(max_length=50)
-
-    def __str__(self):
-        return self.name
-
-
-class UserMission(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    mission = models.ForeignKey(Mission, on_delete=models.CASCADE)
-    missionState = models.CharField(max_length=50, choices=MissionState.choices)
-    acquiredAt = models.DateTimeField()
-
-    class Meta:
-        unique_together = ("user", "mission")
-
-
 class Station(models.Model):
     stationCode = models.CharField(max_length=4, primary_key=True)  # RT.1
     station = models.CharField(max_length=50)
@@ -396,7 +385,7 @@ class Shop(models.Model):
         "mentha_spicata": 2,
     }
     STARTER_PRODUCTS = {
-        "health_potion": 15,
+        "Small Heal": 15,
     }
 
     @classmethod
@@ -489,3 +478,60 @@ class Event(models.Model):
     street = models.CharField(max_length=255)
 
 
+<<<<<<< HEAD
+=======
+class Mission(models.Model):
+    name = models.CharField(max_length=50, primary_key=True)  # RT.1
+    description = models.TextField()
+    action = models.CharField(
+        max_length=50,
+        choices=MissionAction.choices,
+        null=False,
+        default=None,
+        blank=False,
+    )
+    goal = models.PositiveIntegerField(default=1)
+    plant = models.ForeignKey(
+        Plant,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="missions_requiring_plant",
+    )
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="missions_requiring_product",
+    )
+    plantReward = models.ForeignKey(
+        Plant,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="missions_rewarding_plant",
+    )
+    rewardCoins = models.PositiveIntegerField(default=0)
+    productReward = models.ForeignKey(
+        Product,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="missions_rewarding_product",
+    )
+
+    def __str__(self):
+        return self.name
+
+
+class UserMission(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    mission = models.ForeignKey(Mission, on_delete=models.CASCADE)
+    current = models.PositiveIntegerField(default=0)
+    missionState = models.CharField(max_length=50, choices=MissionState.choices)
+    acquiredAt = models.DateTimeField()
+
+    class Meta:
+        unique_together = ("user", "mission")
+>>>>>>> ddaf57e01ab25c18135f255e63f7c4392313e078

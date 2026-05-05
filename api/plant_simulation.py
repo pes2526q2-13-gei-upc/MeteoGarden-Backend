@@ -5,9 +5,12 @@ from django.utils import timezone
 from .models import (
     ActiveProduct,
     GrowthState,
+    MissionAction,
+    MissionState,
     PlantInGarden,
     Product,
     Station,
+    UserMission,
     WeatherReading,
 )
 
@@ -58,6 +61,21 @@ PHASE_ORDER = [
     GrowthState.MATURE,
     GrowthState.FLOWERING,
 ]
+
+
+def updateMissions(plantInGarden, action):
+    user = plantInGarden.pot.garden.user
+    plant = plantInGarden.plant
+    allUserMissions = UserMission.objects.filter(
+        user=user, missionState=MissionState.IN_PROGRESS
+    )
+    for mission in allUserMissions:
+        if mission.mission.action == action:
+            if mission.mission.plant is None or mission.mission.plant == plant:
+                mission.current += 1
+                if mission.mission.goal <= mission.current:
+                    mission.missionState = MissionState.COMPLETED
+                mission.save()
 
 
 def simulate_plant(plant_in_garden: PlantInGarden, station: Station) -> PlantInGarden:
@@ -231,6 +249,7 @@ def _apply_reading(
         pig.waterLevel = new_water
         pig.lastSimulatedAt = reading.timestamp
         pig.diedAt = timezone.now()
+        updateMissions(pig, MissionAction.DIE)
         return pig
 
     # Actualitzar vives
@@ -266,6 +285,8 @@ def _recalculate_phase(pig: PlantInGarden, health: float, current_time) -> str:
             nxt = _next_phase(phase, pig.plant.canFlower)
             if nxt:
                 target_phase = nxt
+                if nxt == GrowthState.FLOWERING:
+                    updateMissions(pig, MissionAction.FLOWER)
         else:
             break
 

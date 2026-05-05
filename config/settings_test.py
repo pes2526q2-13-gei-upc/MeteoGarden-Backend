@@ -18,6 +18,12 @@ DATABASES = {
 MEDIA_ROOT = BASE_DIR / "test_media"  # noqa: F405
 DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    }
+}
+
 PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.MD5PasswordHasher",
 ]

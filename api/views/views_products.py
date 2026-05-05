@@ -6,13 +6,7 @@ from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from api.models import (
-    ActiveProduct,
-    PlantInGarden,
-    Pot,
-    Product,
-    User,
-)
+from api.models import ActiveProduct, PlantInGarden, Pot, Product, User
 from api.plant_simulation import apply_product
 
 

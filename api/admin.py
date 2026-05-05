@@ -137,7 +137,7 @@ class AlbumEntryAdmin(admin.ModelAdmin):
 
 @admin.register(Mission)
 class MissionAdmin(admin.ModelAdmin):
-    list_display = ("name", "seed", "rewardCoins", "product")
+    list_display = ("name", "description", "rewardCoins", "product")
 
 
 @admin.register(UserMission)

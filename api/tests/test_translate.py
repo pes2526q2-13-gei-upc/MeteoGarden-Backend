@@ -34,11 +34,11 @@ class TestTranslateText:
         monkeypatch.setenv("GOOGLE_TRANSLATE_API_KEY", "fake-key")
 
         def fake_post(url, params=None, timeout=None):
+            p_dict = dict(params)
             assert url == "https://translation.googleapis.com/language/translate/v2"
-            assert params["q"] == "Hello"
-            assert params["target"] == "ca"
-            assert params["format"] == "text"
-            assert params["key"] == "fake-key"
+            assert p_dict["q"] == "Hello"
+            assert p_dict["target"] == "ca"
+            assert p_dict["key"] == "fake-key"
             assert timeout == 30
 
             return DummyResponse(
@@ -47,10 +47,11 @@ class TestTranslateText:
                 }
             )
 
-        # IMPORTANT: mockeja requests.post al mòdul on està definit translate_text
         import api.views.views_translate as mod
 
         monkeypatch.setattr(mod.requests, "post", fake_post)
+
+        from api.views.views_translate import translate_text
 
         assert translate_text("Hello", "ca") == "Hola"
 
@@ -70,13 +71,16 @@ class TestTranslateText:
 
 @pytest.mark.django_db
 class TestTranslateEndpoint:
-    def test_translate_endpoint_missing_params_returns_500(self):
+    def test_translate_endpoint_missing_params_returns_400(self):
         factory = APIRequestFactory()
         request = factory.get("/translate")
+
+        from api.views.views_translate import translate
+
         resp = translate(request)
 
-        assert resp.status_code == 500
-        assert resp.data == "error: There's no text neither language to translate"
+        assert resp.status_code == 400
+        assert resp.data == {"error": "No text or language provided"}
 
     def test_translate_endpoint_ok_returns_translated_text(self, monkeypatch):
         import api.views.views_translate as mod

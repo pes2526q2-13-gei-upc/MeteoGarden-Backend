@@ -6,7 +6,7 @@ import requests
 from django.utils import timezone
 from dotenv import load_dotenv
 
-from .models import Station, WeatherReading
+from api.models import Station, WeatherReading
 
 load_dotenv()
 logger = logging.getLogger(__name__)

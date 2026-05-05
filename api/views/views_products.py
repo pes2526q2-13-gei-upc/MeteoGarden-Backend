@@ -6,8 +6,32 @@ from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from api.models import ActiveProduct, PlantInGarden, Pot, Product, User
+from api.models import (
+    ActiveProduct,
+    MissionAction,
+    MissionState,
+    PlantInGarden,
+    Pot,
+    Product,
+    User,
+    UserMission,
+)
 from api.plant_simulation import apply_product
+
+
+def updateUseMissions(user, productName):
+    # Obtenim totes les missions en progres
+    allUserMisions = UserMission.objects.filter(
+        user=user, misssionState=MissionState.IN_PROGRESS
+    )
+    product = Product.objects.get(name=productName)
+    for mission in allUserMisions:
+        if mission.mission.action == MissionAction.USE:
+            if mission.mission.product is None or mission.mission.product == product:
+                mission.current += 1
+                if mission.mission.goal <= mission.current:
+                    mission.missionState = MissionState.COMPLETED
+                mission.save()
 
 
 @csrf_exempt
@@ -34,6 +58,7 @@ def use_product(request):
         product = get_object_or_404(Product, name=product_name)
 
         apply_product(user, plant, product_name)
+        updateUseMissions(user, product_name)
         plant.refresh_from_db()
 
         response = {

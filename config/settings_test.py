@@ -27,3 +27,5 @@ AUTH_PASSWORD_VALIDATORS = []
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 
 CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
+
+FIREBASE_ENABLED = False

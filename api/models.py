@@ -487,3 +487,5 @@ class Event(models.Model):
     image = models.ImageField(upload_to="events/", null=True, blank=True)
     city = models.CharField(max_length=150)
     street = models.CharField(max_length=255)
+
+

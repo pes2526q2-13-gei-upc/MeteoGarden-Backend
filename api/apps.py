@@ -1,4 +1,5 @@
 from django.apps import AppConfig
+from django.conf import settings
 
 
 class ApiConfig(AppConfig):
@@ -8,4 +9,6 @@ class ApiConfig(AppConfig):
     def ready(self):
         from .firebase import initialize_firebase
 
+        if not getattr(settings, "FIREBASE_ENABLED", False):
+            return
         initialize_firebase()

@@ -10,7 +10,7 @@ from api.serializer import EventSeedSerializer, EventSerializer
 from api.views.views_translate import translate_text
 
 
-def getAllEventsByCity(date: str, city: str, lang: str):
+def get_all_events_by_city(date: str, city: str, lang: str):
     full_date = parse_datetime(date) or parse_date(date)
     if not full_date:
         return []
@@ -46,7 +46,7 @@ def getAllEventsByCity(date: str, city: str, lang: str):
         return {"error": str(e)}
 
 
-def getAllEvents(date: str, lang: str):
+def get_all_events(date: str, lang: str):
     full_date = parse_datetime(date) or parse_date(date)
     if not full_date:
         return []
@@ -80,7 +80,7 @@ def getAllEvents(date: str, lang: str):
         return {"error": str(e)}
 
 
-def getAllEventsByCategory(date: str, lang: str, cat: str):
+def get_all_events_by_category(date: str, lang: str, cat: str):
     full_date = parse_datetime(date) or parse_date(date)
     if not full_date:
         return []
@@ -116,7 +116,7 @@ def getAllEventsByCategory(date: str, lang: str, cat: str):
         return {"error": str(e)}
 
 
-def getNumberOfEvents(month: str, year: str, city: str):
+def get_number_of_events(month: str, year: str, city: str):
     if city is None:
         events = (
             Event.objects.filter(start_date__year=year, start_date__month=month)
@@ -139,7 +139,7 @@ def getNumberOfEvents(month: str, year: str, city: str):
     return events
 
 
-def getDetails(id: str, lang: str):
+def get_details(id: str, lang: str):
     event = Event.objects.select_related("category").get(id=id)
     if lang not in ("cat", "CAT"):
         field_to_translate = ["title", "description"]
@@ -165,55 +165,55 @@ def getDetails(id: str, lang: str):
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def getEvents(request):
+def get_events(request):
     date = request.query_params.get("date")
     lang = request.query_params.get("lang")
-    event = getAllEvents(date, lang)
+    event = get_all_events(date, lang)
     return Response({"events": event})
 
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def getEventsByCity(request):
+def get_events_by_city(request):
     date = request.query_params.get("date")
     lang = request.query_params.get("lang")
     city = request.query_params.get("city")
-    event = getAllEventsByCity(date, city, lang)
+    event = get_all_events_by_city(date, city, lang)
     return Response({"events": event})
 
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def getEventsByCategory(request):
+def get_events_by_category(request):
     date = request.query_params.get("date")
     lang = request.query_params.get("lang")
     category = request.query_params.get("category")
-    event = getAllEventsByCategory(date, lang, category)
+    event = get_all_events_by_category(date, lang, category)
     return Response({"events": event})
 
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def getNumEvents(request):
+def get_num_events(request):
     year = request.query_params.get("year")
     month = request.query_params.get("month")
     city = request.query_params.get("city")
-    event = getNumberOfEvents(month, year, city)
+    event = get_number_of_events(month, year, city)
     return Response({"events": event})
 
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def getEventDetail(request):
+def get_event_detail(request):
     id = request.query_params.get("id")
     lang = request.query_params.get("lang")
-    event = getDetails(id, lang)
+    event = get_details(id, lang)
     serializer = EventSeedSerializer(event)
     return Response({"events": serializer.data})
 
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def getCategories(request):
+def get_categories(request):
     categories = EventsCategory.objects.all().values("id", "name")
     return Response(list(categories))

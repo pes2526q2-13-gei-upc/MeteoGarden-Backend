@@ -1,7 +1,5 @@
-import os
-from datetime import date, timedelta, datetime
+from datetime import date, datetime, timedelta
 from datetime import timezone as dt_timezone
-
 from functools import wraps
 
 from django.db.models import Max, Min
@@ -9,10 +7,9 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from third_party_service.models import Station, WeatherReading
-from third_party_service.xema_sync import ensure_station_synced, _fetch_and_save
+from third_party_service.models import ApiKey, Station, WeatherReading
+from third_party_service.xema_sync import _fetch_and_save, ensure_station_synced
 
-from third_party_service.models import ApiKey
 # API_KEY = os.getenv("API_KEY")
 
 
@@ -36,12 +33,15 @@ def require_api_key(func):
             if token.created_by:
                 request.user = token.created_by
             from django.utils import timezone
+
             token.last_used_at = timezone.now()
             token.save(update_fields=["last_used_at"])
         except ApiKey.DoesNotExist:
             return Response({"error": "Invalid or missing API key"}, status=401)
         return func(request, *args, **kwargs)
+
     return wrapper
+
 
 def _get_station_by_city(city: str):
     stations = Station.objects.filter(city__icontains=city)
@@ -59,11 +59,9 @@ def _get_station_by_city(city: str):
 
 
 def _aggregate_day(station, day_start, day_end):
-    return (
-        WeatherReading.objects
-        .filter(station=station, timestamp__gte=day_start, timestamp__lt=day_end)
-        .aggregate(Max("temperature"), Min("temperature"))
-    )
+    return WeatherReading.objects.filter(
+        station=station, timestamp__gte=day_start, timestamp__lt=day_end
+    ).aggregate(Max("temperature"), Min("temperature"))
 
 
 # GET {BASE_URL}/api/weather/current/?city=<ciutat>
@@ -83,10 +81,7 @@ def current_weather(request):
     ensure_station_synced(station)
 
     latest = (
-        WeatherReading.objects
-        .filter(station=station)
-        .order_by("-timestamp")
-        .first()
+        WeatherReading.objects.filter(station=station).order_by("-timestamp").first()
     )
 
     if not latest:
@@ -137,15 +132,12 @@ def daily_weather(request):
     ensure_station_synced(station)
 
     day_start = datetime(
-        target_date.year, target_date.month, target_date.day,
+        target_date.year,
+        target_date.month,
+        target_date.day,
         tzinfo=dt_timezone.utc,
     )
     day_end = day_start + timedelta(days=1)
-
-    readings = WeatherReading.objects.filter(
-        station=station, timestamp__gte=day_start, timestamp__lt=day_end
-    )
-
 
     agg = _aggregate_day(station, day_start, day_end)
     temp_max = agg["temperature__max"]
@@ -168,32 +160,26 @@ def daily_weather(request):
     )
 
 
-# views.py
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny  # o canvia-ho a IsAuthenticated si vols que només usuaris logats puguin crear API keys
-from rest_framework.response import Response
-from third_party_service.models import ApiKey
-
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([AllowAny])  # o [IsAuthenticated]
 def create_api_key(request):
     name = request.data.get("name", "")
     if not name:
-        return Response({'error': 'El camp "name" és obligatori.'}, status=400)
+        return Response({"error": 'El camp "name" és obligatori.'}, status=400)
 
     # Si fas servir auth, pots associar la clau a l'usuari autenticat:
     user = request.user if request.user.is_authenticated else None
 
     # Potser vols comprovar que no existeix ja una key amb el mateix nom:
     if ApiKey.objects.filter(name=name).exists():
-        return Response({'error': 'Ja existeix una API key amb aquest nom.'}, status=400)
+        return Response(
+            {"error": "Ja existeix una API key amb aquest nom."}, status=400
+        )
 
-    key_obj, raw_token = ApiKey.issue_token(
-        name=name,
-        created_by=user
+    key_obj, raw_token = ApiKey.issue_token(name=name, created_by=user)
+    return Response(
+        {
+            "name": name,
+            "api_key": raw_token,  # <-- Aquesta és la clau en clar, el client l'ha de guardar!
+        }
     )
-    return Response({
-        "name": name,
-        "api_key": raw_token    # <-- Aquesta és la clau en clar, el client l'ha de guardar!
-    })

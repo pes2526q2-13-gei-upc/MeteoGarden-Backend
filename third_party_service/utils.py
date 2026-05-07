@@ -1,5 +1,7 @@
 import secrets
+
 from third_party_service.models import ApiKey
+
 
 def generate_api_key(user, name=""):
     key = secrets.token_hex(32)

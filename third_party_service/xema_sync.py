@@ -1,6 +1,7 @@
 import logging
 import os
-from datetime import datetime, timedelta, timezone as dt_timezone
+from datetime import datetime, timedelta
+from datetime import timezone as dt_timezone
 
 import requests
 from django.utils import timezone
@@ -18,7 +19,7 @@ XEMA_URL = "https://analisi.transparenciacatalunya.cat/resource/nzvn-apee.json"
 DIRECT_VARIABLES = {
     "32": "temperature",  # Temperatura (ºC) — UNIVERSAL
     "35": "precipitation",  # Precipitació acumulada (mm) — UNIVERSAL
-    "36": "solarIrradiance", #Irradiància solar (W/m^2)
+    "36": "solarIrradiance",  # Irradiància solar (W/m^2)
 }
 
 

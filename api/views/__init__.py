@@ -2,12 +2,12 @@ from .views import health  # noqa: F401
 from .views_avatar import avatar, getUserAvatar, saveAvatar  # noqa: F401
 from .views_collect import collect_plant  # noqa: F401
 from .views_event import (  # noqa: F401
+    getCategories,
     getEventDetail,
     getEvents,
     getEventsByCategory,
     getEventsByCity,
     getNumEvents,
-    getCategories
 )
 from .views_identify import identifyPlant  # noqa: F401
 from .views_image import getUserAlbum  # noqa: F401

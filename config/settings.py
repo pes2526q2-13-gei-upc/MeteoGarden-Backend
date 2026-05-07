@@ -52,7 +52,7 @@ INSTALLED_APPS = [
     "django.contrib.postgres",
     # METEOGARDEN APPS
     "api",
-    "third_party_service"
+    "third_party_service",
 ]
 
 MIDDLEWARE = [

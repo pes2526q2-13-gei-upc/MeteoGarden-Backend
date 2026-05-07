@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
 from api.firebase import initialize_firebase
-from api.models import Event, Garden, GrowthState, Station, EventsCategory
+from api.models import Event, EventsCategory, Garden, GrowthState, Station
 from api.notifications import can_send_notification, send_push_notification
 from api.plant_simulation import simulate_plant
 from api.services.events import getEventsFromService
@@ -160,7 +160,9 @@ def sync_events_task():
 
             if category_name:
                 category_name = category_name.strip()
-                category_obj, _ = EventsCategory.objects.get_or_create(name=category_name)
+                category_obj, _ = EventsCategory.objects.get_or_create(
+                    name=category_name
+                )
 
             event, created = Event.objects.update_or_create(
                 id=item.get("id"),

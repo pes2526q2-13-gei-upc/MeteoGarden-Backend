@@ -20,7 +20,7 @@ def getAllEventsByCity(date: str, city: str, lang: str):
     else:
         target_date = full_date
     try:
-        events = Event.objects.selected_related('category').filter(
+        events = Event.objects.selected_related("category").filter(
             start_date__date__lte=target_date,
             end_date__date__gte=target_date,
             city__iexact=city,
@@ -56,7 +56,7 @@ def getAllEvents(date: str, lang: str):
     else:
         target_date = full_date
     try:
-        events = Event.objects.select_related('category').filter(
+        events = Event.objects.select_related("category").filter(
             start_date__date__lte=target_date, end_date__date__gte=target_date
         )
         with_subtitle = [e for e in events if e.subtitle and e.subtitle.strip]
@@ -90,7 +90,7 @@ def getAllEventsByCategory(date: str, lang: str, cat: str):
     else:
         target_date = full_date
     try:
-        events = Event.objects.select_related('category').filter(
+        events = Event.objects.select_related("category").filter(
             start_date__date__lte=target_date,
             end_date__date__gte=target_date,
             category__name__iexact=cat,
@@ -127,7 +127,9 @@ def getNumberOfEvents(month: str, year: str, city: str):
         )
     else:
         events = (
-            Event.objects.filter(start_date__year=year, start_date__month=month, city__iexact=city)
+            Event.objects.filter(
+                start_date__year=year, start_date__month=month, city__iexact=city
+            )
             .annotate(day=TruncDay("start_date"))
             .values("day")
             .annotate(total=Count("id"))
@@ -138,7 +140,7 @@ def getNumberOfEvents(month: str, year: str, city: str):
 
 
 def getDetails(id: str, lang: str):
-    event = Event.objects.select_related('category').get(id=id)
+    event = Event.objects.select_related("category").get(id=id)
     if lang not in ("cat", "CAT"):
         field_to_translate = ["title", "description"]
         if getattr(event, "subtitle", None):
@@ -213,5 +215,5 @@ def getEventDetail(request):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def getCategories(request):
-    categories = EventsCategory.objects.all().values('id', 'name')
+    categories = EventsCategory.objects.all().values("id", "name")
     return Response(list(categories))

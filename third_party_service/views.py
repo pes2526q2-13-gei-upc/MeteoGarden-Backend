@@ -20,7 +20,25 @@ def require_api_key(func):
     @wraps(func)
     def wrapper(request, *args, **kwargs):
         key = request.headers.get("X-API-KEY") or request.GET.get("api_key")
-        if not key or not ApiKey.objects.filter(key=key).exists():
+        if not key or len(key) < 16:
+            return Response({"error": "Invalid or missing API key"}, status=401)
+        prefix = key[:16]
+        hashed = ApiKey.hash_token(key)
+        try:
+            token = ApiKey.objects.get(
+                key_prefix=prefix,
+                key_hash=hashed,
+                revoked_at__isnull=True,
+            )
+            if not token.is_active:
+                return Response({"error": "API key is expired or revoked"}, status=401)
+            request.token = token
+            if token.created_by:
+                request.user = token.created_by
+            from django.utils import timezone
+            token.last_used_at = timezone.now()
+            token.save(update_fields=["last_used_at"])
+        except ApiKey.DoesNotExist:
             return Response({"error": "Invalid or missing API key"}, status=401)
         return func(request, *args, **kwargs)
     return wrapper
@@ -148,3 +166,34 @@ def daily_weather(request):
             "temperatureMin": temp_min,
         }
     )
+
+
+# views.py
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny  # o canvia-ho a IsAuthenticated si vols que només usuaris logats puguin crear API keys
+from rest_framework.response import Response
+from third_party_service.models import ApiKey
+
+@api_view(['POST'])
+@permission_classes([AllowAny])  # o [IsAuthenticated]
+def create_api_key(request):
+    name = request.data.get("name", "")
+    if not name:
+        return Response({'error': 'El camp "name" és obligatori.'}, status=400)
+
+    # Si fas servir auth, pots associar la clau a l'usuari autenticat:
+    user = request.user if request.user.is_authenticated else None
+
+    # Potser vols comprovar que no existeix ja una key amb el mateix nom:
+    if ApiKey.objects.filter(name=name).exists():
+        return Response({'error': 'Ja existeix una API key amb aquest nom.'}, status=400)
+
+    key_obj, raw_token = ApiKey.issue_token(
+        name=name,
+        created_by=user
+    )
+    return Response({
+        "name": name,
+        "api_key": raw_token    # <-- Aquesta és la clau en clar, el client l'ha de guardar!
+    })

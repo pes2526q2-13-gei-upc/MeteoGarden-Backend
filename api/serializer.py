@@ -2,7 +2,7 @@ from datetime import timedelta
 
 from rest_framework import serializers
 
-from api.models import ActiveProduct, Event, Image, Plant, Pot, Product
+from api.models import ActiveProduct, Event, Image, Plant, Pot, Product, EventsCategory
 
 
 class PotSerializer(serializers.ModelSerializer):
@@ -137,7 +137,14 @@ class InventoryProductSerializer(serializers.Serializer):
         return product.image_url.url if product.image_url else None
 
 
+class EventsCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EventsCategory
+        fields = ['id', 'name']
+
+
 class EventSeedSerializer(serializers.ModelSerializer):
+    category = EventsCategorySerializer(read_only=True)
     class Meta:
         model = Event
         fields = "__all__"
@@ -146,7 +153,8 @@ class EventSeedSerializer(serializers.ModelSerializer):
 class EventSerializer(serializers.ModelSerializer):
     title = serializers.CharField()
     subtitle = serializers.CharField()
+    category = EventsCategorySerializer(read_only=True)
 
     class Meta:
         model = Event
-        fields = ["id", "title", "subtitle", "city", "end_date", "price", "image"]
+        fields = ["id", "title", "subtitle", "city", "start_date", "category", "end_date", "price", "image"]

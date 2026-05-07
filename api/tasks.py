@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
 from api.firebase import initialize_firebase
-from api.models import Event, Garden, GrowthState, Station
+from api.models import Event, Garden, GrowthState, Station, EventsCategory
 from api.notifications import can_send_notification, send_push_notification
 from api.plant_simulation import simulate_plant
 from api.services.events import getEventsFromService
@@ -141,7 +141,7 @@ def _download_image(event_obj, url):
         logger.error(f"Error downloading image for the event {event_obj.id}: {e}")
 
 
-@shared_task(name="sync_events_task")
+@shared_task()
 def sync_events_task():
     next_url = None
     total_created = 0
@@ -155,6 +155,13 @@ def sync_events_task():
         for item in data["results"]:
             loc = item.get("location", {})
 
+            category_name = item.get("category")
+            category_obj = None
+
+            if category_name:
+                category_name = category_name.strip()
+                category_obj, _ = EventsCategory.objects.get_or_create(name=category_name)
+
             event, created = Event.objects.update_or_create(
                 id=item.get("id"),
                 defaults={
@@ -163,7 +170,7 @@ def sync_events_task():
                     "description": item.get("description", ""),
                     "start_date": parse_datetime(item.get("start_date")),
                     "end_date": parse_datetime(item.get("end_date")),
-                    "category": item.get("category"),
+                    "category": category_obj,
                     "price": int(float(item.get("price", 0))),
                     "tags": item.get("tags", []),
                     "city": loc.get("county", "Desconeguda"),
@@ -188,7 +195,7 @@ def sync_events_task():
     return f"Sincronització completa: {total_created} creats, {total_updated} actualitzats."
 
 
-@shared_task(name="cleanup_old_events")
+@shared_task()
 def cleanup_old_events():
     # 1. Calculem la data límit (ara fa 30 dies)
     # Fem servir timezone.now() segons el que veig al teu settings.py

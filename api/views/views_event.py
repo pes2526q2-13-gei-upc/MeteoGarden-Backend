@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from api.models import Event
+from api.models import Event, EventsCategory
 from api.serializer import EventSeedSerializer, EventSerializer
 from api.views.views_translate import translate_text
 
@@ -20,7 +20,7 @@ def getAllEventsByCity(date: str, city: str, lang: str):
     else:
         target_date = full_date
     try:
-        events = Event.objects.filter(
+        events = Event.objects.selected_related('category').filter(
             start_date__date__lte=target_date,
             end_date__date__gte=target_date,
             city__iexact=city,
@@ -56,7 +56,7 @@ def getAllEvents(date: str, lang: str):
     else:
         target_date = full_date
     try:
-        events = Event.objects.filter(
+        events = Event.objects.select_related('category').filter(
             start_date__date__lte=target_date, end_date__date__gte=target_date
         )
         with_subtitle = [e for e in events if e.subtitle and e.subtitle.strip]
@@ -90,10 +90,10 @@ def getAllEventsByCategory(date: str, lang: str, cat: str):
     else:
         target_date = full_date
     try:
-        events = Event.objects.filter(
+        events = Event.objects.select_related('category').filter(
             start_date__date__lte=target_date,
             end_date__date__gte=target_date,
-            category__iexact=cat,
+            category__name__iexact=cat,
         )
         with_subtitle = [e for e in events if e.subtitle and e.subtitle.strip]
 
@@ -116,33 +116,47 @@ def getAllEventsByCategory(date: str, lang: str, cat: str):
         return {"error": str(e)}
 
 
-def getNumberOfEvents(month: str, year: str):
-    events = (
-        Event.objects.filter(start_date__year=year, start_date__month=month)
-        .annotate(day=TruncDay("start_date"))
-        .values("day")
-        .annotate(total=Count("id"))
-        .order_by("day")
-    )
+def getNumberOfEvents(month: str, year: str, city: str):
+    if city is None:
+        events = (
+            Event.objects.filter(start_date__year=year, start_date__month=month)
+            .annotate(day=TruncDay("start_date"))
+            .values("day")
+            .annotate(total=Count("id"))
+            .order_by("day")
+        )
+    else:
+        events = (
+            Event.objects.filter(start_date__year=year, start_date__month=month, city__iexact=city)
+            .annotate(day=TruncDay("start_date"))
+            .values("day")
+            .annotate(total=Count("id"))
+            .order_by("day")
+        )
 
     return events
 
 
 def getDetails(id: str, lang: str):
-    event = Event.objects.get(id=id)
+    event = Event.objects.select_related('category').get(id=id)
     if lang not in ("cat", "CAT"):
-        field_to_translate = ["title", "description", "category"]
+        field_to_translate = ["title", "description"]
         if getattr(event, "subtitle", None):
             field_to_translate.append("subtitle")
         if getattr(event, "tags", None):
             field_to_translate.append("tags")
 
         to_translate = [getattr(event, field) for field in field_to_translate]
+        if event.category:
+            to_translate.append(event.category.name)
 
         translated_event = translate_text(to_translate, lang)
 
         for i, field in enumerate(field_to_translate):
             setattr(event, field, translated_event[i])
+
+        if event.category:
+            event.category.name = translated_event[-1]
 
     return event
 
@@ -181,7 +195,8 @@ def getEventsByCategory(request):
 def getNumEvents(request):
     year = request.query_params.get("year")
     month = request.query_params.get("month")
-    event = getNumberOfEvents(month, year)
+    city = request.query_params.get("city")
+    event = getNumberOfEvents(month, year, city)
     return Response({"events": event})
 
 
@@ -193,3 +208,10 @@ def getEventDetail(request):
     event = getDetails(id, lang)
     serializer = EventSeedSerializer(event)
     return Response({"events": serializer.data})
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def getCategories(request):
+    categories = EventsCategory.objects.all().values('id', 'name')
+    return Response(list(categories))

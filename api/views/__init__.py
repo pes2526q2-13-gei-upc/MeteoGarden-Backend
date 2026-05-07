@@ -7,6 +7,7 @@ from .views_event import (  # noqa: F401
     getEventsByCategory,
     getEventsByCity,
     getNumEvents,
+    getCategories
 )
 from .views_identify import identifyPlant  # noqa: F401
 from .views_image import getUserAlbum  # noqa: F401

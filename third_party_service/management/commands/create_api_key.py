@@ -12,7 +12,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         username = options["username"]
-        User = get_user_model()
-        user = User.objects.get(username=username)
+        user = get_user_model().objects.get(username=username)
         api_key = generate_api_key(user)
         self.stdout.write(f"API Key per {user.username}: {api_key.key}")

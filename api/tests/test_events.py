@@ -67,7 +67,7 @@ def test_get_all_events_returns_expected(test_events, mock_trad):
 
 @patch("api.views.views_event.translate_text", side_effect=lambda xs, lang: xs)
 @pytest.mark.django_db
-def test_get_all_eventsByCity_ok(test_events, mock_trad):
+def test_get_all_events_by_city_ok(test_events, mock_trad):
     from api.views.views_event import get_all_events_by_city
 
     date = datetime.now().isoformat()
@@ -78,7 +78,7 @@ def test_get_all_eventsByCity_ok(test_events, mock_trad):
 
 @patch("api.views.views_event.translate_text", side_effect=lambda xs, lang: xs)
 @pytest.mark.django_db
-def test_get_all_eventsByCategory_ok(test_events, mock_trad, some_categories):
+def test_get_all_events_by_category_ok(test_events, mock_trad, some_categories):
     from api.views.views_event import get_all_events_by_category
 
     date = datetime.now().isoformat()
@@ -160,7 +160,7 @@ def test_get_events_by_city_endpoint(test_events):
 
 
 @pytest.mark.django_db
-def test_get_eventsByCategory_endpoint(test_events):
+def test_get_events_by_category_endpoint(test_events):
     client = APIClient()
     date = datetime.now().date().isoformat()
     url = reverse("getEventsByCategory") + f"?date={date}&lang=cat&category=Música"

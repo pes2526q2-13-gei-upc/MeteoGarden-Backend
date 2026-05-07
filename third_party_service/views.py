@@ -10,8 +10,6 @@ from rest_framework.response import Response
 from third_party_service.models import ApiKey, Station, WeatherReading
 from third_party_service.xema_sync import _fetch_and_save, ensure_station_synced
 
-# API_KEY = os.getenv("API_KEY")
-
 
 def require_api_key(func):
     @wraps(func)

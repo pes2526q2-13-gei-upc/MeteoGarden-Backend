@@ -6,8 +6,30 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from api.models import Event, EventsCategory
-from api.serializer import EventSeedSerializer, EventSerializer
+from api.serializer import (
+    EventsCategorySerializer,
+    EventSeedSerializer,
+    EventSerializer,
+)
 from api.views.views_translate import translate_text
+
+
+def translate(events, lang: str):
+    with_subtitle = [e for e in events if e.subtitle and e.subtitle.strip]
+
+    titles = [e.title for e in events]
+    subtitles = [e.subtitle for e in with_subtitle]
+    translated_titles = translate_text(titles, lang)
+    translated_subtitles = translate_text(subtitles, lang)
+    subtitles_map = {
+        with_subtitle[i].id: translated_subtitles[i] for i in range(len(with_subtitle))
+    }
+    for i, event in enumerate(events):
+        event.title = translated_titles[i]
+        if event.id in subtitles_map:
+            event.subtitle = subtitles_map[event.id]
+
+    return events
 
 
 def get_all_events_by_city(date: str, city: str, lang: str):
@@ -25,20 +47,7 @@ def get_all_events_by_city(date: str, city: str, lang: str):
             end_date__date__gte=target_date,
             city__iexact=city,
         )
-        with_subtitle = [e for e in events if e.subtitle and e.subtitle.strip]
-
-        titles = [e.title for e in events]
-        subtitles = [e.subtitle for e in with_subtitle]
-        translated_titles = translate_text(titles, lang)
-        translated_subtitles = translate_text(subtitles, lang)
-        subtitles_map = {
-            with_subtitle[i].id: translated_subtitles[i]
-            for i in range(len(with_subtitle))
-        }
-        for i, event in enumerate(events):
-            event.title = translated_titles[i]
-            if event.id in subtitles_map:
-                event.subtitle = subtitles_map[event.id]
+        events = translate(events, lang)
 
         serializer = EventSerializer(events, many=True)
         return serializer.data
@@ -59,21 +68,8 @@ def get_all_events(date: str, lang: str):
         events = Event.objects.select_related("category").filter(
             start_date__date__lte=target_date, end_date__date__gte=target_date
         )
-        with_subtitle = [e for e in events if e.subtitle and e.subtitle.strip]
 
-        titles = [e.title for e in events]
-        subtitles = [e.subtitle for e in with_subtitle]
-        translated_titles = translate_text(titles, lang)
-        translated_subtitles = translate_text(subtitles, lang)
-        subtitles_map = {
-            with_subtitle[i].id: translated_subtitles[i]
-            for i in range(len(with_subtitle))
-        }
-        for i, event in enumerate(events):
-            event.title = translated_titles[i]
-            if event.id in subtitles_map:
-                event.subtitle = subtitles_map[event.id]
-
+        events = translate(events, lang)
         serializer = EventSerializer(events, many=True)
         return serializer.data
     except Exception as e:
@@ -95,20 +91,7 @@ def get_all_events_by_category(date: str, lang: str, cat: str):
             end_date__date__gte=target_date,
             category__name__iexact=cat,
         )
-        with_subtitle = [e for e in events if e.subtitle and e.subtitle.strip]
-
-        titles = [e.title for e in events]
-        subtitles = [e.subtitle for e in with_subtitle]
-        translated_titles = translate_text(titles, lang)
-        translated_subtitles = translate_text(subtitles, lang)
-        subtitles_map = {
-            with_subtitle[i].id: translated_subtitles[i]
-            for i in range(len(with_subtitle))
-        }
-        for i, event in enumerate(events):
-            event.title = translated_titles[i]
-            if event.id in subtitles_map:
-                event.subtitle = subtitles_map[event.id]
+        events = translate(events, lang)
 
         serializer = EventSerializer(events, many=True)
         return serializer.data
@@ -116,7 +99,7 @@ def get_all_events_by_category(date: str, lang: str, cat: str):
         return {"error": str(e)}
 
 
-def get_number_of_events(month: str, year: str, city: str):
+def get_number_of_events(month: str, year: str, city: str | None):
     if city is None:
         events = (
             Event.objects.filter(start_date__year=year, start_date__month=month)
@@ -139,8 +122,8 @@ def get_number_of_events(month: str, year: str, city: str):
     return events
 
 
-def get_details(id: str, lang: str):
-    event = Event.objects.select_related("category").get(id=id)
+def get_details(event_id: str, lang: str):
+    event = Event.objects.select_related("category").get(id=event_id)
     if lang not in ("cat", "CAT"):
         field_to_translate = ["title", "description"]
         if getattr(event, "subtitle", None):
@@ -205,9 +188,9 @@ def get_num_events(request):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def get_event_detail(request):
-    id = request.query_params.get("id")
+    event_id = request.query_params.get("id")
     lang = request.query_params.get("lang")
-    event = get_details(id, lang)
+    event = get_details(event_id, lang)
     serializer = EventSeedSerializer(event)
     return Response({"events": serializer.data})
 
@@ -215,5 +198,6 @@ def get_event_detail(request):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def get_categories(request):
-    categories = EventsCategory.objects.all().values("id", "name")
-    return Response(list(categories))
+    categories = EventsCategory.objects.all()
+    serializer = EventsCategorySerializer(categories, many=True)
+    return Response(serializer.data)

@@ -185,43 +185,43 @@ def claimReward(request):
     mission = Mission.objects.get(name=request.data["mission"])
     userMission = UserMission.objects.get(user=request.user, mission=mission)
     inventory = Inventory.objects.get(user=request.user)
-    if userMission:
-        if userMission.missionState == MissionState.CLAIMED:
-            return Response({"error": "Mission already claimed"})
-        elif userMission.missionState == MissionState.IN_PROGRESS:
-            return Response({"error": "Mission in progress"})
-        else:
-            if mission.rewardCoins:
-                # Reclamar monedes
-                inventory.coins += int(mission.rewardCoins)
-            if mission.productReward:
-                inventory.addProduct(mission.productReward.name, 1)
-            if mission.plantReward:
-                plant = Plant.objects.get(
-                    scientificName=mission.plantReward.scientificName
-                )
-                album_entry = AlbumEntry.objects.filter(user=request.user, plant=plant)
-                if not album_entry:
-                    AlbumEntry.objects.create(user=request.user, plant=plant)
-                inventory.addSeed(mission.plantReward.scientificName, 1)
-            inventory.save()
-            userMission.missionState = MissionState.CLAIMED
-            userMission.save()
-            return Response(
-                {
-                    "message": "Mission claimed successfully",
-                    "coins": f"{mission.rewardCoins} coins claimed successfully",
-                    "product": (
-                        f"{mission.productReward.name} claimed successfully"
-                        if mission.productReward
-                        else None
-                    ),
-                    "plant": (
-                        f"{mission.plantReward.scientificName} claimed successfully"
-                        if mission.plantReward
-                        else None
-                    ),
-                }
-            )
-    else:
+    if not userMission: # No existeix la missió
         return Response({"error": "Mission does not exist"}, status=400)
+    if userMission.missionState == MissionState.CLAIMED:    # La missió ja esta reclamada
+        return Response({"error": "Mission already claimed"})
+    elif userMission.missionState == MissionState.IN_PROGRESS:  # La missió encara es troba en progrés
+        return Response({"error": "Mission in progress"})
+
+    if mission.rewardCoins:
+        # Reclamar monedes
+        inventory.coins += int(mission.rewardCoins)
+    if mission.productReward:
+        inventory.addProduct(mission.productReward.name, 1)
+    if mission.plantReward:
+        plant = Plant.objects.get(
+            scientificName=mission.plantReward.scientificName
+        )
+        album_entry = AlbumEntry.objects.filter(user=request.user, plant=plant)
+        if not album_entry:
+            AlbumEntry.objects.create(user=request.user, plant=plant)
+        inventory.addSeed(mission.plantReward.scientificName, 1)
+    inventory.save()
+    userMission.missionState = MissionState.CLAIMED
+    userMission.save()
+    return Response(
+        {
+            "message": "Mission claimed successfully",
+            "coins": f"{mission.rewardCoins} coins claimed successfully",
+            "product": (
+                f"{mission.productReward.name} claimed successfully"
+                if mission.productReward
+                else None
+            ),
+            "plant": (
+                f"{mission.plantReward.scientificName} claimed successfully"
+                if mission.plantReward
+                else None
+            ),
+        }
+    )
+

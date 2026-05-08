@@ -185,11 +185,13 @@ def claimReward(request):
     mission = Mission.objects.get(name=request.data["mission"])
     userMission = UserMission.objects.get(user=request.user, mission=mission)
     inventory = Inventory.objects.get(user=request.user)
-    if not userMission: # No existeix la missió
+    if not userMission:  # No existeix la missió
         return Response({"error": "Mission does not exist"}, status=400)
-    if userMission.missionState == MissionState.CLAIMED:    # La missió ja esta reclamada
+    if userMission.missionState == MissionState.CLAIMED:  # La missió ja esta reclamada
         return Response({"error": "Mission already claimed"})
-    elif userMission.missionState == MissionState.IN_PROGRESS:  # La missió encara es troba en progrés
+    elif (
+        userMission.missionState == MissionState.IN_PROGRESS
+    ):  # La missió encara es troba en progrés
         return Response({"error": "Mission in progress"})
 
     if mission.rewardCoins:
@@ -198,9 +200,7 @@ def claimReward(request):
     if mission.productReward:
         inventory.addProduct(mission.productReward.name, 1)
     if mission.plantReward:
-        plant = Plant.objects.get(
-            scientificName=mission.plantReward.scientificName
-        )
+        plant = Plant.objects.get(scientificName=mission.plantReward.scientificName)
         album_entry = AlbumEntry.objects.filter(user=request.user, plant=plant)
         if not album_entry:
             AlbumEntry.objects.create(user=request.user, plant=plant)
@@ -224,4 +224,3 @@ def claimReward(request):
             ),
         }
     )
-

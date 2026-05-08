@@ -4,6 +4,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from ..models import (
+    AlbumEntry,
     Inventory,
     Mission,
     MissionAction,
@@ -196,6 +197,12 @@ def claimReward(request):
             if mission.productReward:
                 inventory.addProduct(mission.productReward.name, 1)
             if mission.plantReward:
+                plant = Plant.objects.get(
+                    scientificName=mission.plantReward.scientificName
+                )
+                albumEntry = AlbumEntry.objects.filter(user=request.user, plant=plant)
+                if not albumEntry:
+                    AlbumEntry.objects.create(user=request.user, plant=plant)
                 inventory.addSeed(mission.plantReward.scientificName, 1)
             inventory.save()
             userMission.missionState = MissionState.CLAIMED
@@ -210,7 +217,7 @@ def claimReward(request):
                         else None
                     ),
                     "plant": (
-                        f"{mission.plantReward.name} claimed successfully"
+                        f"{mission.plantReward.scientificName} claimed successfully"
                         if mission.plantReward
                         else None
                     ),

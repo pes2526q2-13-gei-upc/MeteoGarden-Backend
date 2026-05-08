@@ -200,8 +200,8 @@ def claimReward(request):
                 plant = Plant.objects.get(
                     scientificName=mission.plantReward.scientificName
                 )
-                albumEntry = AlbumEntry.objects.filter(user=request.user, plant=plant)
-                if not albumEntry:
+                album_entry = AlbumEntry.objects.filter(user=request.user, plant=plant)
+                if not album_entry:
                     AlbumEntry.objects.create(user=request.user, plant=plant)
                 inventory.addSeed(mission.plantReward.scientificName, 1)
             inventory.save()

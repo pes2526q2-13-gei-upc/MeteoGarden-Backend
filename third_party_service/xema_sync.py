@@ -53,11 +53,30 @@ def ensure_station_synced(station: Station) -> bool:
 
 
 def _fetch_and_save(station: Station, since: datetime, until: datetime) -> int:
+    def parse_row(row):
+        ts_str = row.get("data_lectura", "")
+        var_code = row.get("codi_variable", "")
+        val = row.get("valor_lectura")
+        if not ts_str or var_code not in ALL_VARIABLE_CODES or val is None:
+            return None, None, None
+        try:
+            float_val = float(val)
+        except ValueError:
+            return None, None, None
+        return ts_str, var_code, float_val
+
+    def parse_timestamp(ts_str):
+        try:
+            ts = datetime.fromisoformat(ts_str)
+            if ts.tzinfo is None:
+                ts = ts.replace(tzinfo=dt_timezone.utc)
+            return ts
+        except ValueError:
+            return None
 
     fmt = "%Y-%m-%dT%H:%M:%S"
     since_str = since.strftime(fmt)
     until_str = until.strftime(fmt)
-
     var_codes_str = ",".join(f"'{c}'" for c in ALL_VARIABLE_CODES)
 
     url = (
@@ -85,37 +104,20 @@ def _fetch_and_save(station: Station, since: datetime, until: datetime) -> int:
         logger.error(f"[XEMA sync] Resposta inesperada: {rows}")
         return 0
 
-    # Agrupa variables per data { "2026-03-17T10:00:00": {"32": 18.4, "35": 0.0, ...} }
     by_timestamp: dict[str, dict[str, float]] = {}
-
     for row in rows:
-        ts_str = row.get("data_lectura", "")
-        var_code = row.get("codi_variable", "")
-        val = row.get("valor_lectura")
-
-        if not ts_str or var_code not in ALL_VARIABLE_CODES or val is None:
+        ts_str, var_code, float_val = parse_row(row)
+        if ts_str is None:
             continue
-        try:
-            float_val = float(val)
-        except ValueError:
-            continue
+        by_timestamp.setdefault(ts_str, {})[var_code] = float_val
 
-        if ts_str not in by_timestamp:
-            by_timestamp[ts_str] = {}
-        by_timestamp[ts_str][var_code] = float_val
-
-    # Guardem a la BD
     saved = 0
     for ts_str, codes in by_timestamp.items():
-        try:
-            ts = datetime.fromisoformat(ts_str)
-            if ts.tzinfo is None:
-                ts = ts.replace(tzinfo=dt_timezone.utc)
-        except ValueError:
+        ts = parse_timestamp(ts_str)
+        if ts is None:
             continue
 
         fields = _build_fields(codes)
-
         _, created = WeatherReading.objects.update_or_create(
             station=station,
             timestamp=ts,
@@ -129,7 +131,6 @@ def _fetch_and_save(station: Station, since: datetime, until: datetime) -> int:
         f"({len(rows)} files rebudes)"
     )
     return saved
-
 
 def _build_fields(codes: dict[str, float]) -> dict:
 

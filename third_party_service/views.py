@@ -174,7 +174,7 @@ def create_api_key(request):
             {"error": "Ja existeix una API key amb aquest nom."}, status=400
         )
 
-    key_obj, raw_token = ApiKey.issue_token(name=name, created_by=user)
+    _, raw_token = ApiKey.issue_token(name=name, created_by=user)
     return Response(
         {
             "name": name,

@@ -42,7 +42,7 @@ def get_all_events_by_city(date: str, city: str, lang: str):
     else:
         target_date = full_date
     try:
-        events = Event.objects.selected_related("category").filter(
+        events = Event.objects.select_related("category").filter(
             start_date__date__lte=target_date,
             end_date__date__gte=target_date,
             city__iexact=city,

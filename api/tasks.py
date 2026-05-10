@@ -143,6 +143,39 @@ def _download_image(event_obj, url):
 
 @shared_task()
 def sync_events_task():
+    def get_or_create_category(category_name):
+        if category_name:
+            category_name = category_name.strip()
+            return EventsCategory.objects.get_or_create(name=category_name)[0]
+        return None
+
+    def prepare_event_defaults(item, category_obj, loc):
+        return {
+            "title": item.get("title"),
+            "subtitle": item.get("subtitle"),
+            "description": item.get("description", ""),
+            "start_date": parse_datetime(item.get("start_date")),
+            "end_date": parse_datetime(item.get("end_date")),
+            "category": category_obj,
+            "price": int(float(item.get("price", 0))),
+            "tags": item.get("tags", []),
+            "city": loc.get("county", "Desconeguda"),
+            "street": loc.get("street", ""),
+        }
+
+    def process_event_item(item):
+        loc = item.get("location", {})
+        category_obj = get_or_create_category(item.get("category"))
+        defaults = prepare_event_defaults(item, category_obj, loc)
+        event, created = Event.objects.update_or_create(
+            id=item.get("id"),
+            defaults=defaults,
+        )
+        new_image = item.get("image_url")
+        if new_image and (created or not event.image):
+            _download_image(event, new_image)
+        return created
+
     next_url = None
     total_created = 0
     total_updated = 0
@@ -153,39 +186,7 @@ def sync_events_task():
             break
 
         for item in data["results"]:
-            loc = item.get("location", {})
-
-            category_name = item.get("category")
-            category_obj = None
-
-            if category_name:
-                category_name = category_name.strip()
-                category_obj, _ = EventsCategory.objects.get_or_create(
-                    name=category_name
-                )
-
-            event, created = Event.objects.update_or_create(
-                id=item.get("id"),
-                defaults={
-                    "title": item.get("title"),
-                    "subtitle": item.get("subtitle"),
-                    "description": item.get("description", ""),
-                    "start_date": parse_datetime(item.get("start_date")),
-                    "end_date": parse_datetime(item.get("end_date")),
-                    "category": category_obj,
-                    "price": int(float(item.get("price", 0))),
-                    "tags": item.get("tags", []),
-                    "city": loc.get("county", "Desconeguda"),
-                    "street": loc.get("street", ""),
-                },
-            )
-
-            new_image = item.get("image_url")
-            if new_image:
-                if created or not event.image:
-                    _download_image(event, new_image)
-
-            if created:
+            if process_event_item(item):
                 total_created += 1
             else:
                 total_updated += 1
@@ -195,7 +196,6 @@ def sync_events_task():
             break
 
     return f"Sincronització completa: {total_created} creats, {total_updated} actualitzats."
-
 
 @shared_task()
 def cleanup_old_events():

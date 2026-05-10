@@ -146,11 +146,19 @@ def sync_events_task():
     def get_or_create_category(category_name):
         if not category_name:
             return None
-        category_name = category_name.strip()
-        return EventsCategory.objects.get_or_create(name=category_name)[0]
+        return EventsCategory.objects.get_or_create(name=category_name.strip())[0]
 
-    def prepare_event_defaults(item, category_obj, loc):
-        return {
+    def update_event_image(event, item, created):
+        """Extracted branching logic to reduce complexity in the main process."""
+        new_image = item.get("image_url")
+        if new_image and (created or not event.image):
+            _download_image(event, new_image)
+
+    def process_event_item(item):
+        loc = item.get("location", {})
+        category_obj = get_or_create_category(item.get("category"))
+
+        defaults = {
             "title": item.get("title"),
             "subtitle": item.get("subtitle"),
             "description": item.get("description", ""),
@@ -163,48 +171,27 @@ def sync_events_task():
             "street": loc.get("street", ""),
         }
 
-    def process_event_item(item):
-        loc = item.get("location", {})
-        category_obj = get_or_create_category(item.get("category"))
-        defaults = prepare_event_defaults(item, category_obj, loc)
-        event, created = Event.objects.update_or_create(
-            id=item.get("id"),
-            defaults=defaults,
-        )
-        new_image = item.get("image_url")
-        if new_image and (created or not event.image):
-            _download_image(event, new_image)
+        event, created = Event.objects.update_or_create(id=item.get("id"), defaults=defaults)
+        update_event_image(event, item, created)
         return created
 
-    def process_results(results):
-        created_count = 0
-        updated_count = 0
-        for item in results:
-            if process_event_item(item):
-                created_count += 1
-            else:
-                updated_count += 1
-        return created_count, updated_count
-
     next_url = None
-    total_created = 0
-    total_updated = 0
+    counts = {"created": 0, "updated": 0}
 
-    while True:
-        data = getEventsFromService(url=next_url)
-        if not data or "results" not in data:
-            break
+    # Use a cleaner loop structure to avoid multiple 'break' conditions
+    active = True
+    while active:
+        data = getEventsFromService(url=next_url) or {}
+        results = data.get("results", [])
 
-        created, updated = process_results(data["results"])
-        total_created += created
-        total_updated += updated
+        for item in results:
+            is_new = process_event_item(item)
+            counts["created" if is_new else "updated"] += 1
 
         next_url = data.get("next")
-        if not next_url:
-            break
+        active = bool(next_url and results)
 
-    return f"Sincronització completa: {total_created} creats, {total_updated} actualitzats."
-
+    return f"Sincronització completa: {counts['created']} creats, {counts['updated']} actualitzats."
 
 @shared_task()
 def cleanup_old_events():

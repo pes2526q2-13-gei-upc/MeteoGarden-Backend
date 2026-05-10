@@ -52,89 +52,81 @@ def ensure_station_synced(station: Station) -> bool:
     return True
 
 
-def _fetch_and_save(station: Station, since: datetime, until: datetime) -> int:
-    def parse_row(row):
-        ts_str = row.get("data_lectura", "")
-        var_code = row.get("codi_variable", "")
-        val = row.get("valor_lectura")
-        if not ts_str or var_code not in ALL_VARIABLE_CODES or val is None:
-            return None, None, None
-        try:
-            float_val = float(val)
-        except ValueError:
-            return None, None, None
-        return ts_str, var_code, float_val
+def _process_row(row):
+    """Extracted logic to handle row validation and parsing."""
+    ts_str = row.get("data_lectura", "")
+    var_code = row.get("codi_variable", "")
+    val = row.get("valor_lectura")
 
-    def parse_timestamp(ts_str):
-        try:
-            ts = datetime.fromisoformat(ts_str)
-            if ts.tzinfo is None:
-                ts = ts.replace(tzinfo=dt_timezone.utc)
-            return ts
-        except ValueError:
-            return None
+    if not ts_str or var_code not in ALL_VARIABLE_CODES or val is None:
+        return None, None, None
 
-    def request_rows(url):
-        try:
-            response = requests.get(
-                url,
-                headers={"X-App-Token": XEMA_METEO_TOKEN},
-                timeout=15,
-            )
-            data = response.json()
-            if not isinstance(data, list):
-                logger.error(f"[XEMA sync] Resposta inesperada: {data}")
-                return []
+    try:
+        return ts_str, var_code, float(val)
+    except (ValueError, TypeError):
+        return None, None, None
+
+
+def _parse_timestamp(ts_str):
+    """Standardizes timestamp parsing with UTC fallback."""
+    try:
+        ts = datetime.fromisoformat(ts_str)
+        return ts.replace(tzinfo=dt_timezone.utc) if ts.tzinfo is None else ts
+    except (ValueError, TypeError):
+        return None
+
+
+def _fetch_xema_data(station_code, url):
+    """Handles the HTTP request logic and error logging."""
+    try:
+        response = requests.get(url, headers={"X-App-Token": XEMA_METEO_TOKEN}, timeout=15)
+        data = response.json()
+        if isinstance(data, list):
             return data
-        except Exception as e:
-            logger.error(
-                f"[XEMA sync] Error consultant l'estació {station.stationCode}: {e}"
-            )
-            return []
+        logger.error(f"[XEMA sync] Resposta inesperada per {station_code}: {data}")
+    except Exception as e:
+        logger.error(f"[XEMA sync] Error consultant {station_code}: {e}")
+    return []
 
+
+def _fetch_and_save(station: Station, since: datetime, until: datetime) -> int:
+    # 1. Build Query
     fmt = "%Y-%m-%dT%H:%M:%S"
-    since_str = since.strftime(fmt)
-    until_str = until.strftime(fmt)
     var_codes_str = ",".join(f"'{c}'" for c in ALL_VARIABLE_CODES)
-
     url = (
-        f"{XEMA_URL}"
-        f"?$where=codi_estacio='{station.stationCode}'"
+        f"{XEMA_URL}?$where=codi_estacio='{station.stationCode}'"
         f" AND codi_variable IN ({var_codes_str})"
-        f" AND data_lectura between '{since_str}' and '{until_str}'"
-        f"&$order=data_lectura ASC"
-        f"&$limit=5000"
+        f" AND data_lectura between '{since.strftime(fmt)}' and '{until.strftime(fmt)}'"
+        f"&$order=data_lectura ASC&$limit=5000"
     )
 
-    rows = request_rows(url)
+    # 2. Fetch Data
+    rows = _fetch_xema_data(station.stationCode, url)
     if not rows:
         return 0
 
-    by_timestamp: dict[str, dict[str, float]] = {}
+    # 3. Group readings by timestamp (flattening the nested logic)
+    by_timestamp = {}
     for row in rows:
-        ts_str, var_code, float_val = parse_row(row)
+        ts_str, var_code, val = _process_row(row)
         if ts_str:
-            by_timestamp.setdefault(ts_str, {})[var_code] = float_val
+            by_timestamp.setdefault(ts_str, {})[var_code] = val
 
+    # 4. Save to Database
     saved = 0
     for ts_str, codes in by_timestamp.items():
-        ts = parse_timestamp(ts_str)
+        ts = _parse_timestamp(ts_str)
         if not ts:
             continue
 
-        fields = _build_fields(codes)
         _, created = WeatherReading.objects.update_or_create(
             station=station,
             timestamp=ts,
-            defaults=fields,
+            defaults=_build_fields(codes),
         )
-        if created:
-            saved += 1
+        saved += int(created)
 
-    logger.info(
-        f"[XEMA sync] {station.stationCode}: {saved} lectures noves "
-        f"({len(rows)} files rebudes)"
-    )
+    logger.info(f"[XEMA sync] {station.stationCode}: {saved} noves ({len(rows)} rebudes)")
     return saved
 
 

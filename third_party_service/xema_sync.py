@@ -74,6 +74,24 @@ def _fetch_and_save(station: Station, since: datetime, until: datetime) -> int:
         except ValueError:
             return None
 
+    def request_rows(url):
+        try:
+            response = requests.get(
+                url,
+                headers={"X-App-Token": XEMA_METEO_TOKEN},
+                timeout=15,
+            )
+            data = response.json()
+            if not isinstance(data, list):
+                logger.error(f"[XEMA sync] Resposta inesperada: {data}")
+                return []
+            return data
+        except Exception as e:
+            logger.error(
+                f"[XEMA sync] Error consultant l'estació {station.stationCode}: {e}"
+            )
+            return []
+
     fmt = "%Y-%m-%dT%H:%M:%S"
     since_str = since.strftime(fmt)
     until_str = until.strftime(fmt)
@@ -88,33 +106,20 @@ def _fetch_and_save(station: Station, since: datetime, until: datetime) -> int:
         f"&$limit=5000"
     )
 
-    try:
-        rows = requests.get(
-            url,
-            headers={"X-App-Token": XEMA_METEO_TOKEN},
-            timeout=15,
-        ).json()
-    except Exception as e:
-        logger.error(
-            f"[XEMA sync] Error consultant l'estació {station.stationCode}: {e}"
-        )
-        return 0
-
-    if not isinstance(rows, list):
-        logger.error(f"[XEMA sync] Resposta inesperada: {rows}")
+    rows = request_rows(url)
+    if not rows:
         return 0
 
     by_timestamp: dict[str, dict[str, float]] = {}
     for row in rows:
         ts_str, var_code, float_val = parse_row(row)
-        if ts_str is None:
-            continue
-        by_timestamp.setdefault(ts_str, {})[var_code] = float_val
+        if ts_str:
+            by_timestamp.setdefault(ts_str, {})[var_code] = float_val
 
     saved = 0
     for ts_str, codes in by_timestamp.items():
         ts = parse_timestamp(ts_str)
-        if ts is None:
+        if not ts:
             continue
 
         fields = _build_fields(codes)

@@ -144,10 +144,10 @@ def _download_image(event_obj, url):
 @shared_task()
 def sync_events_task():
     def get_or_create_category(category_name):
-        if category_name:
-            category_name = category_name.strip()
-            return EventsCategory.objects.get_or_create(name=category_name)[0]
-        return None
+        if not category_name:
+            return None
+        category_name = category_name.strip()
+        return EventsCategory.objects.get_or_create(name=category_name)[0]
 
     def prepare_event_defaults(item, category_obj, loc):
         return {
@@ -176,6 +176,16 @@ def sync_events_task():
             _download_image(event, new_image)
         return created
 
+    def process_results(results):
+        created_count = 0
+        updated_count = 0
+        for item in results:
+            if process_event_item(item):
+                created_count += 1
+            else:
+                updated_count += 1
+        return created_count, updated_count
+
     next_url = None
     total_created = 0
     total_updated = 0
@@ -185,11 +195,9 @@ def sync_events_task():
         if not data or "results" not in data:
             break
 
-        for item in data["results"]:
-            if process_event_item(item):
-                total_created += 1
-            else:
-                total_updated += 1
+        created, updated = process_results(data["results"])
+        total_created += created
+        total_updated += updated
 
         next_url = data.get("next")
         if not next_url:

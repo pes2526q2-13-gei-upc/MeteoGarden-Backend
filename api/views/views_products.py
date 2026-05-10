@@ -88,10 +88,10 @@ def use_product(request):
                 }
             )
 
-        return JsonResponse(response)
+        return JsonResponse(response, status=200)
 
     except ActiveProduct.DoesNotExist:
         return JsonResponse({"error": "Active product not found"}, status=404)
 
     except Exception as e:
-        return JsonResponse({"error": str(e)}, status=400)
+        return JsonResponse({"error": str(e)})

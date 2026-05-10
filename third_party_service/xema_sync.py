@@ -79,7 +79,9 @@ def _parse_timestamp(ts_str):
 def _fetch_xema_data(station_code, url):
     """Handles the HTTP request logic and error logging."""
     try:
-        response = requests.get(url, headers={"X-App-Token": XEMA_METEO_TOKEN}, timeout=15)
+        response = requests.get(
+            url, headers={"X-App-Token": XEMA_METEO_TOKEN}, timeout=15
+        )
         data = response.json()
         if isinstance(data, list):
             return data
@@ -126,7 +128,9 @@ def _fetch_and_save(station: Station, since: datetime, until: datetime) -> int:
         )
         saved += int(created)
 
-    logger.info(f"[XEMA sync] {station.stationCode}: {saved} noves ({len(rows)} rebudes)")
+    logger.info(
+        f"[XEMA sync] {station.stationCode}: {saved} noves ({len(rows)} rebudes)"
+    )
     return saved
 
 

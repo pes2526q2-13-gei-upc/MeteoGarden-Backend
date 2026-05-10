@@ -171,7 +171,9 @@ def sync_events_task():
             "street": loc.get("street", ""),
         }
 
-        event, created = Event.objects.update_or_create(id=item.get("id"), defaults=defaults)
+        event, created = Event.objects.update_or_create(
+            id=item.get("id"), defaults=defaults
+        )
         update_event_image(event, item, created)
         return created
 
@@ -192,6 +194,7 @@ def sync_events_task():
         active = bool(next_url and results)
 
     return f"Sincronització completa: {counts['created']} creats, {counts['updated']} actualitzats."
+
 
 @shared_task()
 def cleanup_old_events():

@@ -132,6 +132,7 @@ def _fetch_and_save(station: Station, since: datetime, until: datetime) -> int:
     )
     return saved
 
+
 def _build_fields(codes: dict[str, float]) -> dict:
 
     fields = {}

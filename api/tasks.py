@@ -197,6 +197,7 @@ def sync_events_task():
 
     return f"Sincronització completa: {total_created} creats, {total_updated} actualitzats."
 
+
 @shared_task()
 def cleanup_old_events():
     # 1. Calculem la data límit (ara fa 30 dies)

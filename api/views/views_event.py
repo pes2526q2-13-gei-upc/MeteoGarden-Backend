@@ -1,3 +1,5 @@
+import logging
+
 from django.db.models import Count
 from django.db.models.functions import TruncDay
 from django.utils.dateparse import parse_date, parse_datetime
@@ -12,6 +14,8 @@ from api.serializer import (
     EventSerializer,
 )
 from api.views.views_translate import translate_text
+
+logger = logging.getLogger(__name__)
 
 
 def translate(events, lang: str):
@@ -60,37 +64,16 @@ def get_events_from_db(date: str, city: str | None, cat: str | None):
         )
 
 
-def get_all_events_by_city(date: str, city: str, lang: str):
+def get_all_events(date: str, lang: str, city: str | None, cat: str | None):
     try:
-        events = get_events_from_db(date, city, None)
+        events = get_events_from_db(date, city, cat)
         events = translate(events, lang)
 
         serializer = EventSerializer(events, many=True)
         return serializer.data
     except Exception as e:
-        return {"error": str(e)}
-
-
-def get_all_events(date: str, lang: str):
-    try:
-        events = get_events_from_db(date, None, None)
-
-        events = translate(events, lang)
-        serializer = EventSerializer(events, many=True)
-        return serializer.data
-    except Exception as e:
-        return {"error": str(e)}
-
-
-def get_all_events_by_category(date: str, lang: str, cat: str):
-    try:
-        events = get_events_from_db(date, None, cat)
-        events = translate(events, lang)
-
-        serializer = EventSerializer(events, many=True)
-        return serializer.data
-    except Exception as e:
-        return {"error": str(e)}
+        logger.error(f"Event lookup failed: {e}")  # Log it for debugging
+        return {"error": "An internal server error occurred."}
 
 
 def get_number_of_events(month: str, year: str, city: str | None):
@@ -145,27 +128,9 @@ def get_details(event_id: str, lang: str):
 def get_events(request):
     date = request.query_params.get("date")
     lang = request.query_params.get("lang")
-    event = get_all_events(date, lang)
-    return Response({"events": event})
-
-
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def get_events_by_city(request):
-    date = request.query_params.get("date")
-    lang = request.query_params.get("lang")
     city = request.query_params.get("city")
-    event = get_all_events_by_city(date, city, lang)
-    return Response({"events": event})
-
-
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def get_events_by_category(request):
-    date = request.query_params.get("date")
-    lang = request.query_params.get("lang")
     category = request.query_params.get("category")
-    event = get_all_events_by_category(date, lang, category)
+    event = get_all_events(date, lang, city, category)
     return Response({"events": event})
 
 

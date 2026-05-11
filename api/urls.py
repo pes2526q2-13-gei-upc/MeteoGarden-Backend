@@ -6,9 +6,11 @@ URL configuration for api.
 from django.urls import path
 
 from .views import (
+    answerRequest,
     assignMission,
     avatar,
     buy_item,
+    cancelRequest,
     claimReward,
     collect_plant,
     createMission,
@@ -27,6 +29,7 @@ from .views import (
     get_shop,
     get_stations,
     getMissions,
+    getRequests,
     getUserAlbum,
     getUserAvatar,
     getUserMissions,
@@ -41,6 +44,7 @@ from .views import (
     register,
     save_fcm_token,
     saveAvatar,
+    sendFriendRequest,
     translate,
     use_product,
     user_gardens,
@@ -125,4 +129,8 @@ urlpatterns = [
     path("missions/", getMissions, name="getMissions"),
     path("missions/assign/", assignMission, name="assignMission"),
     path("user/missions/claim/", claimReward, name="claimReward"),
+    path("friends/send_request/", sendFriendRequest, name="sendFriendRequest"),
+    path("friends/cancel_request/", cancelRequest, name="cancelRequest"),
+    path("friends/answer_request/", answerRequest, name="answerRequest"),
+    path("friends/requests/", getRequests, name="getRequests"),
 ]

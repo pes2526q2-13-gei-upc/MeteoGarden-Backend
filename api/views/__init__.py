@@ -9,6 +9,12 @@ from .views_event import (  # noqa: F401
     get_events_by_city,
     get_num_events,
 )
+from .views_friends import (  # noqa: F401
+    answerRequest,
+    cancelRequest,
+    getRequests,
+    sendFriendRequest,
+)
 from .views_identify import identifyPlant  # noqa: F401
 from .views_image import getUserAlbum  # noqa: F401
 from .views_info import importPlant  # noqa: F401

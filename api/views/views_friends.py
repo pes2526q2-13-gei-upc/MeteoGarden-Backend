@@ -1,0 +1,68 @@
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+
+from api.models import FriendRequest, User
+# Importem Q per fer consultes "OR"
+from django.db.models import Q
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def searchUsers(request):
+    query = request.query_params.get('q', '')
+
+    if query:
+        users = User.objects.filter(username__icontains=query)[:10]  # Límit de 10
+    else:
+        users = User.objects.none()
+
+    results = []
+    for u in users:
+        results.append({
+            "username": u.username,
+            "avatar": u.avatar.url if u.avatar else None
+        })
+
+    return Response(results)
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def getUsersFriends(request):
+    user = request.user
+
+    friend_requests = FriendRequest.objects.filter(
+        (Q(requester=user) | Q(requested=user)),
+        accepted=True
+    )
+
+    friends_list = []
+
+    for fr in friend_requests:
+        if fr.requester == user:
+            friends_list.append(fr.requested.username)
+        else:
+            friends_list.append(fr.requester.username)
+
+    return Response(friends_list)
+
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def deleteFriend(request, username):
+    try:
+        friend = User.objects.get(username=username)
+    except User.DoesNotExist:
+        return Response({"error": "User not found."}, status=404)
+
+    friend_request = FriendRequest.objects.filter(
+        (Q(requester=request.user, requested=friend) |
+         Q(requester=friend, requested=request.user)),
+        accepted=True
+    ).first()
+
+    if not friend_request:
+        return Response({"error": "You are not friends with this user."}, status=404)
+
+    friend_request.delete()
+
+    return Response({"success": f"Friend {username} deleted successfully."}, status=200)

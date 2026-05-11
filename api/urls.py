@@ -46,6 +46,9 @@ from .views import (
     user_seeds,
     validate_token,
     water_plant,
+    getUsersFriends,
+    searchUsers,
+    deleteFriend,
 )
 
 urlpatterns = [
@@ -105,8 +108,8 @@ urlpatterns = [
     path("users/<str:username>/buy/", buy_item, name="buy_item"),
     path("use_product/", use_product),
     path("avatar/", avatar, name="avatar_images"),
-    path("users/<str:username>/avatar", getUserAvatar, name="user_avatar"),
-    path("users/<str:username>/save/avatar", saveAvatar, name="save_avatar"),
+    path("users/<str:username>/avatar/", getUserAvatar, name="user_avatar"),
+    path("users/<str:username>/save/avatar/", saveAvatar, name="save_avatar"),
     path(
         "users/<str:username>/gardens/<str:garden_name>/pots/<int:pot_number>/delete/",
         delete_plant,
@@ -121,4 +124,7 @@ urlpatterns = [
     path("missions/create/", createMission, name="createMission"),
     path("missions/", getMissions, name="getMissions"),
     path("missions/assign/", assignMission, name="assignMission"),
+    path("friends/", getUsersFriends, name="get_users_friends"),
+    path("search/", searchUsers, name="search_users"),
+    path("friends/<str:username>", deleteFriend, name="delete_friend"),
 ]

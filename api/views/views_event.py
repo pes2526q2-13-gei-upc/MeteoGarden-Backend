@@ -32,7 +32,7 @@ def translate(events, lang: str):
     return events
 
 
-def get_all_events_by_city(date: str, city: str, lang: str):
+def get_events_from_db(date: str, city: str | None, cat: str | None):
     full_date = parse_datetime(date) or parse_date(date)
     if not full_date:
         return []
@@ -41,12 +41,28 @@ def get_all_events_by_city(date: str, city: str, lang: str):
         target_date = full_date.date()
     else:
         target_date = full_date
-    try:
-        events = Event.objects.select_related("category").filter(
+
+    if city is not None:
+        return Event.objects.select_related("category").filter(
             start_date__date__lte=target_date,
             end_date__date__gte=target_date,
             city__iexact=city,
         )
+    elif cat is not None:
+        return Event.objects.select_related("category").filter(
+            start_date__date__lte=target_date,
+            end_date__date__gte=target_date,
+            category__name__iexact=cat,
+        )
+    else:
+        return Event.objects.select_related("category").filter(
+            start_date__date__lte=target_date, end_date__date__gte=target_date
+        )
+
+
+def get_all_events_by_city(date: str, city: str, lang: str):
+    try:
+        events = get_events_from_db(date, city, None)
         events = translate(events, lang)
 
         serializer = EventSerializer(events, many=True)
@@ -56,18 +72,8 @@ def get_all_events_by_city(date: str, city: str, lang: str):
 
 
 def get_all_events(date: str, lang: str):
-    full_date = parse_datetime(date) or parse_date(date)
-    if not full_date:
-        return []
-
-    if hasattr(full_date, "date"):
-        target_date = full_date.date()
-    else:
-        target_date = full_date
     try:
-        events = Event.objects.select_related("category").filter(
-            start_date__date__lte=target_date, end_date__date__gte=target_date
-        )
+        events = get_events_from_db(date, None, None)
 
         events = translate(events, lang)
         serializer = EventSerializer(events, many=True)
@@ -77,20 +83,8 @@ def get_all_events(date: str, lang: str):
 
 
 def get_all_events_by_category(date: str, lang: str, cat: str):
-    full_date = parse_datetime(date) or parse_date(date)
-    if not full_date:
-        return []
-
-    if hasattr(full_date, "date"):
-        target_date = full_date.date()
-    else:
-        target_date = full_date
     try:
-        events = Event.objects.select_related("category").filter(
-            start_date__date__lte=target_date,
-            end_date__date__gte=target_date,
-            category__name__iexact=cat,
-        )
+        events = get_events_from_db(date, None, cat)
         events = translate(events, lang)
 
         serializer = EventSerializer(events, many=True)

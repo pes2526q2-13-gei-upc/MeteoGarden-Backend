@@ -68,10 +68,10 @@ def test_get_all_events_returns_expected(test_events, mock_trad):
 @patch("api.views.views_event.translate_text", side_effect=lambda xs, lang: xs)
 @pytest.mark.django_db
 def test_get_all_events_by_city_ok(test_events, mock_trad):
-    from api.views.views_event import get_all_events_by_city
+    from api.views.views_event import get_all_events
 
     date = datetime.now().isoformat()
-    data = get_all_events_by_city(date, city="tarragona", lang="cat")
+    data = get_all_events(date, lang="cat", city="tarragona", cat=None)
     assert len(data) == 1
     assert data[0]["city"].lower() == "tarragona"
 
@@ -79,10 +79,10 @@ def test_get_all_events_by_city_ok(test_events, mock_trad):
 @patch("api.views.views_event.translate_text", side_effect=lambda xs, lang: xs)
 @pytest.mark.django_db
 def test_get_all_events_by_category_ok(test_events, mock_trad, some_categories):
-    from api.views.views_event import get_all_events_by_category
+    from api.views.views_event import get_all_events
 
     date = datetime.now().isoformat()
-    data = get_all_events_by_category(date, lang="cat", cat="Música")
+    data = get_all_events(date, lang="cat", city=None, cat="Música")
     assert len(data) == 1
     assert data[0]["category"]["name"] == "Música"
 
@@ -232,18 +232,18 @@ def test_get_all_events_invalid_date():
 
 @pytest.mark.django_db
 def test_get_all_events_by_city_empty_city():
-    from api.views.views_event import get_all_events_by_city
+    from api.views.views_event import get_all_events
 
     date = datetime.now().isoformat()
-    assert get_all_events_by_city(date, city="", lang="cat") == []
+    assert get_all_events(date, lang="cat", city=None, cat=None) == []
 
 
 @pytest.mark.django_db
 def test_get_all_events_by_category_invalid_cat(test_events):
-    from api.views.views_event import get_all_events_by_category
+    from api.views.views_event import get_all_events
 
     date = datetime.now().isoformat()
-    assert get_all_events_by_category(date, "cat", "NOEXIST") == []
+    assert get_all_events(date, "cat", None, "NOEXIST") == []
 
 
 @pytest.mark.django_db

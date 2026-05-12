@@ -8,10 +8,15 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
 from api.firebase import initialize_firebase
-from api.models import Event, Garden, GrowthState, Station, WeatherReading
+from api.models import (
+    Event,
+    EventsCategory,
+    Garden,
+    GrowthState,
+    Station,
+    WeatherReading,
+)
 from api.notifications import can_send_notification, notify
-from api.models import Event, EventsCategory, Garden, GrowthState, Station
-from api.notifications import can_send_notification, send_push_notification
 from api.plant_simulation import simulate_plant
 from api.services.events import getEventsFromService
 from api.services.xema_sync import ensure_station_synced

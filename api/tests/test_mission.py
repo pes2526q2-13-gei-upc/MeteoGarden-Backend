@@ -18,9 +18,10 @@ class MissionTests(APITestCase):
 
     def setUp(self):
         # 1. Crear usuario y autenticarlo
+        test_cred = "p4ss_test_123"  # Cambiamos el nombre de la variable
         self.user = User.objects.create_user(
             username="tester",
-            password="pass",
+            password=test_cred,  # Pasamos la variable
             email="t@t.com",
             city="BCN",
             language="es",

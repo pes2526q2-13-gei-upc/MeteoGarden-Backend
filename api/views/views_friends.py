@@ -19,9 +19,7 @@ def searchUsers(request):
 
     results = []
     for u in users:
-        results.append(
-            {"username": u.username, "avatar": u.avatar.url if u.avatar else None}
-        )
+        results.append({"username": u.username})
 
     return Response(results)
 
@@ -43,12 +41,12 @@ def getUsersFriends(request):
         friends_list.append(
             {
                 "username": friend_user.username,
-                "avatar": friend_user.avatar.url if friend_user.avatar else None,
                 "garden": Garden.objects.filter(user=friend_user).first().name,
             }
         )
 
     return Response({"friends": friends_list})
+
 
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated])

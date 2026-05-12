@@ -68,7 +68,7 @@ def test_get_all_events_returns_expected(test_events):
 
 
 @pytest.mark.django_db
-def test_get_all_events_by_city_ok(test_events, mock_trad):
+def test_get_all_events_by_city_ok(test_events):
     from api.views.views_event import get_all_events
 
     with patch("api.views.views_event.translate_text", side_effect=lambda xs, lang: xs):
@@ -79,7 +79,7 @@ def test_get_all_events_by_city_ok(test_events, mock_trad):
 
 
 @pytest.mark.django_db
-def test_get_all_events_by_category_ok(test_events, mock_trad, some_categories):
+def test_get_all_events_by_category_ok(test_events, some_categories):
     from api.views.views_event import get_all_events
 
     with patch("api.views.views_event.translate_text", side_effect=lambda xs, lang: xs):
@@ -107,7 +107,7 @@ def test_get_number_of_events_all_and_by_city(test_events):
     ],
 )
 @pytest.mark.django_db
-def test_get_details_translates_fields(test_events, mock_trad):
+def test_get_details_translates_fields(test_events):
     from api.views.views_event import get_details
 
     ev = test_events[0]
@@ -130,7 +130,7 @@ def test_get_events_endpoint(test_events):
 
 
 @pytest.mark.django_db
-def test_get_event_detail_endpoint_not_found(db):
+def test_get_event_detail_endpoint_not_found():
     client = APIClient()
     url = reverse("event_detail") + "?id=999999&lang=cat"
     resp = client.get(url)

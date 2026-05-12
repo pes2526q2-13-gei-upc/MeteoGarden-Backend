@@ -100,7 +100,7 @@ def get_number_of_events(month: str, year: str, city: str | None):
 
 
 def get_details(event_id: str, lang: str):
-    event = Event.objects.select_related("category").get(id=event_id)
+    event = Event.objects.select_related("category").get(id=str(event_id))
     if lang not in ("cat", "CAT"):
         field_to_translate = ["title", "description"]
         if getattr(event, "subtitle", None):

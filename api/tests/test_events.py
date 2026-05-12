@@ -139,7 +139,7 @@ def test_get_details_cat_no_translation(test_events):
 def test_get_events_endpoint(test_events):
     client = APIClient()
     date = datetime.now().date().isoformat()
-    url = reverse("getEvents") + f"?date={date}&lang=cat"
+    url = reverse("events") + f"?date={date}&lang=cat"
     resp = client.get(url)
     assert resp.status_code == 200
     data = resp.json()
@@ -151,7 +151,7 @@ def test_get_events_endpoint(test_events):
 def test_get_events_by_city_endpoint(test_events):
     client = APIClient()
     date = datetime.now().date().isoformat()
-    url = reverse("getEventsByCity") + f"?date={date}&lang=cat&city=Tarragona"
+    url = reverse("events") + f"?date={date}&lang=cat&city=Tarragona"
     resp = client.get(url)
     assert resp.status_code == 200
     data = resp.json()
@@ -163,7 +163,7 @@ def test_get_events_by_city_endpoint(test_events):
 def test_get_events_by_category_endpoint(test_events):
     client = APIClient()
     date = datetime.now().date().isoformat()
-    url = reverse("getEventsByCategory") + f"?date={date}&lang=cat&category=Música"
+    url = reverse("events") + f"?date={date}&lang=cat&category=Música"
     resp = client.get(url)
     assert resp.status_code == 200
     data = resp.json()
@@ -175,7 +175,7 @@ def test_get_events_by_category_endpoint(test_events):
 def test_get_num_events_endpoint(test_events):
     client = APIClient()
     now = datetime.now()
-    url = reverse("getNumEvents") + f"?year={now.year}&month={now.month}"
+    url = reverse("num_events") + f"?year={now.year}&month={now.month}"
     resp = client.get(url)
     assert resp.status_code == 200
     data = resp.json()
@@ -187,7 +187,7 @@ def test_get_num_events_endpoint(test_events):
 def test_get_num_events_endpoint_with_city(test_events):
     client = APIClient()
     now = datetime.now()
-    url = reverse("getNumEvents") + f"?year={now.year}&month={now.month}&city=Tarragona"
+    url = reverse("num_events") + f"?year={now.year}&month={now.month}&city=Tarragona"
     resp = client.get(url)
     assert resp.status_code == 200
     data = resp.json()
@@ -198,7 +198,7 @@ def test_get_num_events_endpoint_with_city(test_events):
 def test_get_event_detail_endpoint(test_events):
     client = APIClient()
     obj = test_events[0]
-    url = reverse("getEventDetail") + f"?id={obj.id}&lang=cat"
+    url = reverse("event_detail") + f"?id={obj.id}&lang=cat"
     resp = client.get(url)
     assert resp.status_code == 200
     data = resp.json()
@@ -210,7 +210,7 @@ def test_get_event_detail_endpoint(test_events):
 @pytest.mark.django_db
 def test_get_categories_endpoint(some_categories):
     client = APIClient()
-    url = reverse("getCategories")
+    url = reverse("categories_info")
     resp = client.get(url)
     assert resp.status_code == 200
     cats = resp.json()
@@ -249,7 +249,7 @@ def test_get_all_events_by_category_invalid_cat(test_events):
 @pytest.mark.django_db
 def test_get_event_detail_endpoint_not_found():
     client = APIClient()
-    url = reverse("getEventDetail") + "?id=UNKNOWN&lang=cat"
+    url = reverse("event_detail") + "?id=UNKNOWN&lang=cat"
     resp = client.get(url)
     assert resp.status_code in (400, 500)  # pot ser un 400 o 500 segons el handler
 
@@ -257,7 +257,7 @@ def test_get_event_detail_endpoint_not_found():
 @pytest.mark.django_db
 def test_get_num_events_endpoint_invalid_params():
     client = APIClient()
-    url = reverse("getNumEvents")  # sense year ni month
+    url = reverse("num_events")  # sense year ni month
     resp = client.get(url)
     assert resp.status_code == 200
     assert resp.json()["events"] == []

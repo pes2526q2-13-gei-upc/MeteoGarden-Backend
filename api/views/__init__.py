@@ -19,6 +19,7 @@ from .views_image import getUserAlbum  # noqa: F401
 from .views_info import importPlant  # noqa: F401
 from .views_missions import (  # noqa: F401
     assignMission,
+    claimReward,
     createMission,
     getMissions,
     getUserMissions,

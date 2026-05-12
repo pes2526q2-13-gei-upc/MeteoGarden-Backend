@@ -18,6 +18,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Testing settings
+FIREBASE_ENABLED = True
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -133,9 +136,6 @@ AWS_S3_CUSTOM_DOMAIN = (
 )
 
 # Tell Django to use S3 for "media" files
-DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
-
-# Tell Django to use S3 for "media" files (user images)
 DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 
 STORAGES = {

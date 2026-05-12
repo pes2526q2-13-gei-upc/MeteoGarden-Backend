@@ -42,7 +42,8 @@ def getUsersFriends(request):
 
         friends_list.append({
             "username": friend_user.username,
-            "avatar": friend_user.avatar.url if friend_user.avatar else None
+            "avatar": friend_user.avatar.url if friend_user.avatar else None,
+            "garden": Garden.objects.filter(user=friend_user).first().name,
         })
 
 

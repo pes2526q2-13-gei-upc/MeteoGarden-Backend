@@ -100,33 +100,27 @@ def get_number_of_events(month: str, year: str, city: str | None):
 
 
 def get_details(event_id: str, lang: str):
-    try:
-        event = Event.objects.select_related("category").get(id=event_id)
-        if lang not in ("cat", "CAT"):
-            field_to_translate = ["title", "description"]
-            if getattr(event, "subtitle", None):
-                field_to_translate.append("subtitle")
-            if getattr(event, "tags", None):
-                field_to_translate.append("tags")
+    event = Event.objects.select_related("category").get(id=event_id)
+    if lang not in ("cat", "CAT"):
+        field_to_translate = ["title", "description"]
+        if getattr(event, "subtitle", None):
+            field_to_translate.append("subtitle")
+        if getattr(event, "tags", None):
+            field_to_translate.append("tags")
 
-            to_translate = [getattr(event, field) for field in field_to_translate]
-            if event.category:
-                to_translate.append(event.category.name)
+        to_translate = [getattr(event, field) for field in field_to_translate]
+        if event.category:
+            to_translate.append(event.category.name)
 
-            translated_event = translate_text(to_translate, lang)
+        translated_event = translate_text(to_translate, lang)
 
-            for i, field in enumerate(field_to_translate):
-                setattr(event, field, translated_event[i])
+        for i, field in enumerate(field_to_translate):
+            setattr(event, field, translated_event[i])
 
-            if event.category:
-                event.category.name = translated_event[-1]
+        if event.category:
+            event.category.name = translated_event[-1]
 
-        return event
-    except Event.DoesNotExist:
-        return Response({"error": "Event not found"}, status=404)
-    except Exception as e:
-        logger.exception(f"Unexpected error: {e}")
-        return Response({"error": "Internal server error"}, status=500)
+    return event
 
 
 @api_view(["GET"])

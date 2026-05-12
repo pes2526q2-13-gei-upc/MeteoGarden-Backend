@@ -5,8 +5,6 @@ from .views_event import (  # noqa: F401
     get_categories,
     get_event_detail,
     get_events,
-    get_events_by_category,
-    get_events_by_city,
     get_num_events,
 )
 from .views_friends import (  # noqa: F401

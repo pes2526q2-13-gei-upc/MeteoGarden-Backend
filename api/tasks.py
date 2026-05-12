@@ -8,7 +8,14 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
 from api.firebase import initialize_firebase
-from api.models import Event, Garden, GrowthState, Station, WeatherReading
+from api.models import (
+    Event,
+    EventsCategory,
+    Garden,
+    GrowthState,
+    Station,
+    WeatherReading,
+)
 from api.notifications import can_send_notification, notify
 from api.plant_simulation import simulate_plant
 from api.services.events import getEventsFromService
@@ -176,54 +183,62 @@ def _download_image(event_obj, url):
         logger.error(f"Error downloading image for the event {event_obj.id}: {e}")
 
 
-@shared_task(name="sync_events_task")
+@shared_task()
 def sync_events_task():
+    def get_or_create_category(category_name):
+        if not category_name:
+            return None
+        return EventsCategory.objects.get_or_create(name=category_name.strip())[0]
+
+    def update_event_image(event, item, created):
+        """Extracted branching logic to reduce complexity in the main process."""
+        new_image = item.get("image_url")
+        if new_image and (created or not event.image):
+            _download_image(event, new_image)
+
+    def process_event_item(item):
+        loc = item.get("location", {})
+        category_obj = get_or_create_category(item.get("category"))
+
+        defaults = {
+            "title": item.get("title"),
+            "subtitle": item.get("subtitle"),
+            "description": item.get("description", ""),
+            "start_date": parse_datetime(item.get("start_date")),
+            "end_date": parse_datetime(item.get("end_date")),
+            "category": category_obj,
+            "price": int(float(item.get("price", 0))),
+            "tags": item.get("tags", []),
+            "city": loc.get("county", "Desconeguda"),
+            "street": loc.get("street", ""),
+        }
+
+        event, created = Event.objects.update_or_create(
+            id=item.get("id"), defaults=defaults
+        )
+        update_event_image(event, item, created)
+        return created
+
     next_url = None
-    total_created = 0
-    total_updated = 0
+    counts = {"created": 0, "updated": 0}
 
-    while True:
-        data = getEventsFromService(url=next_url)
-        if not data or "results" not in data:
-            break
+    # Use a cleaner loop structure to avoid multiple 'break' conditions
+    active = True
+    while active:
+        data = getEventsFromService(url=next_url) or {}
+        results = data.get("results", [])
 
-        for item in data["results"]:
-            loc = item.get("location", {})
-
-            event, created = Event.objects.update_or_create(
-                id=item.get("id"),
-                defaults={
-                    "title": item.get("title"),
-                    "subtitle": item.get("subtitle"),
-                    "description": item.get("description", ""),
-                    "start_date": parse_datetime(item.get("start_date")),
-                    "end_date": parse_datetime(item.get("end_date")),
-                    "category": item.get("category"),
-                    "price": int(float(item.get("price", 0))),
-                    "tags": item.get("tags", []),
-                    "city": loc.get("county", "Desconeguda"),
-                    "street": loc.get("street", ""),
-                },
-            )
-
-            new_image = item.get("image_url")
-            if new_image:
-                if created or not event.image:
-                    _download_image(event, new_image)
-
-            if created:
-                total_created += 1
-            else:
-                total_updated += 1
+        for item in results:
+            is_new = process_event_item(item)
+            counts["created" if is_new else "updated"] += 1
 
         next_url = data.get("next")
-        if not next_url:
-            break
+        active = bool(next_url and results)
 
-    return f"Sincronització completa: {total_created} creats, {total_updated} actualitzats."
+    return f"Sincronització completa: {counts['created']} creats, {counts['updated']} actualitzats."
 
 
-@shared_task(name="cleanup_old_events")
+@shared_task()
 def cleanup_old_events():
     # 1. Calculem la data límit (ara fa 30 dies)
     # Fem servir timezone.now() segons el que veig al teu settings.py

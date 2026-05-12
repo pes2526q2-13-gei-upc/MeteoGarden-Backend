@@ -18,7 +18,7 @@ from api.models import (
 )
 from api.notifications import can_send_notification, notify
 from api.plant_simulation import simulate_plant
-from api.services.events import getEventsFromService
+from api.services.events import get_events_from_service
 from api.services.xema_sync import ensure_station_synced
 
 logger = logging.getLogger(__name__)
@@ -159,15 +159,12 @@ def simulate_all_plants():
             notify(
                 user, "🥶 Frost warning", "Freezing temperatures may damage your plants"
             )
-            continue
 
         elif old_rain < 40 and rain >= 40:
             notify(user, "🌧️ Heavy rain", "Heavy rain detected in your area")
-            continue
 
         elif old_wind < 50 and wind >= 50:
             notify(user, "💨 Strong wind", "Strong wind may damage your plants")
-            continue
 
 
 def _download_image(event_obj, url):
@@ -180,7 +177,7 @@ def _download_image(event_obj, url):
             event_obj.image.save(file_name, ContentFile(response.content), save=True)
 
     except Exception as e:
-        logger.error(f"Error downloading image for the event {event_obj.id}: {e}")
+        logger.exception(f"Error downloading image for the event {event_obj.id}: {e}")
 
 
 @shared_task()
@@ -225,7 +222,7 @@ def sync_events_task():
     # Use a cleaner loop structure to avoid multiple 'break' conditions
     active = True
     while active:
-        data = getEventsFromService(url=next_url) or {}
+        data = get_events_from_service(url=next_url) or {}
         results = data.get("results", [])
 
         for item in results:

@@ -47,7 +47,7 @@ class TestHelpers:
         monkeypatch.setattr(mod.requests, "get", fake_get)
         assert infer("Pinus sylvestris") is False
 
-    def test_inferCanFlowerFromGBIF_exception_returns_false(self, monkeypatch):
+    def test_infer_can_flower_from_gbif_exception_returns_false(self, monkeypatch):
         mod = __import__(MODULE_PATH, fromlist=["inferCanFlowerFromGBIF"])
         infer = mod.inferCanFlowerFromGBIF
 

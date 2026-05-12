@@ -63,13 +63,13 @@ PHASE_ORDER = [
 ]
 
 
-def updateMissions(plantInGarden, action):
+def update_missions(plantInGarden, action):
     user = plantInGarden.pot.garden.user
     plant = plantInGarden.plant
-    allUserMissions = UserMission.objects.filter(
+    all_user_missions = UserMission.objects.filter(
         user=user, missionState=MissionState.IN_PROGRESS
     )
-    for mission in allUserMissions:
+    for mission in all_user_missions:
         if mission.mission.action == action:
             if mission.mission.plant is None or mission.mission.plant == plant:
                 mission.current += 1
@@ -249,7 +249,7 @@ def _apply_reading(
         pig.waterLevel = new_water
         pig.lastSimulatedAt = reading.timestamp
         pig.diedAt = timezone.now()
-        updateMissions(pig, MissionAction.DIE)
+        update_missions(pig, MissionAction.DIE)
         return pig
 
     # Actualitzar vives
@@ -286,7 +286,7 @@ def _recalculate_phase(pig: PlantInGarden, health: float, current_time) -> str:
             if nxt:
                 target_phase = nxt
                 if nxt == GrowthState.FLOWERING:
-                    updateMissions(pig, MissionAction.FLOWER)
+                    update_missions(pig, MissionAction.FLOWER)
         else:
             break
 

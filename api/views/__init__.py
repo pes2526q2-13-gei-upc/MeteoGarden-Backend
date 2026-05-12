@@ -9,25 +9,25 @@ from .views_event import (  # noqa: F401
 )
 from .views_friends import (  # noqa: F401
     deleteFriend,
-    getUsersFriends,
-    likeFriend,
+    get_users_friends,
+    like_friend,
     searchUsers,
 )
 from .views_friends_request import (  # noqa: F401
-    answerRequest,
-    cancelRequest,
+    answer_request,
+    cancel_request,
     getRequests,
-    sendFriendRequest,
+    send_friend_request,
 )
 from .views_identify import identifyPlant  # noqa: F401
 from .views_image import getUserAlbum  # noqa: F401
 from .views_info import importPlant  # noqa: F401
 from .views_missions import (  # noqa: F401
-    assignMission,
-    claimReward,
-    createMission,
-    getMissions,
-    getUserMissions,
+    assign_mission,
+    claim_reward,
+    create_mission,
+    get_missions,
+    get_user_missions,
 )
 from .views_notifications import save_fcm_token  # noqa: F401
 from .views_plantar_planta import delete_plant, plant_seed  # noqa: F401

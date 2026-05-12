@@ -5,10 +5,12 @@ from rest_framework.response import Response
 
 from api.models import FriendRequest, User
 
+message = "Friend request doesn't exist"
+
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def sendFriendRequest(request):
+def send_friend_request(request):
     requested_name = request.data.get("requested")
     try:
         requested = User.objects.get(username=requested_name)
@@ -50,7 +52,7 @@ def sendFriendRequest(request):
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def answerRequest(request):
+def answer_request(request):
     action = request.data.get("action")
     if action is None:
         return Response(
@@ -66,25 +68,25 @@ def answerRequest(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
     try:
-        friendRequest = FriendRequest.objects.get(requested=user, requester=requester)
+        friend_request = FriendRequest.objects.get(requested=user, requester=requester)
     except FriendRequest.DoesNotExist:
         return Response(
-            {"error": "Friend request doesn't exist"},
+            {"error": message},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    if friendRequest.accepted is not None:
+    if friend_request.accepted is not None:
         return Response(
             {"error": "Friend request is already answered'"},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
     if action == "accept":
-        friendRequest.accepted = True
-        friendRequest.save()
+        friend_request.accepted = True
+        friend_request.save()
         return Response({"Request accepted successfully"})
     if action == "reject":
-        friendRequest.accepted = False
-        friendRequest.save()
+        friend_request.accepted = False
+        friend_request.save()
         return Response({"Request rejected successfully"})
     return Response(
         {"error": "Action field is not correct"}, status=status.HTTP_400_BAD_REQUEST
@@ -93,7 +95,7 @@ def answerRequest(request):
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def cancelRequest(request):
+def cancel_request(request):
     requested_name = request.data.get("requested")
     requested = User.objects.get(username=requested_name)
     try:
@@ -102,12 +104,12 @@ def cancelRequest(request):
         )
     except FriendRequest.DoesNotExist:
         return Response(
-            {"error": "Friend request doesn't exist"},
+            {"error": message},
             status=status.HTTP_400_BAD_REQUEST,
         )
     if not friendRequest:
         return Response(
-            {"error": "Friend request doesn't exist"},
+            {"error": message},
             status=status.HTTP_400_BAD_REQUEST,
         )
     if friendRequest.accepted is not None:

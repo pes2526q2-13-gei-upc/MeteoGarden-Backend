@@ -471,7 +471,7 @@ class EventsCategory(models.Model):
 class Event(models.Model):
     id = models.CharField(primary_key=True, max_length=100)
     title = models.CharField(max_length=255)
-    subtitle = models.CharField(max_length=255, null=True, blank=True)
+    subtitle = models.CharField(max_length=255, blank=True)
     description = models.TextField()
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()

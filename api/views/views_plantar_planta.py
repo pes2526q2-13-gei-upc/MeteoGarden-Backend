@@ -19,7 +19,7 @@ from ..models import (
 )
 
 
-def updatePlantMissions(user, plant):
+def update_plant_missions(user, plant):
     # Obtenim les missions
     missions = UserMission.objects.filter(
         user=user, missionState=MissionState.IN_PROGRESS
@@ -100,7 +100,7 @@ def plant_seed(request, username, garden_name, pot_number):
         lastWateredAt=timezone.now(),
     )
 
-    updatePlantMissions(user, plant)
+    update_plant_missions(user, plant)
 
     data = {
         "message": "Plant planted successfully.",

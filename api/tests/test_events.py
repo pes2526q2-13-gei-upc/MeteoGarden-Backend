@@ -54,17 +54,17 @@ def test_events(some_categories):
 # --- FUNCIONS DE DOMINI ---
 
 
-# CRITICAL: El mock (mock_trad) ha d'anar DESPRÉS de la fixture (test_events)
-@patch("api.views.views_event.translate_text", side_effect=lambda xs, lang: xs)
 @pytest.mark.django_db
-def test_get_all_events_returns_expected(test_events, mock_trad):
+def test_get_all_events_returns_expected(test_events):  # Treiem mock_trad d'aquí
     from api.views.views_event import get_all_events
 
-    date = timezone.now().isoformat()
-    # Ordre correcte de paràmetres: date, lang, city, cat
-    data = get_all_events(date, "cat", None, None)
-    assert isinstance(data, list)
-    assert len(data) == 2
+    # Fem el patch aquí dins
+    with patch("api.views.views_event.translate_text", side_effect=lambda xs, lang: xs):
+        date = datetime.now().isoformat()
+        data = get_all_events(date, lang="cat", city=None, cat=None)
+
+        assert isinstance(data, list)
+        assert len(data) == 2
 
 
 @patch("api.views.views_event.translate_text", side_effect=lambda xs, lang: xs)

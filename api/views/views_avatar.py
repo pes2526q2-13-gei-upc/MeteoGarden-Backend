@@ -17,8 +17,7 @@ def getImages():
             {"id": i, "url": f"{MEDIA_URL}avatar/body/{i}.png"} for i in range(1, 5)
         ],
         "clothing": [
-            {"id": i, "url": f"{MEDIA_URL}avatar/clothing/{i}.png"}
-            for i in range(1, 8)
+            {"id": i, "url": f"{MEDIA_URL}avatar/clothing/{i}.png"} for i in range(1, 8)
         ],
         "eye": [
             {"id": i, "url": f"{MEDIA_URL}avatar/eye/{i}.png"} for i in range(1, 9)

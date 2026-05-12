@@ -48,6 +48,7 @@ def getUsersFriends(request):
             }
         )
 
+    return Response({"friends": friends_list})
 
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated])

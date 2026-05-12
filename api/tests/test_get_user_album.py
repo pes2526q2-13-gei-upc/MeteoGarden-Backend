@@ -2,7 +2,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from rest_framework.test import APIClient
 
-from ..models import AlbumEntry, Image, Plant, User
+from api.models import AlbumEntry, Image, Plant, User
 
 
 class GetUserAlbumTests(TestCase):

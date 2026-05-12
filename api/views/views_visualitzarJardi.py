@@ -5,14 +5,38 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
-from api.models import Garden, GrowthState, Inventory, Pot, Station, User
+from api.models import (
+    Garden,
+    GrowthState,
+    Inventory,
+    MissionAction,
+    MissionState,
+    Plant,
+    Pot,
+    Station,
+    User,
+    UserMission,
+)
 from api.plant_simulation import simulate_plant
 from api.serializer import (
     InventoryProductSerializer,
     InventorySeedSerializer,
     PotSerializer,
 )
-from api.xema_sync import ensure_station_synced
+from api.services.xema_sync import ensure_station_synced
+
+
+def updateWaterMissions(user, plant):
+    allUserMissions = UserMission.objects.filter(
+        user=user, missionState=MissionState.IN_PROGRESS
+    )
+    for mission in allUserMissions:
+        if mission.mission.action == MissionAction.WATER:
+            if mission.mission.plant is None or mission.mission.plant == plant:
+                mission.current += 1
+                if mission.mission.goal <= mission.current:
+                    mission.missionState = MissionState.COMPLETED
+                mission.save()
 
 
 def _sync_user_station(user: User) -> Station | None:
@@ -73,7 +97,6 @@ def user_gardens(request, username):
 
 def plant_status(request, username, garden_name, pot_number):
     garden = get_object_or_404(Garden, user__username=username, name=garden_name)
-
     pot = get_object_or_404(Pot, garden=garden, number=pot_number)
 
     planting = getattr(pot, "plantingarden", None)
@@ -84,24 +107,8 @@ def plant_status(request, username, garden_name, pot_number):
             planting = simulate_plant(planting, station)
             planting.save()
 
-    if planting is None:
-        data = {"pot_number": pot.number, "plant": None}
-    else:
-        data = {
-            "pot_number": pot.number,
-            "plant": {
-                "scientific_name": planting.plant.scientificName,
-                "common_name": planting.plant.commonName,
-                "family": planting.plant.family,
-            },
-            "growth_phase": planting.growthPhase,
-            "health_level": planting.healthLevel,
-            "water_level": planting.waterLevel,
-            "planted_at": planting.plantedAt.isoformat(),
-            "last_watered_at": planting.lastWateredAt.isoformat(),
-        }
-
-    return JsonResponse(data)
+    serializer = PotSerializer(pot)
+    return JsonResponse(serializer.data)
 
 
 @csrf_exempt
@@ -158,6 +165,10 @@ def water_plant(request, username, garden_name, pot_number):
     planting.healthLevel = min(100.0, planting.healthLevel + 5.0)
     planting.lastWateredAt = now
     planting.save()
+
+    user = get_object_or_404(User, username=username)
+    plant = Plant.objects.get(scientificName=planting.plant.scientificName)
+    updateWaterMissions(user, plant)
 
     data = {
         "message": "Plant watered successfully.",

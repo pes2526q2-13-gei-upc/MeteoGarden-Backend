@@ -1,7 +1,7 @@
 import json
 from datetime import timedelta
 
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -88,10 +88,13 @@ def use_product(request):
                 }
             )
 
-        return JsonResponse(response)
+        return JsonResponse(response, status=200)
 
     except ActiveProduct.DoesNotExist:
         return JsonResponse({"error": "Active product not found"}, status=404)
+
+    except Http404 as e:
+        return JsonResponse({"error": str(e)}, status=404)
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=400)

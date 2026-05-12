@@ -45,11 +45,12 @@ class TestViewsProductsComprehensive(TestCase):
         response = self.client.post(
             self.url, data=json.dumps(payload), content_type="application/json"
         )
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 404)
 
     @patch(f"{MOCK_PATH}.get_object_or_404")
+    @patch(f"{MOCK_PATH}.updateUseMissions")
     @patch(f"{MOCK_PATH}.apply_product")
-    def test_success_instant_product(self, mock_apply, mock_get):
+    def test_success_instant_product(self, mock_apply, mock_update, mock_get):
         mock_user, mock_pot, mock_plant, mock_product = (
             MagicMock(),
             MagicMock(),
@@ -77,9 +78,12 @@ class TestViewsProductsComprehensive(TestCase):
         self.assertEqual(response.status_code, 200)
 
     @patch(f"{MOCK_PATH}.get_object_or_404")
+    @patch(f"{MOCK_PATH}.updateUseMissions")
     @patch(f"{MOCK_PATH}.apply_product")
     @patch(f"{MOCK_PATH}.ActiveProduct.objects.filter")
-    def test_success_duration_product(self, mock_active_filter, mock_apply, mock_get):
+    def test_success_duration_product(
+        self, mock_active_filter, mock_apply, mock_update, mock_get
+    ):
         mock_user, mock_pot, mock_plant, mock_product = (
             MagicMock(),
             MagicMock(),
@@ -116,10 +120,11 @@ class TestViewsProductsComprehensive(TestCase):
         self.assertIn("2024-05-20T20:00:00", response.json()["expiresAt"])
 
     @patch(f"{MOCK_PATH}.get_object_or_404")
+    @patch(f"{MOCK_PATH}.updateUseMissions")
     @patch(f"{MOCK_PATH}.apply_product")
     @patch(f"{MOCK_PATH}.ActiveProduct.objects.filter")
     def test_error_active_product_does_not_exist(
-        self, mock_active_filter, mock_apply, mock_get
+        self, mock_active_filter, mock_apply, mock_update, mock_get
     ):
         mock_product = MagicMock(isInstant=False)
         mock_get.side_effect = [MagicMock(), MagicMock(), MagicMock(), mock_product]

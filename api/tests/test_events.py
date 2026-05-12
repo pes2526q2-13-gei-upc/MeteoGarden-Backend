@@ -251,7 +251,8 @@ def test_get_event_detail_endpoint_not_found():
     client = APIClient()
     url = reverse("event_detail") + "?id=UNKNOWN&lang=cat"
     resp = client.get(url)
-    assert resp.status_code in (400, 500)  # pot ser un 400 o 500 segons el handler
+    assert resp.status_code == 404
+    assert "error" in resp.data  # pot ser un 400 o 500 segons el handler
 
 
 @pytest.mark.django_db

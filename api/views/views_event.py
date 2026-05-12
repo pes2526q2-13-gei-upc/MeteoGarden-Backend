@@ -72,8 +72,8 @@ def get_all_events(date: str, lang: str, city: str | None, cat: str | None):
         serializer = EventSerializer(events, many=True)
         return serializer.data
     except Exception as e:
-        logger.exception(f"Event lookup failed: {e}")  # Log it for debugging
-        return {"error": "An internal server error occurred."}
+        logger.exception(f"Event lookup failed: {e}")
+        return []
 
 
 def get_number_of_events(month: str, year: str, city: str | None):
@@ -155,9 +155,15 @@ def get_num_events(request):
 def get_event_detail(request):
     event_id = request.query_params.get("id")
     lang = request.query_params.get("lang")
-    event = get_details(event_id, lang)
-    serializer = EventSeedSerializer(event)
-    return Response({"events": serializer.data})
+    try:
+        event = get_details(event_id, lang)
+        serializer = EventSeedSerializer(event)
+        return Response({"events": serializer.data})
+    except Event.DoesNotExist:
+        return Response({"error": "Event not found"}, status=404)
+    except Exception as e:
+        logger.exception(f"Unexpected error: {e}")
+        return Response({"error": "Internal server error"}, status=500)
 
 
 @api_view(["GET"])

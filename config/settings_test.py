@@ -9,7 +9,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "meteogarden_test",  # noqa: F405
         "USER": "meteogarden",
-        "PASSWORD": "meteogarden",
+        "PASSWORD": "meteogarden",  # Noncompliant
         "HOST": "localhost",
         "PORT": "5432",
     }

@@ -28,7 +28,7 @@ def searchUsers(request):
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def getUsersFriends(request):
+def get_users_friends(request):
     user = request.user
 
     friend_requests = FriendRequest.objects.filter(
@@ -75,10 +75,10 @@ def deleteFriend(request, username):
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def likeFriend(request, username):
+def like_friend(request, username):
     @api_view(["POST"])
     @permission_classes([IsAuthenticated])
-    def likeFriend(request, username):
+    def like_friend(request, username):
         try:
             friend = User.objects.get(username=username)
         except User.DoesNotExist:

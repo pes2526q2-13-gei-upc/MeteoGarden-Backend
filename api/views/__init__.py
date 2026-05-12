@@ -9,6 +9,12 @@ from .views_event import (  # noqa: F401
     get_events_by_city,
     get_num_events,
 )
+from .views_friends import (  # noqa: F401
+    deleteFriend,
+    getUsersFriends,
+    likeFriend,
+    searchUsers,
+)
 from .views_friends_request import (  # noqa: F401
     answerRequest,
     cancelRequest,

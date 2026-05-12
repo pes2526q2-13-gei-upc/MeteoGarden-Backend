@@ -186,6 +186,7 @@ class Inventory(models.Model):
 class Garden(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)  # RT.1
     name = models.CharField(max_length=100)
+    likes = models.IntegerField(default=0)
 
     class Meta:
         unique_together = ("user", "name")

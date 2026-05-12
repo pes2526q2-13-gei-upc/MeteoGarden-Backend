@@ -80,6 +80,7 @@ class User(AbstractUser):
     numPlantsCollected = models.PositiveIntegerField(default=0)
     stationCode = models.CharField(max_length=4)
     google_id = models.CharField(max_length=128, unique=True, null=True, blank=True)
+    lastNotificationAt = models.DateTimeField(null=True, blank=True)
 
     @property
     def numPlantsUnlocked(self):
@@ -234,7 +235,6 @@ class PlantInGarden(models.Model):
     )  # RT.11
     lastWateredAt = models.DateTimeField(default=timezone.now)
     lastSimulatedAt = models.DateTimeField(default=timezone.now)
-    lastNotificationAt = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         unique_together = ("pot", "plant", "plantedAt")

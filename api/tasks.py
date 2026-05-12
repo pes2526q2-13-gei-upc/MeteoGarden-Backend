@@ -8,8 +8,8 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
 from api.firebase import initialize_firebase
-from api.models import Event, Garden, GrowthState, Station
-from api.notifications import can_send_notification, send_push_notification
+from api.models import Event, Garden, GrowthState, Station, WeatherReading
+from api.notifications import can_send_notification, notify
 from api.plant_simulation import simulate_plant
 from api.services.events import getEventsFromService
 from api.services.xema_sync import ensure_station_synced
@@ -32,8 +32,31 @@ def simulate_all_plants():
         if not station:
             continue
 
+        previous_reading = (
+            WeatherReading.objects.filter(station=station)
+            .order_by("-timestamp")
+            .first()
+        )
+
         # Actualitzar dades meteo
         ensure_station_synced(station)
+
+        latest_reading = (
+            WeatherReading.objects.filter(station=station)
+            .order_by("-timestamp")
+            .first()
+        )
+
+        if not latest_reading:
+            continue
+
+        temp = latest_reading.temperature or 0
+        rain = latest_reading.precipitation or 0
+        wind = latest_reading.windSpeed or 0
+
+        old_temp = previous_reading.temperature if previous_reading else temp
+        old_rain = previous_reading.precipitation if previous_reading else rain
+        old_wind = previous_reading.windSpeed if previous_reading else wind
 
         # Agafa totes les plantes vives
         pots = (
@@ -41,91 +64,103 @@ def simulate_all_plants():
             .exclude(plantingarden__growthPhase=GrowthState.DEAD)
             .select_related("plantingarden__plant")
         )
+        critical_count = 0
+        water_count = 0
+        health_drop_count = 0
 
         # Simula cada planta
         for pot in pots:
             pig = pot.plantingarden
             old_phase = pig.growthPhase
             old_health = pig.healthLevel
+            old_water = pig.waterLevel
 
             updated = simulate_plant(pig, station)
             updated.save()
 
-            # Notificacions
-            if not can_send_notification(updated):
-                continue
-
-            # Planta baixa de salut
-            if updated.healthLevel < 20:
-                send_push_notification(
-                    user,
-                    "⚠️ Planta en perill",
-                    f"{updated.plant.commonName} està molt malament",
-                )
-                updated.lastNotificationAt = timezone.now()
-                updated.save()
-                continue
-
-            # terminal
-            if updated.healthLevel < 20 and old_health >= 20:
-                print(
-                    f"NOTIFICACIÓ: {user.username}, la teva planta {pig.plant.commonName} està molt malalta!"
-                )
-
+            # Notificacions sempre
             # Planta morta
-            if updated.growthPhase == GrowthState.DEAD:
-                send_push_notification(
-                    user,
-                    "💀 Planta morta",
-                    f"La teva planta {updated.plant.commonName} ha mort",
-                )
-                updated.lastNotificationAt = timezone.now()
-                updated.save()
-                continue
-
-            # terminal
             if (
                 updated.growthPhase == GrowthState.DEAD
                 and old_phase != GrowthState.DEAD
             ):
-                print(
-                    f"NOTIFICACIÓ: {user.username}, la teva planta {pig.plant.commonName} ha mort."
+                notify(
+                    user, "💀 Plant died", f"Your {updated.plant.commonName} has died"
                 )
 
             # Planta canvia de fase
             if updated.growthPhase != old_phase:
-                send_push_notification(
+                notify(
                     user,
-                    "🌱 Nova fase",
-                    f"{updated.plant.commonName} ha evolucionat a {updated.growthPhase}",
+                    "🌱 New growth phase",
+                    f"Your {updated.plant.commonName} has reached {updated.growthPhase}",
                 )
-                updated.lastNotificationAt = timezone.now()
-                updated.save()
+
+            # Notificacions cooldown en ordre de prioritat
+            if not can_send_notification(user):
                 continue
-            # terminal
-            if updated.growthPhase != old_phase:
-                print(
-                    f"NOTIFICACIÓ: {user.username}, la planta {pig.plant.commonName} ha passat a fase {pig.growthPhase}!"
-                )
+
+            # Planta baixa de salut
+            if updated.healthLevel < 20 and old_health >= 20:
+                critical_count += 1
 
             # caiguda brusca salut
             if old_health - updated.healthLevel > 15:
-                send_push_notification(
-                    user,
-                    "Canvi brusc de salut",
-                    f"{updated.plant.commonName} ha empitjorat ràpidament",
-                )
-                updated.lastNotificationAt = timezone.now()
-                updated.save()
-                continue
+                health_drop_count += 1
 
-            # 💧 Falta aigua
-            if updated.waterLevel < 20:
-                send_push_notification(
-                    user, "💧 Necessita aigua", "Una planta necessita reg!"
-                )
-                updated.lastNotificationAt = timezone.now()
-                updated.save()
+            # Falta aigua
+            if updated.waterLevel < 20 and old_water >= 20:
+                water_count += 1
+
+        if critical_count == 1:
+            notify(user, "⚠️ Plant in danger", "One plant is in critical condition")
+            continue
+
+        elif critical_count > 1:
+            notify(
+                user,
+                "⚠️ Plants in danger",
+                f"{critical_count} plants are in critical condition",
+            )
+            continue
+
+        if health_drop_count == 1:
+            notify(user, "📉 Sudden health drop", "One plant got worse quickly")
+            continue
+
+        elif health_drop_count > 1:
+            notify(
+                user,
+                "📉 Sudden health drops",
+                f"{health_drop_count} plants got worse quickly",
+            )
+            continue
+
+        if water_count == 1:
+            notify(user, "💧 Plant needs water", "One plant needs watering")
+            continue
+
+        elif water_count > 1:
+            notify(user, "💧 Plants need water", f"{water_count} plants need watering")
+            continue
+
+        if old_temp < 38 and temp >= 38:
+            notify(user, "🔥 Extreme heat", "High temperatures may damage your plants")
+            continue
+
+        elif old_temp > 0 and temp <= 0:
+            notify(
+                user, "🥶 Frost warning", "Freezing temperatures may damage your plants"
+            )
+            continue
+
+        elif old_rain < 40 and rain >= 40:
+            notify(user, "🌧️ Heavy rain", "Heavy rain detected in your area")
+            continue
+
+        elif old_wind < 50 and wind >= 50:
+            notify(user, "💨 Strong wind", "Strong wind may damage your plants")
+            continue
 
 
 def _download_image(event_obj, url):

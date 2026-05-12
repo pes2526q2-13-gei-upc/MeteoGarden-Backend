@@ -14,6 +14,12 @@ from .views_friends import (  # noqa: F401
     likeFriend,
     searchUsers,
 )
+from .views_friends_request import (  # noqa: F401
+    answerRequest,
+    cancelRequest,
+    getRequests,
+    sendFriendRequest,
+)
 from .views_identify import identifyPlant  # noqa: F401
 from .views_image import getUserAlbum  # noqa: F401
 from .views_info import importPlant  # noqa: F401

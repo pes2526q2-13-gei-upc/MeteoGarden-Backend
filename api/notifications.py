@@ -4,6 +4,9 @@ from django.utils import timezone
 from firebase_admin import messaging
 
 from api.models import Device
+from api.views.views_translate import translate_text
+
+USER_NOTIFICATION_COOLDOWN = timedelta(seconds=0)
 
 
 def send_push_notification(user, title, body):
@@ -29,16 +32,29 @@ def send_push_notification(user, title, body):
             Device.objects.filter(token=tokens[idx]).delete()
 
 
-# per a que no hi hagi masa spam (max cada 2 hores)
-def can_send_notification(pig):
-    if not pig.lastNotificationAt:
-        pig.lastNotificationAt = timezone.now()
-        pig.save()
+def translate_notification(user, title, body):
+    translated = translate_text(
+        [title, body],
+        user.language,
+    )
+    return translated[0], translated[1]
+
+
+# per a que no hi hagi masa spam
+def can_send_notification(user):
+    if not hasattr(user, "lastNotificationAt"):
         return True
 
-    if (timezone.now() - pig.lastNotificationAt) > timedelta(hours=2):
-        pig.lastNotificationAt = timezone.now()
-        pig.save()
+    if not user.lastNotificationAt:
         return True
 
-    return False
+    return (timezone.now() - user.lastNotificationAt) >= USER_NOTIFICATION_COOLDOWN
+
+
+def notify(user, title, body):
+    translated_title, translated_body = translate_notification(user, title, body)
+    send_push_notification(user, translated_title, translated_body)
+    user.lastNotificationAt = timezone.now()
+    user.save(update_fields=["lastNotificationAt"])
+
+    print(f"[NOTIFICATION] " f"{user.username} | " f"{translated_title}")

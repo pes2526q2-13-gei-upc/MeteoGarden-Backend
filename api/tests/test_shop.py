@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock, patch
 
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
 
 from api.models import Product, Shop
@@ -166,26 +167,22 @@ class ShopViewTest(TestCase):
 
     # ------------------------------------------------------------------
     # Caso 2: productos con imagen
-    # ------------------------------------------------------------------
-    @patch("api.models.Product.image_url")
-    def test_product_with_image_returns_url(self, mock_image_url):
-        """Un producto con imagen devuelve su URL de S3."""
-        mock_image_url.url = (
-            "https://mybucket.s3.amazonaws.com/products/health_potion.webp"
-        )
-
+    def test_product_with_image_returns_url(self):
         shop = Shop.get_solo()
         shop.products = {"health_potion": 15}
         shop.save()
 
-        self.product.image_url = mock_image_url
+        img_file = SimpleUploadedFile(
+            "health_potion.webp", b"fake_image_data", content_type="image/webp"
+        )
+        self.product.image_url = img_file
         self.product.save()
 
         response = self.client.get("/api/shop/")
         data = response.json()
-
         product = next(p for p in data["products"] if p["name"] == "health_potion")
         self.assertIn("image_url", product)
+        self.assertIsNotNone(product["image_url"])
 
     def test_product_without_image_returns_none(self):
         """Un producto sin imagen devuelve image_url como None."""

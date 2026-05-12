@@ -227,7 +227,7 @@ def test_get_categories_endpoint(some_categories):
 def test_get_all_events_invalid_date():
     from api.views.views_event import get_all_events
 
-    assert get_all_events()("INVALIDDATE", "cat") == []
+    assert get_all_events("INVALIDDATE", "cat", None, None) == []
 
 
 @pytest.mark.django_db

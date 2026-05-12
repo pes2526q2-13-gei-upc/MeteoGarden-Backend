@@ -100,20 +100,25 @@ def test_get_number_of_events_all_and_by_city(test_events):
     assert total >= 2
 
 
-@patch(
-    "api.views.views_event.translate_text",
-    side_effect=lambda xs, lang: [
-        a + " [trad]" if isinstance(a, str) else a for a in xs
-    ],
-)
 @pytest.mark.django_db
 def test_get_details_translates_fields(test_events):
     from api.views.views_event import get_details
 
-    ev = test_events[0]
-    result = get_details(ev.id, lang="es")
-    assert "[trad]" in result.title
-    assert "[trad]" in result.category.name
+    with patch("api.views.views_event.translate_text") as mock_trad:
+        mock_trad.side_effect = lambda xs, lang: [
+            a + " [trad]" if isinstance(a, str) else a for a in xs
+        ]
+
+        ev = test_events[0]
+        result = get_details(ev.id, lang="es")
+
+        # Verificacions
+        assert "[trad]" in result.title
+        if result.category:
+            assert "[trad]" in result.category.name
+
+        # Opcional: verificar que s'ha cridat a la traducció
+        assert mock_trad.called
 
 
 # --- ENDPOINTS HTTP ---

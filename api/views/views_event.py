@@ -72,7 +72,7 @@ def get_all_events(date: str, lang: str, city: str | None, cat: str | None):
         serializer = EventSerializer(events, many=True)
         return serializer.data
     except Exception as e:
-        logger.error(f"Event lookup failed: {e}")  # Log it for debugging
+        logger.exception(f"Event lookup failed: {e}")  # Log it for debugging
         return {"error": "An internal server error occurred."}
 
 

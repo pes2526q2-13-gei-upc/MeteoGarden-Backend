@@ -85,9 +85,9 @@ def _fetch_xema_data(station_code, url):
         data = response.json()
         if isinstance(data, list):
             return data
-        logger.error(f"[XEMA sync] Resposta inesperada per {station_code}: {data}")
+        logger.exception(f"[XEMA sync] Resposta inesperada per {station_code}: {data}")
     except Exception as e:
-        logger.error(f"[XEMA sync] Error consultant {station_code}: {e}")
+        logger.exception(f"[XEMA sync] Error consultant {station_code}: {e}")
     return []
 
 

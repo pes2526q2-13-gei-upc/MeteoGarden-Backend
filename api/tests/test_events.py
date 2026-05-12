@@ -55,7 +55,7 @@ def test_events(some_categories):
 
 
 @pytest.mark.django_db
-def test_get_all_events_returns_expected(test_events):  # Treiem mock_trad d'aquí
+def test_get_all_events_returns_expected(test_events):
     from api.views.views_event import get_all_events
 
     # Fem el patch aquí dins
@@ -67,26 +67,26 @@ def test_get_all_events_returns_expected(test_events):  # Treiem mock_trad d'aqu
         assert len(data) == 2
 
 
-@patch("api.views.views_event.translate_text", side_effect=lambda xs, lang: xs)
 @pytest.mark.django_db
 def test_get_all_events_by_city_ok(test_events, mock_trad):
     from api.views.views_event import get_all_events
 
-    date = timezone.now().isoformat()
-    data = get_all_events(date, "cat", "tarragona", None)
-    assert len(data) == 1
-    assert data[0]["city"].lower() == "tarragona"
+    with patch("api.views.views_event.translate_text", side_effect=lambda xs, lang: xs):
+        date = timezone.now().isoformat()
+        data = get_all_events(date, "cat", "tarragona", None)
+        assert len(data) == 1
+        assert data[0]["city"].lower() == "tarragona"
 
 
-@patch("api.views.views_event.translate_text", side_effect=lambda xs, lang: xs)
 @pytest.mark.django_db
 def test_get_all_events_by_category_ok(test_events, mock_trad, some_categories):
     from api.views.views_event import get_all_events
 
-    date = timezone.now().isoformat()
-    data = get_all_events(date, "cat", None, "Música")
-    assert len(data) == 1
-    assert data[0]["category"]["name"] == "Música"
+    with patch("api.views.views_event.translate_text", side_effect=lambda xs, lang: xs):
+        date = timezone.now().isoformat()
+        data = get_all_events(date, "cat", None, "Música")
+        assert len(data) == 1
+        assert data[0]["category"]["name"] == "Música"
 
 
 @pytest.mark.django_db

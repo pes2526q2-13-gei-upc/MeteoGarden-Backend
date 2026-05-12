@@ -40,11 +40,13 @@ def getUsersFriends(request):
     for fr in friend_requests:
         friend_user = fr.requested if fr.requester == user else fr.requester
 
-        friends_list.append({
-            "username": friend_user.username,
-            "avatar": friend_user.avatar.url if friend_user.avatar else None,
-            "garden": Garden.objects.filter(user=friend_user).first().name,
-        })
+        friends_list.append(
+            {
+                "username": friend_user.username,
+                "avatar": friend_user.avatar.url if friend_user.avatar else None,
+                "garden": Garden.objects.filter(user=friend_user).first().name,
+            }
+        )
 
 
 @api_view(["DELETE"])

@@ -10,43 +10,43 @@ from config.settings import MEDIA_URL
 def getImages():
     return {
         "accessories": [
-            {"id": i, "url": f"{MEDIA_URL}/avatar/accessories/{i}.png"}
+            {"id": i, "url": f"{MEDIA_URL}avatar/accessories/{i}.png"}
             for i in range(1, 6)
         ],
         "body": [
-            {"id": i, "url": f"{MEDIA_URL}/avatar/body/{i}.png"} for i in range(1, 5)
+            {"id": i, "url": f"{MEDIA_URL}avatar/body/{i}.png"} for i in range(1, 5)
         ],
         "clothing": [
-            {"id": i, "url": f"{MEDIA_URL}/avatar/clothing/{i}.png"}
+            {"id": i, "url": f"{MEDIA_URL}avatar/clothing/{i}.png"}
             for i in range(1, 8)
         ],
         "eye": [
-            {"id": i, "url": f"{MEDIA_URL}/avatar/eye/{i}.png"} for i in range(1, 9)
+            {"id": i, "url": f"{MEDIA_URL}avatar/eye/{i}.png"} for i in range(1, 9)
         ],
         "expression": {
-            "happy": [{"id": 0, "url": f"{MEDIA_URL}/avatar/expression/happy/0.png"}],
+            "happy": [{"id": 0, "url": f"{MEDIA_URL}avatar/expression/happy/0.png"}],
             "sad": [
-                {"id": i, "url": f"{MEDIA_URL}/avatar/expression/sad/{i}.png"}
+                {"id": i, "url": f"{MEDIA_URL}avatar/expression/sad/{i}.png"}
                 for i in range(1, 5)
             ],
             "shivering": [
-                {"id": i, "url": f"{MEDIA_URL}/avatar/expression/shivering/{i}.png"}
+                {"id": i, "url": f"{MEDIA_URL}avatar/expression/shivering/{i}.png"}
                 for i in range(1, 5)
             ],
             "sweating": [
-                {"id": 0, "url": f"{MEDIA_URL}/avatar/expression/sweating/0.png"}
+                {"id": 0, "url": f"{MEDIA_URL}avatar/expression/sweating/0.png"}
             ],
-            "wet": [{"id": 0, "url": f"{MEDIA_URL}/avatar/expression/wet/0.png"}],
+            "wet": [{"id": 0, "url": f"{MEDIA_URL}avatar/expression/wet/0.png"}],
         },
         "hair": {
             color: [
-                {"id": i, "url": f"{MEDIA_URL}/avatar/hair/{color}/{i}.png"}
+                {"id": i, "url": f"{MEDIA_URL}avatar/hair/{color}/{i}.png"}
                 for i in range(1, 9)
             ]
             for color in ["blond", "brown", "dark"]
         },
         "facialHair": {
-            color: [{"id": 1, "url": f"{MEDIA_URL}/avatar/facialHair/1/{color}.png"}]
+            color: [{"id": 1, "url": f"{MEDIA_URL}avatar/facialHair/1/{color}.png"}]
             for color in ["blond", "brown", "dark"]
         },
     }
@@ -70,13 +70,13 @@ def getUserAvatar(request, username):
     avatar = get_object_or_404(Avatar, user=user)
 
     data = {
-        "accessories": f"{MEDIA_URL}/avatar/accessories/{avatar.accessories}.png",
-        "body": f"{MEDIA_URL}/avatar/body/{avatar.body}.png",
-        "clothing": f"{MEDIA_URL}/avatar/clothing/{avatar.clothing}.png",
-        "eye": f"{MEDIA_URL}/avatar/eye/{avatar.eye}.png",
-        "expression": f"{MEDIA_URL}/avatar/expression/{avatar.expression}/{avatar.expression_variant}.png",
-        "hair": f"{MEDIA_URL}/avatar/hair/{avatar.hair_color}/{avatar.hair_style}.png",
-        "facialHair": f"{MEDIA_URL}/avatar/facialHair/{avatar.facial_hair}/{avatar.facial_hair_color}.png",
+        "accessories": f"{MEDIA_URL}avatar/accessories/{avatar.accessories}.png",
+        "body": f"{MEDIA_URL}avatar/body/{avatar.body}.png",
+        "clothing": f"{MEDIA_URL}avatar/clothing/{avatar.clothing}.png",
+        "eye": f"{MEDIA_URL}avatar/eye/{avatar.eye}.png",
+        "expression": f"{MEDIA_URL}avatar/expression/{avatar.expression}/{avatar.expression_variant}.png",
+        "hair": f"{MEDIA_URL}avatar/hair/{avatar.hair_color}/{avatar.hair_style}.png",
+        "facialHair": f"{MEDIA_URL}avatar/facialHair/{avatar.facial_hair}/{avatar.facial_hair_color}.png",
     }
 
     return Response(data)
@@ -109,13 +109,13 @@ def saveAvatar(request, username):
     avatar.save()
 
     data = {
-        "accessories": f"{MEDIA_URL}/avatar/accessories/{avatar.accessories}.png",
-        "body": f"{MEDIA_URL}/avatar/body/{avatar.body}.png",
-        "clothing": f"{MEDIA_URL}/avatar/clothing/{avatar.clothing}.png",
-        "eye": f"{MEDIA_URL}/avatar/eye/{avatar.eye}.png",
-        "expression": f"{MEDIA_URL}/avatar/expression/{avatar.expression}/{avatar.expression_variant}.png",
-        "hair": f"{MEDIA_URL}/avatar/hair/{avatar.hair_color}/{avatar.hair_style}.png",
-        "facialHair": f"{MEDIA_URL}/avatar/facialHair/{avatar.facial_hair}/{avatar.facial_hair_color}.png",
+        "accessories": f"{MEDIA_URL}avatar/accessories/{avatar.accessories}.png",
+        "body": f"{MEDIA_URL}avatar/body/{avatar.body}.png",
+        "clothing": f"{MEDIA_URL}avatar/clothing/{avatar.clothing}.png",
+        "eye": f"{MEDIA_URL}avatar/eye/{avatar.eye}.png",
+        "expression": f"{MEDIA_URL}avatar/expression/{avatar.expression}/{avatar.expression_variant}.png",
+        "hair": f"{MEDIA_URL}avatar/hair/{avatar.hair_color}/{avatar.hair_style}.png",
+        "facialHair": f"{MEDIA_URL}avatar/facialHair/{avatar.facial_hair}/{avatar.facial_hair_color}.png",
     }
 
     return Response(data, status=201 if created else 200)

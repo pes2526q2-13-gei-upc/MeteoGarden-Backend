@@ -7,10 +7,16 @@ from django.views.decorators.http import require_GET, require_POST
 
 from api.models import Inventory, Plant, Product, Shop, User
 from api.serializer import ShopSeedSerializer
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from views_translate import translate_text
 
-
-@require_GET
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def get_shop(request):
+    user = request.user
+    lang = user.language
+
     shop = Shop.get_solo()
     shop.initialize_starter_stock()
 
@@ -21,9 +27,9 @@ def get_shop(request):
             seeds_data.append(
                 {
                     "scientificName": plant.scientificName,
-                    "commonName": plant.commonName,
+                    "commonName": translate_text(plant.commonName, lang),
                     "family": plant.family,
-                    "description": plant.description,
+                    "description": translate_text(plant.description, lang),
                     "price": price,
                 }
             )
@@ -36,9 +42,18 @@ def get_shop(request):
             product = Product.objects.get(name=name)
             products_data.append(
                 {
-                    "name": product.name,
-                    "description": product.description,
-                    "effectType": product.effectType,
+                    "name": translate_text(
+                        product.name,
+                        lang,
+                    ),
+                    "description": translate_text(
+                        product.description,
+                        lang,
+                    ),
+                    "effectType": translate_text(
+                        product.effectType,
+                        lang,
+                    ),
                     "value": product.value,
                     "durationHours": product.durationHours,
                     "isInstant": product.isInstant,
@@ -51,7 +66,11 @@ def get_shop(request):
 
     return JsonResponse(
         {
-            "seeds": ShopSeedSerializer(seeds_data, many=True).data,
+            "seeds": ShopSeedSerializer(
+                seeds_data,
+                many=True,
+                context={"request": request},
+            ).data,
             "products": products_data,
         },
         status=200,
@@ -69,30 +88,30 @@ def buy_item(request, username):
         item_type = body.get("type")
         item_name = body.get("name")
     except json.JSONDecodeError:
-        return JsonResponse({"error": "Invalid body"}, status=400)
+        return JsonResponse({"error": translate_text("Invalid body", user.language)}, status=400)
 
     if not item_type or not item_name:
-        return JsonResponse({"error": "Missing 'type' or 'name'"}, status=400)
+        return JsonResponse({"error": translate_text("Missing 'type' or 'name'", user.language)}, status=400)
 
     shop = Shop.get_solo()
 
     if item_type == "seed":
         if item_name not in shop.seeds:
-            return JsonResponse({"error": "Seed not found in shop"}, status=404)
+            return JsonResponse({"error": translate_text("Seed not found in shop", user.language)}, status=404)
         price = shop.seeds[item_name]
 
     elif item_type == "product":
         if item_name not in shop.products:
-            return JsonResponse({"error": "Product not found in shop"}, status=404)
+            return JsonResponse({"error": translate_text("Product not found in shop", user.language)}, status=404)
         price = shop.products[item_name]
 
     else:
         return JsonResponse(
-            {"error": "Invalid type, must be 'seed' or 'product'"}, status=400
+            {"error": translate_text("Invalid type, must be 'seed' or 'product'", user.language)}, status=400
         )
 
     if inventory.coins < price:
-        return JsonResponse({"error": "Not enough coins"}, status=400)
+        return JsonResponse({"error": translate_text("Not enough coins", user.language)}, status=400)
 
     inventory.coins -= price
     if item_type == "seed":
@@ -101,9 +120,17 @@ def buy_item(request, username):
         inventory.products[item_name] = inventory.products.get(item_name, 0) + 1
     inventory.save()
 
+    translated_item_type = translate_text(item_type, user.language)
+    translated_item_name = translate_text(item_name, user.language)
+
+    success_message = translate_text(
+        f"{translated_item_type} '{translated_item_name}' bought successfully",
+        user.language,
+    )
+
     return JsonResponse(
         {
-            "message": f"{item_type} '{item_name}' bought successfully",
+            "message": success_message,
             "coins_remaining": inventory.coins,
         },
         status=200,

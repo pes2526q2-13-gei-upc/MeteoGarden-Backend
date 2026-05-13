@@ -5,6 +5,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from api.models import FriendRequest, Garden, User
+from api.views.views_translate import translate_text
 
 
 @api_view(["GET"])
@@ -52,10 +53,11 @@ def getUsersFriends(request):
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
 def deleteFriend(request, username):
+    lang = request.user.language
     try:
         friend = User.objects.get(username=username)
     except User.DoesNotExist:
-        return Response({"error": "User not found."}, status=404)
+        return Response({"error": translate_text("User not found.", lang)}, status=404)
 
     friend_request = FriendRequest.objects.filter(
         (
@@ -66,44 +68,42 @@ def deleteFriend(request, username):
     ).first()
 
     if not friend_request:
-        return Response({"error": "You are not friends with this user."}, status=404)
+        return Response({"error": translate_text("You are not friends with this user.", lang)}, status=404)
 
     friend_request.delete()
 
-    return Response({"success": f"Friend {username} deleted successfully."}, status=200)
+    return Response({"success": translate_text(f"Friend {username} deleted successfully.", lang)}, status=200)
 
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def likeFriend(request, username):
-    @api_view(["POST"])
-    @permission_classes([IsAuthenticated])
-    def likeFriend(request, username):
-        try:
-            friend = User.objects.get(username=username)
-        except User.DoesNotExist:
-            return Response({"error": "User not found."}, status=404)
+    lang = request.user.language
+    try:
+        friend = User.objects.get(username=username)
+    except User.DoesNotExist:
+        return Response({"error": translate_text("User not found.", lang)}, status=404)
 
-        is_friend = FriendRequest.objects.filter(
-            (
-                Q(requester=request.user, requested=friend)
-                | Q(requester=friend, requested=request.user)
-            ),
-            accepted=True,
-        ).exists()
+    is_friend = FriendRequest.objects.filter(
+        (
+            Q(requester=request.user, requested=friend)
+            | Q(requester=friend, requested=request.user)
+        ),
+        accepted=True,
+    ).exists()
 
-        if not is_friend:
-            return Response(
-                {"error": "You are not friends with this user."}, status=403
-            )
+    if not is_friend:
+        return Response(
+            {"error": translate_text("You are not friends with this user.", lang)}, status=403
+        )
 
-        try:
-            garden = Garden.objects.get(user=friend)
-            garden.likes += 1
-            garden.save()
-        except Garden.DoesNotExist:
-            return Response(
-                {"error": "This user does not have a garden yet."}, status=404
-            )
+    try:
+        garden = Garden.objects.get(user=friend)
+        garden.likes += 1
+        garden.save()
+    except Garden.DoesNotExist:
+        return Response(
+            {"error": translate_text("This user does not have a garden yet.", lang)}, status=404
+        )
 
-        return Response({"success": f"Total likes: {garden.likes}"}, status=200)
+    return Response({"success": translate_text(f"Total likes: {garden.likes}", lang)}, status=200)

@@ -3,6 +3,7 @@ from datetime import timedelta
 from rest_framework import serializers
 
 from api.models import ActiveProduct, Event, EventsCategory, Image, Plant, Pot, Product
+from api.views.views_translate import translate_text
 
 
 class PotSerializer(serializers.ModelSerializer):
@@ -107,9 +108,9 @@ class InventorySeedSerializer(serializers.Serializer):
 
 class ShopSeedSerializer(serializers.Serializer):
     scientificName = serializers.CharField()
-    commonName = serializers.CharField()
+    commonName = serializers.SerializerMethodField()
     family = serializers.CharField()
-    description = serializers.CharField()
+    description = serializers.SerializerMethodField()
     price = serializers.IntegerField()
     image_url = serializers.SerializerMethodField()
 
@@ -122,6 +123,17 @@ class ShopSeedSerializer(serializers.Serializer):
         image = Image.objects.filter(plant=plant, growthPhase="seed").first()
         return image.url.url if image and image.url else None
 
+    def get_commonName(self, obj):
+        return translate_text(
+            obj.get("commonName"),
+            self.context["request"].user.language,
+        )
+
+    def get_description(self, obj):
+        return translate_text(
+            obj.get("description"),
+            self.context["request"].user.language,
+        )
 
 class InventoryProductSerializer(serializers.Serializer):
     productName = serializers.CharField()

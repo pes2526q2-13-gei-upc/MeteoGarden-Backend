@@ -3,6 +3,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
+from .views_translate import translate_text
 from ..models import (
     AlbumEntry,
     Inventory,
@@ -21,12 +22,13 @@ from ..models import (
 @permission_classes([IsAuthenticated])
 def getUserMissions(request):
     missions = UserMission.objects.filter(user=request.user)
+    lang = request.user.language
     return Response(
         {
             "missions": [
                 {
-                    "Name": mission.mission.name,
-                    "Description": mission.mission.description,
+                    "Name": translate_text(mission.mission.name, lang),
+                    "Description": translate_text(mission.mission.description, lang),
                     "Goal": mission.mission.goal,
                     "Action": mission.mission.action,
                     "Plant needed scientific name": (
@@ -35,12 +37,12 @@ def getUserMissions(request):
                         else None
                     ),
                     "Product needed": (
-                        mission.mission.product.name
+                        translate_text(mission.mission.product.name, lang)
                         if mission.mission.product
                         else None
                     ),
                     "Plant reward common name": (
-                        mission.mission.plantReward.commonName
+                        translate_text(mission.mission.plantReward.commonName, lang)
                         if mission.mission.plantReward
                         else None
                     ),
@@ -51,7 +53,7 @@ def getUserMissions(request):
                     ),
                     "Reward coins": mission.mission.rewardCoins,
                     "Product reward": (
-                        mission.mission.productReward.name
+                        translate_text(mission.mission.productReward.name, lang)
                         if mission.mission.productReward
                         else None
                     ),

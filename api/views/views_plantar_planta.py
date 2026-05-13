@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
+from .views_translate import translate_text
 from ..models import (
     Garden,
     GrowthState,
@@ -39,6 +40,7 @@ def plant_seed(request, username, garden_name, pot_number):
         return HttpResponseNotAllowed(["POST"])
 
     user = get_object_or_404(User, username=username)
+    lang = user.language
 
     garden = get_object_or_404(
         Garden,
@@ -54,7 +56,7 @@ def plant_seed(request, username, garden_name, pot_number):
 
     if getattr(pot, "plantingarden", None) is not None:
         return JsonResponse(
-            {"error": "This pot is already occupied."},
+            {"error": translate_text("This pot is already occupied.", lang)},
             status=400,
         )
 
@@ -62,7 +64,7 @@ def plant_seed(request, username, garden_name, pot_number):
         body = json.loads(request.body)
     except json.JSONDecodeError:
         return JsonResponse(
-            {"error": "Invalid JSON body."},
+            {"error": translate_text("Invalid JSON body.", lang)},
             status=400,
         )
 
@@ -70,7 +72,7 @@ def plant_seed(request, username, garden_name, pot_number):
 
     if not scientific_name:
         return JsonResponse(
-            {"error": "The field 'scientificName' is required."},
+            {"error": translate_text("The field 'scientificName' is required.", lang)},
             status=400,
         )
 
@@ -81,7 +83,7 @@ def plant_seed(request, username, garden_name, pot_number):
 
     if current_amount <= 0:
         return JsonResponse(
-            {"error": "The user does not have this seed in the inventory."},
+            {"error": translate_text("The user does not have this seed in the inventory.", lang)},
             status=400,
         )
 
@@ -103,13 +105,13 @@ def plant_seed(request, username, garden_name, pot_number):
     updatePlantMissions(user, plant)
 
     data = {
-        "message": "Plant planted successfully.",
+        "message": translate_text("Plant planted successfully.", lang),
         "pot_number": pot.number,
         "plant": {
             "scientificName": planting.plant.scientificName,
-            "commonName": planting.plant.commonName,
+            "commonName": translate_text(planting.plant.commonName, lang),
         },
-        "growthPhase": planting.growthPhase,
+        "growthPhase": translate_text(planting.growthPhase, lang),
         "healthLevel": planting.healthLevel,
         "waterLevel": planting.waterLevel,
         "plantedAt": planting.plantedAt.isoformat(),
@@ -125,6 +127,7 @@ def delete_plant(request, username, garden_name, pot_number):
         return HttpResponseNotAllowed(["DELETE"])
 
     user = get_object_or_404(User, username=username)
+    lang = user.language
 
     garden = get_object_or_404(
         Garden,
@@ -133,7 +136,7 @@ def delete_plant(request, username, garden_name, pot_number):
     )
     if garden is None:
         return JsonResponse(
-            {"error": "There is no garden with this name."},
+            {"error": translate_text("There is no garden with this name.", lang)},
             status=404,
         )
     pot = get_object_or_404(
@@ -146,7 +149,7 @@ def delete_plant(request, username, garden_name, pot_number):
 
     if planting is None:
         return JsonResponse(
-            {"error": "There is no plant in this pot."},
+            {"error": translate_text("There is no plant in this pot.", lang)},
             status=404,
         )
 
@@ -156,7 +159,7 @@ def delete_plant(request, username, garden_name, pot_number):
     planting.delete()  # tu delete() ya pone occupied=False en la maceta
 
     data = {
-        "message": "Plant deleted successfully.",
+        "message": translate_text("Plant deleted successfully.", lang),
         "pot_number": pot_num,
         "deletedPlant": plant_name,
         "occupied": pot.occupied,

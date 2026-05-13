@@ -5,6 +5,8 @@ from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 
 from api.models import (
     ActiveProduct,
@@ -17,6 +19,7 @@ from api.models import (
     UserMission,
 )
 from api.plant_simulation import apply_product
+from api.views.views_translate import translate_text
 
 
 def updateUseMissions(user, productName):
@@ -33,10 +36,10 @@ def updateUseMissions(user, productName):
                     mission.missionState = MissionState.COMPLETED
                 mission.save()
 
-
-@csrf_exempt
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def use_product(request):
+    lang = request.user.language
     try:
         body = json.loads(request.body)
     except Exception:
@@ -63,12 +66,12 @@ def use_product(request):
 
         response = {
             "status": "ok",
-            "product": product.name,
+            "product": translate_text(product.name, lang),
             "isInstant": product.isInstant,
             "plant": {
                 "health": plant.healthLevel,
                 "water": plant.waterLevel,
-                "growthPhase": plant.growthPhase,
+                "growthPhase": translate_text(plant.growthPhase, lang),
             },
         }
 
@@ -91,10 +94,10 @@ def use_product(request):
         return JsonResponse(response, status=200)
 
     except ActiveProduct.DoesNotExist:
-        return JsonResponse({"error": "Active product not found"}, status=404)
+        return JsonResponse({"error": translate_text("Active product not found", lang)}, status=404)
 
     except Http404 as e:
-        return JsonResponse({"error": str(e)}, status=404)
+        return JsonResponse({"error": translate_text(str(e), lang)}, status=404)
 
     except Exception as e:
-        return JsonResponse({"error": str(e)}, status=400)
+        return JsonResponse({"error": translate_text(str(e), lang)}, status=400)

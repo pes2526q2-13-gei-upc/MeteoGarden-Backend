@@ -7,6 +7,7 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from .views_translate import translate_text
 from ..models import (
     AlbumEntry,
     Image,
@@ -48,18 +49,28 @@ def identifyPlant(request):
     if not username:
         return Response({"error": "Username required"}, status=400)
 
+    try:
+        uploader = User.objects.get(username=username)
+    except User.DoesNotExist:
+        return Response({"username": "User not found."}, status=404)
+    lang = uploader.language
+
     if not file_obj:
-        return Response({"image": "Image file is required."}, status=400)
+        return Response({"image": translate_text("Image file is required.", lang)}, status=400)
 
     if organ not in ALLOWED_ORGANS:
         return Response(
-            {"organs": f"Invalid value. Must be one of: {sorted(ALLOWED_ORGANS)}"},
+            {"organs": (
+                    f"{translate_text('Invalid value. Must be one of:', lang)} "
+                    f"{sorted(ALLOWED_ORGANS)}"
+                )
+            },
             status=400,
         )
 
     api_key = os.getenv("PLANTNET_API_KEY")
     if not api_key:
-        return Response({"detail": "PLANTNET_API_KEY is not configured."}, status=500)
+        return Response({"detail": f"PLANTNET_API_KEY {translate_text('is not configured.', lang)}"}, status=500)
 
     files = {
         "images": (
@@ -79,7 +90,7 @@ def identifyPlant(request):
     if r.status_code != 200:
         return Response(
             {
-                "detail": "PlantNet identification failed.",
+                "detail": translate_text("PlantNet identification failed.", lang),
                 "status_code": r.status_code,
                 "body": r.text[:500],
             },
@@ -90,7 +101,7 @@ def identifyPlant(request):
 
     results = payload.get("results") or []
     if not results:
-        return Response({"detail": "No identification results."}, status=422)
+        return Response({"detail": translate_text("No identification results.", lang)}, status=422)
 
     best = results[0]
     species = best.get("species") or {}
@@ -100,13 +111,8 @@ def identifyPlant(request):
 
     if not scientificName:
         return Response(
-            {"detail": "PlantNet response missing scientific name."}, status=422
+            {"detail": translate_text("PlantNet response missing scientific name.", lang)}, status=422
         )
-
-    try:
-        uploader = User.objects.get(username=username)
-    except User.DoesNotExist:
-        return Response({"username": "User not found."}, status=404)
 
     getInfoPlant(scientificName, uploader.language)
     plant = Plant.objects.get(scientificName=scientificName)

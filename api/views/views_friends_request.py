@@ -21,14 +21,21 @@ def sendFriendRequest(request):
         )
     if requested == request.user:
         return Response(
-            {"error": translate_text("A user can't send a friend request to himself.", lang)},
+            {
+                "error": translate_text(
+                    "A user can't send a friend request to himself.", lang
+                )
+            },
             status=status.HTTP_400_BAD_REQUEST,
         )
     existing = FriendRequest.objects.filter(requester=request.user, requested=requested)
     if existing:
         return Response(
             {
-                "error": translate_text(f"User '{request.user.username}' already sent a request to '{requested_name}'", lang)
+                "error": translate_text(
+                    f"User '{request.user.username}' already sent a request to '{requested_name}'",
+                    lang,
+                )
             },
             status=status.HTTP_400_BAD_REQUEST,
         )
@@ -38,8 +45,7 @@ def sendFriendRequest(request):
     if existing_aux:
         return Response(
             {
-                "error":
-                translate_text(
+                "error": translate_text(
                     f"User '{requested_name}' already sent a request to '{request.user.username}'",
                     lang,
                 )
@@ -60,7 +66,8 @@ def answerRequest(request):
     action = request.data.get("action")
     if action is None:
         return Response(
-            {"error": translate_text("Field action is mandatory.", lang)}, status=status.HTTP_400_BAD_REQUEST
+            {"error": translate_text("Field action is mandatory.", lang)},
+            status=status.HTTP_400_BAD_REQUEST,
         )
     user = request.user
     requester_name = request.data.get("requester")
@@ -93,7 +100,8 @@ def answerRequest(request):
         friendRequest.save()
         return Response({translate_text("Request rejected successfully", lang)})
     return Response(
-        {"error": translate_text("Action field is not correct", lang)}, status=status.HTTP_400_BAD_REQUEST
+        {"error": translate_text("Action field is not correct", lang)},
+        status=status.HTTP_400_BAD_REQUEST,
     )
 
 
@@ -125,9 +133,7 @@ def cancelRequest(request):
 
     # else
     friendRequest.delete()
-    return Response(
-        {translate_text("Request canceled successfully", lang)}
-    )
+    return Response({translate_text("Request canceled successfully", lang)})
 
 
 @api_view(["GET"])
@@ -145,6 +151,10 @@ def getRequests(request):
         )
     else:
         return Response(
-            {"error": translate_text("Field action must be 'sent' or 'received'.", lang)},
+            {
+                "error": translate_text(
+                    "Field action must be 'sent' or 'received'.", lang
+                )
+            },
             status=status.HTTP_400_BAD_REQUEST,
         )

@@ -58,7 +58,10 @@ def collect_plant(request, username, garden_name, pot_number):
         return Response({"error": f"Resource not found: {str(e)}"}, status=404)
 
     if plantGarden.growthPhase != GrowthState.MATURE:
-        return Response({"error": translate_text("Growth phase must be mature", user.language)}, status=404)
+        return Response(
+            {"error": translate_text("Growth phase must be mature", user.language)},
+            status=404,
+        )
 
     plantGarden.delete()
 
@@ -76,6 +79,9 @@ def collect_plant(request, username, garden_name, pot_number):
     updateCollectMissions(user, plant)
 
     return Response(
-        {"message": translate_text("Plant collected successfully", user.language), "new_balance": inventory.coins},
+        {
+            "message": translate_text("Plant collected successfully", user.language),
+            "new_balance": inventory.coins,
+        },
         status=200,
     )

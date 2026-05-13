@@ -68,11 +68,17 @@ def deleteFriend(request, username):
     ).first()
 
     if not friend_request:
-        return Response({"error": translate_text("You are not friends with this user.", lang)}, status=404)
+        return Response(
+            {"error": translate_text("You are not friends with this user.", lang)},
+            status=404,
+        )
 
     friend_request.delete()
 
-    return Response({"success": translate_text(f"Friend {username} deleted successfully.", lang)}, status=200)
+    return Response(
+        {"success": translate_text(f"Friend {username} deleted successfully.", lang)},
+        status=200,
+    )
 
 
 @api_view(["POST"])
@@ -94,7 +100,8 @@ def likeFriend(request, username):
 
     if not is_friend:
         return Response(
-            {"error": translate_text("You are not friends with this user.", lang)}, status=403
+            {"error": translate_text("You are not friends with this user.", lang)},
+            status=403,
         )
 
     try:
@@ -103,7 +110,10 @@ def likeFriend(request, username):
         garden.save()
     except Garden.DoesNotExist:
         return Response(
-            {"error": translate_text("This user does not have a garden yet.", lang)}, status=404
+            {"error": translate_text("This user does not have a garden yet.", lang)},
+            status=404,
         )
 
-    return Response({"success": translate_text(f"Total likes: {garden.likes}", lang)}, status=200)
+    return Response(
+        {"success": translate_text(f"Total likes: {garden.likes}", lang)}, status=200
+    )

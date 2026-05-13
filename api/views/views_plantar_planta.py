@@ -5,7 +5,6 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
-from .views_translate import translate_text
 from ..models import (
     Garden,
     GrowthState,
@@ -18,6 +17,7 @@ from ..models import (
     User,
     UserMission,
 )
+from .views_translate import translate_text
 
 
 def updatePlantMissions(user, plant):
@@ -83,7 +83,11 @@ def plant_seed(request, username, garden_name, pot_number):
 
     if current_amount <= 0:
         return JsonResponse(
-            {"error": translate_text("The user does not have this seed in the inventory.", lang)},
+            {
+                "error": translate_text(
+                    "The user does not have this seed in the inventory.", lang
+                )
+            },
             status=400,
         )
 

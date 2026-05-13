@@ -3,7 +3,6 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from .views_translate import translate_text
 from ..models import (
     AlbumEntry,
     Inventory,
@@ -15,6 +14,7 @@ from ..models import (
     User,
     UserMission,
 )
+from .views_translate import translate_text
 
 
 # Get missions

@@ -7,8 +7,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from .views_translate import translate_text
 from ..models import Garden, Inventory, Pot, User
+from .views_translate import translate_text
 
 GOOGLE_CLIENT_ID = (
     "413098408136-jci0fe83maj5uonf6s9v065cnobktrmt.apps.googleusercontent.com"
@@ -89,7 +89,12 @@ def register(request):
 
     token, created = Token.objects.get_or_create(user=user)
     return Response(
-        {"token": token.key, "message": translate_text("User, garden and inventory created", user.language)}
+        {
+            "token": token.key,
+            "message": translate_text(
+                "User, garden and inventory created", user.language
+            ),
+        }
     )
 
 
@@ -110,7 +115,11 @@ def login(request):
     if user:
         token, created = Token.objects.get_or_create(user=user)
         return Response(
-            {"token": token.key, "username": user.username, "message": translate_text("Login correcte", lang)}
+            {
+                "token": token.key,
+                "username": user.username,
+                "message": translate_text("Login correcte", lang),
+            }
         )
     return Response({"error": translate_text("Wrong credentials", lang)}, status=400)
 
@@ -152,7 +161,9 @@ def edit_profile(request):
         user.set_password(data["password"])
     try:
         user.save()
-        return Response({"message": translate_text("Actualized profile", user.language)})
+        return Response(
+            {"message": translate_text("Actualized profile", user.language)}
+        )
     except Exception as e:
         return Response({"error": translate_text(str(e), user.language)}, status=400)
 
@@ -240,7 +251,9 @@ def google_register(request):
         )
 
     if User.objects.filter(username=username).exists():
-        return Response({"error": translate_text("Username already taken", language)}, status=400)
+        return Response(
+            {"error": translate_text("Username already taken", language)}, status=400
+        )
 
     # Es crea l'usuari sense contrasenya
     user = User.objects.create_user(

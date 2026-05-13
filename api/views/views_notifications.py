@@ -13,7 +13,9 @@ def save_fcm_token(request):
     token = request.data.get("token")
 
     if not token:
-        return Response({"error": translate_text("No token", user.language)}, status=400)
+        return Response(
+            {"error": translate_text("No token", user.language)}, status=400
+        )
 
     Device.objects.get_or_create(user=user, token=token)
 

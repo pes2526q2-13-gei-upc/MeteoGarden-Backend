@@ -3,8 +3,6 @@ from datetime import timedelta
 
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
@@ -35,6 +33,7 @@ def updateUseMissions(user, productName):
                 if mission.mission.goal <= mission.current:
                     mission.missionState = MissionState.COMPLETED
                 mission.save()
+
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -94,7 +93,9 @@ def use_product(request):
         return JsonResponse(response, status=200)
 
     except ActiveProduct.DoesNotExist:
-        return JsonResponse({"error": translate_text("Active product not found", lang)}, status=404)
+        return JsonResponse(
+            {"error": translate_text("Active product not found", lang)}, status=404
+        )
 
     except Http404 as e:
         return JsonResponse({"error": translate_text(str(e), lang)}, status=404)

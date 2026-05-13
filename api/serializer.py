@@ -135,6 +135,7 @@ class ShopSeedSerializer(serializers.Serializer):
             self.context["request"].user.language,
         )
 
+
 class InventoryProductSerializer(serializers.Serializer):
     productName = serializers.CharField()
     amount = serializers.IntegerField()

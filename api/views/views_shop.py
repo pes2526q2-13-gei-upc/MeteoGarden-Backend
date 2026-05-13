@@ -3,13 +3,14 @@ import json
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_GET, require_POST
-
-from api.models import Inventory, Plant, Product, Shop, User
-from api.serializer import ShopSeedSerializer
+from django.views.decorators.http import require_POST
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from views_translate import translate_text
+
+from api.models import Inventory, Plant, Product, Shop, User
+from api.serializer import ShopSeedSerializer
+
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -88,30 +89,48 @@ def buy_item(request, username):
         item_type = body.get("type")
         item_name = body.get("name")
     except json.JSONDecodeError:
-        return JsonResponse({"error": translate_text("Invalid body", user.language)}, status=400)
+        return JsonResponse(
+            {"error": translate_text("Invalid body", user.language)}, status=400
+        )
 
     if not item_type or not item_name:
-        return JsonResponse({"error": translate_text("Missing 'type' or 'name'", user.language)}, status=400)
+        return JsonResponse(
+            {"error": translate_text("Missing 'type' or 'name'", user.language)},
+            status=400,
+        )
 
     shop = Shop.get_solo()
 
     if item_type == "seed":
         if item_name not in shop.seeds:
-            return JsonResponse({"error": translate_text("Seed not found in shop", user.language)}, status=404)
+            return JsonResponse(
+                {"error": translate_text("Seed not found in shop", user.language)},
+                status=404,
+            )
         price = shop.seeds[item_name]
 
     elif item_type == "product":
         if item_name not in shop.products:
-            return JsonResponse({"error": translate_text("Product not found in shop", user.language)}, status=404)
+            return JsonResponse(
+                {"error": translate_text("Product not found in shop", user.language)},
+                status=404,
+            )
         price = shop.products[item_name]
 
     else:
         return JsonResponse(
-            {"error": translate_text("Invalid type, must be 'seed' or 'product'", user.language)}, status=400
+            {
+                "error": translate_text(
+                    "Invalid type, must be 'seed' or 'product'", user.language
+                )
+            },
+            status=400,
         )
 
     if inventory.coins < price:
-        return JsonResponse({"error": translate_text("Not enough coins", user.language)}, status=400)
+        return JsonResponse(
+            {"error": translate_text("Not enough coins", user.language)}, status=400
+        )
 
     inventory.coins -= price
     if item_type == "seed":

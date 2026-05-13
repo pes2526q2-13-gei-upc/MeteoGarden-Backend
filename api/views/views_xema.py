@@ -7,9 +7,9 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from api.services.xema_sync import ensure_station_synced
-from .views_translate import translate_text
 
 from ..models import Station, WeatherReading
+from .views_translate import translate_text
 
 load_dotenv()
 
@@ -38,7 +38,9 @@ def current_weather(request):
     else:
         station = Station.objects.filter(station__iexact=station_name).first()
     if not station:
-        return Response({"error": translate_text("Station not found", lang)}, status=404)
+        return Response(
+            {"error": translate_text("Station not found", lang)}, status=404
+        )
 
     ensure_station_synced(station)
 
@@ -49,7 +51,11 @@ def current_weather(request):
 
     if not latest:
         return Response(
-            {"error": translate_text("No weather data available for this station", lang)},
+            {
+                "error": translate_text(
+                    "No weather data available for this station", lang
+                )
+            },
             status=503,
         )
 
@@ -64,6 +70,7 @@ def current_weather(request):
             "relativeHumidity": latest.relativeHumidity,
         }
     )
+
 
 # aquest no es pot traduir pq encara no s'ha guardat l'usuari
 @api_view(["GET"])

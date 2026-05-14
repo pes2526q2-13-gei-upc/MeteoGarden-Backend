@@ -89,9 +89,7 @@ def likeFriend(request, username):
     ).first()
 
     if not friend_ship:
-        return Response(
-            {"error": "You are not friends with this user."}, status=403
-        )
+        return Response({"error": "You are not friends with this user."}, status=403)
 
     try:
         garden = Garden.objects.get(user=friend)
@@ -102,7 +100,7 @@ def likeFriend(request, username):
             else:
                 garden.likes += 1
                 friend_ship.likeToRequested = True
-        else :
+        else:
             if friend_ship.likeToRequester:
                 garden.likes -= 1
                 friend_ship.likeToRequester = False
@@ -112,8 +110,6 @@ def likeFriend(request, username):
         friend_ship.save()
         garden.save()
     except Garden.DoesNotExist:
-        return Response(
-            {"error": "This user does not have a garden yet."}, status=404
-        )
+        return Response({"error": "This user does not have a garden yet."}, status=404)
 
     return Response({"success": f"Total likes: {garden.likes}"}, status=200)

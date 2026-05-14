@@ -79,7 +79,7 @@ def _fetch_and_save(station: Station, since: datetime, until: datetime) -> int:
             timeout=15,
         ).json()
     except Exception as e:
-        logger.error(
+        logger.exception(
             f"[XEMA sync] Error consultant l'estació {station.stationCode}: {e}"
         )
         return 0

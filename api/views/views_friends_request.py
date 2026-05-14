@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from api.models import FriendRequest, User
-from api.notifications import notify
+from api.services.notifications import notify
 
 message = "Friend request doesn't exist"
 

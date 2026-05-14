@@ -28,7 +28,6 @@ from .views import (
     get_num_events,
     get_profile,
     get_shop,
-    get_state_like,
     get_stations,
     get_user_missions,
     get_users_friends,
@@ -139,6 +138,5 @@ urlpatterns = [
     path("friends/", get_users_friends, name="get_users_friends"),
     path("search/", search_users, name="search_users"),
     path("friends/<str:username>", delete_friend, name="delete_friend"),
-    path("friends/like/<str:username>/", like_friend, name="like_friend"),
-    path("friends/<str:username>/likes", get_state_like, name="get_state_like"),
+    path("friends/likes/<str:username>/", like_friend, name="like_friend"),
 ]

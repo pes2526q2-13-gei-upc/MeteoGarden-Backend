@@ -48,9 +48,11 @@ def send_friend_request(request):
     FriendRequest.objects.create(
         requester=request.user, requested=requested, accepted=None
     )
-    notify (requested,
-            "👤 New notification!",
-            f"'{request.user.username}' has sent you a friend request!")
+    notify(
+        requested,
+        "👤 New notification!",
+        f"'{request.user.username}' has sent you a friend request!",
+    )
     return Response({"Request sent successfully"})
 
 

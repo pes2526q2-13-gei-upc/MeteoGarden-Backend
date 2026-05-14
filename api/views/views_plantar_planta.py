@@ -21,9 +21,12 @@ from ..models import (
 
 def update_plant_missions(user, plant):
     # Obtenim les missions
-    missions = UserMission.objects.filter(
-        user=user, missionState=MissionState.IN_PROGRESS
+    missions = (
+        UserMission.objects
+        .filter(user=user, missionState=MissionState.IN_PROGRESS)
+        .select_related("mission", "mission__plant")
     )
+
     for mission in missions:
         if mission.mission.action == MissionAction.PLANT:
             if mission.mission.plant is None or mission.mission.plant == plant:

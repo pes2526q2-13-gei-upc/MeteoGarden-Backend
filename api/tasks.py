@@ -24,147 +24,236 @@ from api.services.xema_sync import ensure_station_synced
 logger = logging.getLogger(__name__)
 
 # Aquestes són totes les funcions que pot executar el celery
-
-
 @shared_task
 def simulate_all_plants():
     initialize_firebase()
+
     gardens = Garden.objects.select_related("user").all()
 
     for garden in gardens:
-        user = garden.user
+        simulate_garden_plants(garden)
 
-        station = Station.objects.filter(stationCode=user.stationCode).first()
 
-        if not station:
-            continue
+def simulate_garden_plants(garden):
+    user = garden.user
+    station = get_user_station(user)
 
-        previous_reading = (
-            WeatherReading.objects.filter(station=station)
-            .order_by("-timestamp")
-            .first()
+    if not station:
+        return
+
+    previous_reading = get_latest_weather_reading(station)
+
+    # Actualitzar dades meteo
+    ensure_station_synced(station)
+
+    latest_reading = get_latest_weather_reading(station)
+
+    if not latest_reading:
+        return
+
+    old_weather = build_weather_snapshot(previous_reading, latest_reading)
+    current_weather = build_weather_snapshot(latest_reading, latest_reading)
+
+    counters = simulate_alive_plants(garden, station, user)
+
+    if send_plant_status_notification(user, counters):
+        return
+
+    send_weather_notification(user, old_weather, current_weather)
+
+
+def get_user_station(user):
+    return Station.objects.filter(stationCode=user.stationCode).first()
+
+
+def get_latest_weather_reading(station):
+    return (
+        WeatherReading.objects.filter(station=station)
+        .order_by("-timestamp")
+        .first()
+    )
+
+
+def build_weather_snapshot(reading, fallback_reading):
+    if not reading:
+        reading = fallback_reading
+
+    return {
+        "temp": reading.temperature or 0,
+        "rain": reading.precipitation or 0,
+        "wind": reading.windSpeed or 0,
+    }
+
+
+def get_alive_pots(garden):
+    return (
+        garden.pot_set.exclude(plantingarden__isnull=True)
+        .exclude(plantingarden__growthPhase=GrowthState.DEAD)
+        .select_related("plantingarden__plant")
+    )
+
+
+def simulate_alive_plants(garden, station, user):
+    counters = create_notification_counters()
+
+    for pot in get_alive_pots(garden):
+        simulate_single_plant(pot.plantingarden, station, user, counters)
+
+    return counters
+
+
+def create_notification_counters():
+    return {
+        "critical": 0,
+        "water": 0,
+        "health_drop": 0,
+    }
+
+
+def simulate_single_plant(plant_in_garden, station, user, counters):
+    old_state = get_plant_state(plant_in_garden)
+
+    updated = simulate_plant(plant_in_garden, station)
+    updated.save()
+
+    send_immediate_plant_notifications(user, updated, old_state)
+
+    if can_send_notification(user):
+        update_notification_counters(counters, updated, old_state)
+
+
+def get_plant_state(plant_in_garden):
+    return {
+        "phase": plant_in_garden.growthPhase,
+        "health": plant_in_garden.healthLevel,
+        "water": plant_in_garden.waterLevel,
+    }
+
+
+def send_immediate_plant_notifications(user, updated, old_state):
+    if plant_has_died(updated, old_state):
+        notify(
+            user,
+            "💀 Plant died",
+            f"Your {updated.plant.commonName} has died",
         )
 
-        # Actualitzar dades meteo
-        ensure_station_synced(station)
-
-        latest_reading = (
-            WeatherReading.objects.filter(station=station)
-            .order_by("-timestamp")
-            .first()
+    if plant_changed_phase(updated, old_state):
+        notify(
+            user,
+            "🌱 New growth phase",
+            f"Your {updated.plant.commonName} has reached {updated.growthPhase}",
         )
 
-        if not latest_reading:
-            continue
 
-        temp = latest_reading.temperature or 0
-        rain = latest_reading.precipitation or 0
-        wind = latest_reading.windSpeed or 0
+def plant_has_died(updated, old_state):
+    return (
+        updated.growthPhase == GrowthState.DEAD
+        and old_state["phase"] != GrowthState.DEAD
+    )
 
-        old_temp = previous_reading.temperature if previous_reading else temp
-        old_rain = previous_reading.precipitation if previous_reading else rain
-        old_wind = previous_reading.windSpeed if previous_reading else wind
 
-        # Agafa totes les plantes vives
-        pots = (
-            garden.pot_set.exclude(plantingarden__isnull=True)
-            .exclude(plantingarden__growthPhase=GrowthState.DEAD)
-            .select_related("plantingarden__plant")
+def plant_changed_phase(updated, old_state):
+    return updated.growthPhase != old_state["phase"]
+
+
+def update_notification_counters(counters, updated, old_state):
+    if plant_became_critical(updated, old_state):
+        counters["critical"] += 1
+
+    if plant_health_dropped_fast(updated, old_state):
+        counters["health_drop"] += 1
+
+    if plant_needs_water(updated, old_state):
+        counters["water"] += 1
+
+
+def plant_became_critical(updated, old_state):
+    return updated.healthLevel < 20 and old_state["health"] >= 20
+
+
+def plant_health_dropped_fast(updated, old_state):
+    return old_state["health"] - updated.healthLevel > 15
+
+
+def plant_needs_water(updated, old_state):
+    return updated.waterLevel < 20 and old_state["water"] >= 20
+
+
+def send_plant_status_notification(user, counters):
+    notification = get_plant_status_notification(counters)
+
+    if not notification:
+        return False
+
+    title, body = notification
+    notify(user, title, body)
+    return True
+
+
+def get_plant_status_notification(counters):
+    if counters["critical"] == 1:
+        return "⚠️ Plant in danger", "One plant is in critical condition"
+
+    if counters["critical"] > 1:
+        return (
+            "⚠️ Plants in danger",
+            f"{counters['critical']} plants are in critical condition",
         )
-        critical_count = 0
-        water_count = 0
-        health_drop_count = 0
 
-        # Simula cada planta
-        for pot in pots:
-            pig = pot.plantingarden
-            old_phase = pig.growthPhase
-            old_health = pig.healthLevel
-            old_water = pig.waterLevel
+    if counters["health_drop"] == 1:
+        return "📉 Sudden health drop", "One plant got worse quickly"
 
-            updated = simulate_plant(pig, station)
-            updated.save()
+    if counters["health_drop"] > 1:
+        return (
+            "📉 Sudden health drops",
+            f"{counters['health_drop']} plants got worse quickly",
+        )
 
-            # Notificacions sempre
-            # Planta morta
-            if (
-                updated.growthPhase == GrowthState.DEAD
-                and old_phase != GrowthState.DEAD
-            ):
-                notify(
-                    user, "💀 Plant died", f"Your {updated.plant.commonName} has died"
-                )
+    if counters["water"] == 1:
+        return "💧 Plant needs water", "One plant needs watering"
 
-            # Planta canvia de fase
-            if updated.growthPhase != old_phase:
-                notify(
-                    user,
-                    "🌱 New growth phase",
-                    f"Your {updated.plant.commonName} has reached {updated.growthPhase}",
-                )
+    if counters["water"] > 1:
+        return (
+            "💧 Plants need water",
+            f"{counters['water']} plants need watering",
+        )
 
-            # Notificacions cooldown en ordre de prioritat
-            if not can_send_notification(user):
-                continue
+    return None
 
-            # Planta baixa de salut
-            if updated.healthLevel < 20 and old_health >= 20:
-                critical_count += 1
 
-            # caiguda brusca salut
-            if old_health - updated.healthLevel > 15:
-                health_drop_count += 1
+def send_weather_notification(user, old_weather, current_weather):
+    notification = get_weather_notification(old_weather, current_weather)
 
-            # Falta aigua
-            if updated.waterLevel < 20 and old_water >= 20:
-                water_count += 1
+    if not notification:
+        return
 
-        if critical_count == 1:
-            notify(user, "⚠️ Plant in danger", "One plant is in critical condition")
-            continue
+    title, body = notification
+    notify(user, title, body)
 
-        elif critical_count > 1:
-            notify(
-                user,
-                "⚠️ Plants in danger",
-                f"{critical_count} plants are in critical condition",
-            )
-            continue
 
-        if health_drop_count == 1:
-            notify(user, "📉 Sudden health drop", "One plant got worse quickly")
-            continue
+def get_weather_notification(old_weather, current_weather):
+    old_temp = old_weather["temp"]
+    old_rain = old_weather["rain"]
+    old_wind = old_weather["wind"]
 
-        elif health_drop_count > 1:
-            notify(
-                user,
-                "📉 Sudden health drops",
-                f"{health_drop_count} plants got worse quickly",
-            )
-            continue
+    temp = current_weather["temp"]
+    rain = current_weather["rain"]
+    wind = current_weather["wind"]
 
-        if water_count == 1:
-            notify(user, "💧 Plant needs water", "One plant needs watering")
-            continue
+    if old_temp < 38 and temp >= 38:
+        return "🔥 Extreme heat", "High temperatures may damage your plants"
 
-        elif water_count > 1:
-            notify(user, "💧 Plants need water", f"{water_count} plants need watering")
-            continue
+    if old_temp > 0 and temp <= 0:
+        return "🥶 Frost warning", "Freezing temperatures may damage your plants"
 
-        if old_temp < 38 and temp >= 38:
-            notify(user, "🔥 Extreme heat", "High temperatures may damage your plants")
-            continue
+    if old_rain < 40 and rain >= 40:
+        return "🌧️ Heavy rain", "Heavy rain detected in your area"
 
-        elif old_temp > 0 and temp <= 0:
-            notify(
-                user, "🥶 Frost warning", "Freezing temperatures may damage your plants"
-            )
+    if old_wind < 50 and wind >= 50:
+        return "💨 Strong wind", "Strong wind may damage your plants"
 
-        elif old_rain < 40 and rain >= 40:
-            notify(user, "🌧️ Heavy rain", "Heavy rain detected in your area")
-
-        elif old_wind < 50 and wind >= 50:
-            notify(user, "💨 Strong wind", "Strong wind may damage your plants")
+    return None
 
 
 def _download_image(event_obj, url):

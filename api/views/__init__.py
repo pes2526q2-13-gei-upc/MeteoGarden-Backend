@@ -9,6 +9,7 @@ from .views_event import (  # noqa: F401
 )
 from .views_friends import (  # noqa: F401
     delete_friend,
+    get_state_like,
     get_users_friends,
     like_friend,
     search_users,

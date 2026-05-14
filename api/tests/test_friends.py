@@ -9,17 +9,18 @@ from api.models import FriendRequest, Garden, User
 class TestFriendsAPI:
     def setup_method(self):
         self.client = APIClient()
+        self.TEST_PASSWORD = "testpassword123"
 
         self.u1 = User.objects.create_user(
             username="alice",
-            password="testpassword123.",
+            password=self.TEST_PASSWORD,
             email="alice@mail.cat",
             city="Bcn",
             stationCode="0001",
         )
         self.u2 = User.objects.create_user(
             username="bob",
-            password="testpassword123.",
+            password=self.TEST_PASSWORD,
             email="bob@mail.cat",
             city="Bcn",
             stationCode="0002",
@@ -57,7 +58,7 @@ class TestFriendsAPI:
         url = reverse("delete_friend", args=["bob"])
         r = self.client.delete(url)
         assert r.status_code == 200
-        assert "success" in r.json()
+        assert "success" in r.json()["success"]
 
         # Now, friendship should be gone
         url = reverse("get_users_friends")
@@ -65,7 +66,7 @@ class TestFriendsAPI:
         assert r.status_code == 200
         assert r.json()["friends"] == []
 
-    def test_like_friend(self):
+    def test_like_friend_and_state(self):
         FriendRequest.objects.create(
             requester=self.u1, requested=self.u2, accepted=True
         )
@@ -74,24 +75,52 @@ class TestFriendsAPI:
         garden.save()
 
         self.get_token(self.u1)
-        url = reverse("like_friend", args=["bob"])
-        r = self.client.post(url)
+        url_like = reverse("like_friend", args=["bob"])
+        url_state = reverse("get_state_like", args=["bob"])
+
+        # Initial like state (should be False)
+        r = self.client.get(url_state)
+        assert r.status_code == 200
+        data = r.json()
+        assert data["state"] is False
+        assert data["likes"] == 0
+
+        # Like bob's garden
+        r = self.client.post(url_like)
         assert r.status_code == 200
         garden.refresh_from_db()
-
+        data = r.json()
+        assert data["state"] is True
         assert garden.likes == 1
-        assert r.json()["success"].startswith("Total likes")
+        assert data["likes"] == 1
 
-        r = self.client.post(url)
+        # State like should now be True
+        r = self.client.get(url_state)
+        assert r.status_code == 200
+        data = r.json()
+        assert data["state"] is True
+        assert data["likes"] == 1
+
+        # Dislike (toggle again)
+        r = self.client.post(url_like)
         assert r.status_code == 200
         garden.refresh_from_db()
+        data = r.json()
+        assert data["state"] is False
         assert garden.likes == 0
 
         self.client.force_authenticate(None)
         fake = User.objects.create_user(
-            username="no_friend", email="a@b.c", city="c", stationCode="c"
+            username="nofriend",
+            password=self.TEST_PASSWORD,
+            email="a@b.c",
+            city="c",
+            stationCode="c",
         )
         self.get_token(fake)
         url = reverse("like_friend", args=["alice"])
         r = self.client.post(url)
-        assert r.status_code == 403 or r.status_code == 404
+        assert r.status_code in [403, 404]
+
+        r = self.client.get(reverse("get_state_like", args=["alice"]))
+        assert r.status_code in [403, 404]

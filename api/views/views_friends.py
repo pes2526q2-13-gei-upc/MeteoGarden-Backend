@@ -100,6 +100,8 @@ def like_friend(request, username):
             else:
                 garden.likes += 1
                 friend_ship.likeToRequested = True
+
+            like_state = friend_ship.likeToRequested
         else:
             if friend_ship.likeToRequester:
                 garden.likes -= 1
@@ -107,9 +109,43 @@ def like_friend(request, username):
             else:
                 garden.likes += 1
                 friend_ship.likeToRequester = True
+
+            like_state = friend_ship.likeToRequester
+
         friend_ship.save()
         garden.save()
     except Garden.DoesNotExist:
         return Response({"error": "This user does not have a garden yet."}, status=404)
 
-    return Response({"success": f"Total likes: {garden.likes}"}, status=200)
+    return Response({"state": like_state, "likes": garden.likes}, status=200)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_state_like(request, username):
+    try:
+        friend = User.objects.get(username=username)
+    except User.DoesNotExist:
+        return Response({"error": "User not found."}, status=404)
+
+    friend_ship = FriendRequest.objects.filter(
+        (
+            Q(requester=request.user, requested=friend)
+            | Q(requester=friend, requested=request.user)
+        ),
+        accepted=True,
+    ).first()
+
+    if not friend_ship:
+        return Response({"error": "You are not friends with this user."}, status=403)
+
+    try:
+        garden = Garden.objects.get(user=friend)
+        if friend_ship.requester == request.user:
+            like_state = friend_ship.likeToRequested
+        else:
+            like_state = friend_ship.likeToRequester
+    except Garden.DoesNotExist:
+        return Response({"error": "This user does not have a garden yet."}, status=404)
+
+    return Response({"state": like_state, "likes": garden.likes}, status=200)

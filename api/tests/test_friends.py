@@ -12,14 +12,14 @@ class TestFriendsAPI:
 
         self.u1 = User.objects.create_user(
             username="alice",
-            password="pw",
+            password="testpassword123.",
             email="alice@mail.cat",
             city="Bcn",
             stationCode="0001",
         )
         self.u2 = User.objects.create_user(
             username="bob",
-            password="pw",
+            password="testpassword123.",
             email="bob@mail.cat",
             city="Bcn",
             stationCode="0002",

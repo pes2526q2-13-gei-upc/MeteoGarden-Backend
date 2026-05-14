@@ -282,6 +282,8 @@ class FriendRequest(models.Model):
         User, related_name="received_requests", on_delete=models.CASCADE
     )
     accepted = models.BooleanField(null=True, blank=True)
+    likeToRequester = models.BooleanField(default=False)
+    likeToRequested = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ("requester", "requested")

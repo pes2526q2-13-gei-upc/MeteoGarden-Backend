@@ -8,10 +8,10 @@ from .views_event import (  # noqa: F401
     get_num_events,
 )
 from .views_friends import (  # noqa: F401
-    deleteFriend,
+    delete_friend,
     get_users_friends,
     like_friend,
-    searchUsers,
+    search_users,
 )
 from .views_friends_request import (  # noqa: F401
     answer_request,

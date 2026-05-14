@@ -169,7 +169,7 @@ def identifyPlant(request):
         {
             "plant": {
                 "scientificName": plant.scientificName,
-                "commonName": plant.commonName,
+                "commonName": translate_text(plant.commonName, lang),
                 "family": plant.family,
             },
             "image": {

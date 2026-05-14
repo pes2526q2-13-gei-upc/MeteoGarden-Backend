@@ -3,7 +3,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from api.models import Device
-from api.views.views_translate import translate_text
 
 
 @api_view(["POST"])
@@ -13,9 +12,7 @@ def save_fcm_token(request):
     token = request.data.get("token")
 
     if not token:
-        return Response(
-            {"error": translate_text("No token", user.language)}, status=400
-        )
+        return Response({"error": "No token"}, status=400)
 
     Device.objects.get_or_create(user=user, token=token)
 

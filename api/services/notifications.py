@@ -4,7 +4,7 @@ from django.utils import timezone
 from firebase_admin import messaging
 
 from api.models import Device
-from api.views.views_translate import translate_text
+from api.services.translate import translate_text
 
 USER_NOTIFICATION_COOLDOWN = timedelta(seconds=0)
 

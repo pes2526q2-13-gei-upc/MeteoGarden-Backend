@@ -13,7 +13,7 @@ from api.serializer import (
     EventSeedSerializer,
     EventSerializer,
 )
-from api.views.views_translate import translate_text
+from api.services.translate import translate_text
 
 logger = logging.getLogger(__name__)
 

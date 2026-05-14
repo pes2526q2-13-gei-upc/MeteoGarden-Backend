@@ -1,9 +1,8 @@
 import pytest
 from rest_framework.test import APIRequestFactory
 
-# Ajusta aquest import al path real del teu projecte:
-# ex: from api.views.views_translate import translate_text, translate
-from api.views.views_translate import translate, translate_text
+from api.services.translate import translate_text
+from api.views.views_translate import translate
 
 
 class DummyResponse:
@@ -47,7 +46,7 @@ class TestTranslateText:
                 }
             )
 
-        import api.views.views_translate as mod
+        import api.services.translate as mod
 
         monkeypatch.setattr(mod.requests, "post", fake_post)
 
@@ -58,7 +57,7 @@ class TestTranslateText:
     def test_translate_text_raises_if_google_errors(self, monkeypatch):
         monkeypatch.setenv("GOOGLE_TRANSLATE_API_KEY", "fake-key")
 
-        import api.views.views_translate as mod
+        import api.services.translate as mod
 
         def fake_post(url, params=None, timeout=None):
             return DummyResponse(raise_for_status_exc=RuntimeError("boom"))

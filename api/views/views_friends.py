@@ -72,7 +72,7 @@ def delete_friend(request, username):
     return Response({"success": f"Friend {username} deleted successfully."}, status=200)
 
 
-@api_view(["POST"])
+@api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated])
 def like_friend(request, username):
     try:
@@ -94,22 +94,29 @@ def like_friend(request, username):
     try:
         garden = Garden.objects.get(user=friend)
         if friend_ship.requester == request.user:
-            if friend_ship.likeToRequested:
-                garden.likes -= 1
-                friend_ship.likeToRequested = False
-            else:
-                garden.likes += 1
-                friend_ship.likeToRequested = True
+            if request.method == "POST":
+                if friend_ship.likeToRequested:
+                    garden.likes -= 1
+                    friend_ship.likeToRequested = False
+                else:
+                    garden.likes += 1
+                    friend_ship.likeToRequested = True
+
+            like_state = friend_ship.likeToRequested
         else:
-            if friend_ship.likeToRequester:
-                garden.likes -= 1
-                friend_ship.likeToRequester = False
-            else:
-                garden.likes += 1
-                friend_ship.likeToRequester = True
+            if request.method == "POST":
+                if friend_ship.likeToRequester:
+                    garden.likes -= 1
+                    friend_ship.likeToRequester = False
+                else:
+                    garden.likes += 1
+                    friend_ship.likeToRequester = True
+
+            like_state = friend_ship.likeToRequester
+
         friend_ship.save()
         garden.save()
     except Garden.DoesNotExist:
         return Response({"error": "This user does not have a garden yet."}, status=404)
 
-    return Response({"success": f"Total likes: {garden.likes}"}, status=200)
+    return Response({"state": like_state, "likes": garden.likes}, status=200)

@@ -9,7 +9,7 @@ from api.models import FriendRequest, Garden, User
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def searchUsers(request):
+def search_users(request):
     query = request.query_params.get("q", "")
 
     if query:
@@ -26,7 +26,7 @@ def searchUsers(request):
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def getUsersFriends(request):
+def get_users_friends(request):
     user = request.user
 
     friend_requests = FriendRequest.objects.filter(
@@ -50,7 +50,7 @@ def getUsersFriends(request):
 
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
-def deleteFriend(request, username):
+def delete_friend(request, username):
     try:
         friend = User.objects.get(username=username)
     except User.DoesNotExist:
@@ -74,7 +74,7 @@ def deleteFriend(request, username):
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def likeFriend(request, username):
+def like_friend(request, username):
     try:
         friend = User.objects.get(username=username)
     except User.DoesNotExist:

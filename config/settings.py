@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "django.contrib.postgres",
     # METEOGARDEN APPS
     "api",
+    "third_party_service",
 ]
 
 MIDDLEWARE = [
@@ -102,7 +103,7 @@ DATABASES = {
         "HOST": os.environ.get("DJANGO_DB_HOST", "localhost"),
         "PORT": os.environ.get("DJANGO_DB_PORT", 5432),
         # "ATOMIC_REQUESTS": True,
-    }
+    },
 }
 
 # REST Framework Configuration

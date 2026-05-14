@@ -466,14 +466,24 @@ class ActiveProduct(models.Model):
         ordering = ["-applied_at"]
 
 
+class EventsCategory(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+
 class Event(models.Model):
     id = models.CharField(primary_key=True, max_length=100)
     title = models.CharField(max_length=255)
-    subtitle = models.CharField(max_length=255, null=True, blank=True)
+    subtitle = models.CharField(max_length=255, blank=True)
     description = models.TextField()
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
-    category = models.CharField(max_length=100)
+    category = models.ForeignKey(
+        EventsCategory,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="events",
+    )
     price = models.PositiveIntegerField()
     tags = models.JSONField(default=list)
     image = models.ImageField(upload_to="events/", null=True, blank=True)

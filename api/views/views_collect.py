@@ -18,11 +18,11 @@ from api.models import (
 )
 
 
-def updateCollectMissions(user, plant):
-    allUserMissions = UserMission.objects.filter(
+def update_collect_missions(user, plant):
+    all_user_missions = UserMission.objects.filter(
         user=user, missionState=MissionState.IN_PROGRESS
     )
-    for mission in allUserMissions:
+    for mission in all_user_missions:
         if mission.mission.action == MissionAction.COLLECT:
             if mission.mission.plant is None or mission.mission.plant == plant:
                 mission.current += 1
@@ -72,7 +72,7 @@ def collect_plant(request, username, garden_name, pot_number):
     inventory.save()
 
     user.increment_plants()
-    updateCollectMissions(user, plant)
+    update_collect_missions(user, plant)
 
     return Response(
         {"message": "Plant collected successfully", "new_balance": inventory.coins},

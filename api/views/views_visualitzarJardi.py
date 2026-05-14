@@ -26,7 +26,7 @@ from api.serializer import (
 from api.services.xema_sync import ensure_station_synced
 
 
-def updateWaterMissions(user, plant):
+def update_water_missions(user, plant):
     allUserMissions = UserMission.objects.filter(
         user=user, missionState=MissionState.IN_PROGRESS
     )
@@ -168,7 +168,7 @@ def water_plant(request, username, garden_name, pot_number):
 
     user = get_object_or_404(User, username=username)
     plant = Plant.objects.get(scientificName=planting.plant.scientificName)
-    updateWaterMissions(user, plant)
+    update_water_missions(user, plant)
 
     data = {
         "message": "Plant watered successfully.",

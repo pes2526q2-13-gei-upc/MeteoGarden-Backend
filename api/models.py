@@ -282,6 +282,8 @@ class FriendRequest(models.Model):
         User, related_name="received_requests", on_delete=models.CASCADE
     )
     accepted = models.BooleanField(null=True, blank=True)
+    likeToRequester = models.BooleanField(default=False)
+    likeToRequested = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ("requester", "requested")
@@ -485,8 +487,8 @@ class Event(models.Model):
     price = models.PositiveIntegerField()
     tags = models.JSONField(default=list)
     image = models.ImageField(upload_to="events/", null=True, blank=True)
-    city = models.CharField(max_length=150)
-    street = models.CharField(max_length=255)
+    city = models.CharField(max_length=150, null=True)
+    street = models.CharField(max_length=255, null=True)
 
 
 class Mission(models.Model):

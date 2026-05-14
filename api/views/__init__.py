@@ -8,10 +8,10 @@ from .views_event import (  # noqa: F401
     get_num_events,
 )
 from .views_friends import (  # noqa: F401
-    deleteFriend,
+    delete_friend,
     get_users_friends,
     like_friend,
-    searchUsers,
+    search_users,
 )
 from .views_friends_request import (  # noqa: F401
     answer_request,
@@ -29,7 +29,7 @@ from .views_missions import (  # noqa: F401
     get_missions,
     get_user_missions,
 )
-from .views_notifications import save_fcm_token  # noqa: F401
+from .views_notifications import delete_fcm_token, save_fcm_token  # noqa: F401
 from .views_plantar_planta import delete_plant, plant_seed  # noqa: F401
 from .views_products import use_product  # noqa: F401
 from .views_profile_operations import (  # noqa: F401

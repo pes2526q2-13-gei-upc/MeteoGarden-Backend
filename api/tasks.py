@@ -16,9 +16,9 @@ from api.models import (
     Station,
     WeatherReading,
 )
-from api.notifications import can_send_notification, notify
 from api.plant_simulation import simulate_plant
 from api.services.events import get_events_from_service
+from api.services.notifications import can_send_notification, notify
 from api.services.xema_sync import ensure_station_synced
 
 logger = logging.getLogger(__name__)

@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from api.models import FriendRequest, User
+from api.services.notifications import notify
 
 message = "Friend request doesn't exist"
 
@@ -46,6 +47,11 @@ def send_friend_request(request):
 
     FriendRequest.objects.create(
         requester=request.user, requested=requested, accepted=None
+    )
+    notify(
+        requested,
+        "👤 New notification!",
+        f"'{request.user.username}' has sent you a friend request!",
     )
     return Response({"Request sent successfully"})
 

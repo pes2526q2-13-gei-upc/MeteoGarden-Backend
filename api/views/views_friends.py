@@ -120,4 +120,3 @@ def like_friend(request, username):
         return Response({"error": "This user does not have a garden yet."}, status=404)
 
     return Response({"state": like_state, "likes": garden.likes}, status=200)
-

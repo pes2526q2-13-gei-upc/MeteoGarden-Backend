@@ -24,16 +24,22 @@ ALLOWED_ORGANS = {"leaf", "flower"}
 
 
 def update_photo_missions(user, plant):
-    allUserMissions = UserMission.objects.filter(
-        user=user, missionState=MissionState.IN_PROGRESS
+    user_missions = (UserMission.objects.filter(
+        user=user, missionState=MissionState.IN_PROGRESS,
+        mission__action=MissionAction.PHOTO,
     )
-    for mission in allUserMissions:
-        if mission.mission.action == MissionAction.PHOTO:
-            if mission.mission.plant is None or mission.mission.plant == plant:
-                mission.current += 1
-                if mission.mission.goal <= mission.current:
-                    mission.missionState = MissionState.COMPLETED
-                mission.save()
+    .select_related("mission", "mission__plant")
+    )
+    for user_mission in user_missions:
+        mission = user_mission.mission
+
+        if mission.plant is None or mission.plant == plant:
+            user_mission.current += 1
+
+            if mission.goal <= user_mission.current:
+                user_mission.missionState = MissionState.COMPLETED
+
+            user_mission.save()
 
 
 @api_view(["POST"])

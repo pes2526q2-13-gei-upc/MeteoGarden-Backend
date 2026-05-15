@@ -95,7 +95,7 @@ def test_get_number_of_events_all_and_by_city(test_events):
 
     now = timezone.now()
     month, year = str(now.month), str(now.year)
-    all_events = list(get_number_of_events(month, year, city=None))
+    all_events = list(get_number_of_events(month, year, city=None, cat=None))
     total = sum(ev["total"] for ev in all_events)
     assert total >= 2
 

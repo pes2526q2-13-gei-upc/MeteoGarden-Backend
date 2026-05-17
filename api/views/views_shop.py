@@ -15,9 +15,6 @@ from api.serializer import ShopSeedSerializer
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_shop(request):
-    user = request.user
-    lang = user.language
-
     shop = Shop.get_solo()
     shop.initialize_starter_stock()
 
@@ -28,9 +25,9 @@ def get_shop(request):
             seeds_data.append(
                 {
                     "scientificName": plant.scientificName,
-                    "commonName": translate_text(plant.commonName, lang),
+                    "commonName": plant.commonName,
                     "family": plant.family,
-                    "description": translate_text(plant.description, lang),
+                    "description": plant.description,
                     "price": price,
                 }
             )
@@ -43,18 +40,9 @@ def get_shop(request):
             product = Product.objects.get(name=name)
             products_data.append(
                 {
-                    "name": translate_text(
-                        product.name,
-                        lang,
-                    ),
-                    "description": translate_text(
-                        product.description,
-                        lang,
-                    ),
-                    "effectType": translate_text(
-                        product.effectType,
-                        lang,
-                    ),
+                    "name": product.name,
+                    "description": product.description,
+                    "effectType": product.effectType,
                     "value": product.value,
                     "durationHours": product.durationHours,
                     "isInstant": product.isInstant,

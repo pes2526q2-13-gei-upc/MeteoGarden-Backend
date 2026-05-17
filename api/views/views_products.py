@@ -65,12 +65,12 @@ def use_product(request):
 
         response = {
             "status": "ok",
-            "product": translate_text(product.name, lang),
+            "product": product.name,
             "isInstant": product.isInstant,
             "plant": {
                 "health": plant.healthLevel,
                 "water": plant.waterLevel,
-                "growthPhase": translate_text(plant.growthPhase, lang),
+                "growthPhase": plant.growthPhase,
             },
         }
 

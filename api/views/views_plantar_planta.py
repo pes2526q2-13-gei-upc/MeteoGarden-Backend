@@ -115,7 +115,7 @@ def plant_seed(request, username, garden_name, pot_number):
             "scientificName": planting.plant.scientificName,
             "commonName": translate_text(planting.plant.commonName, lang),
         },
-        "growthPhase": translate_text(planting.growthPhase, lang),
+        "growthPhase": planting.growthPhase,
         "healthLevel": planting.healthLevel,
         "waterLevel": planting.waterLevel,
         "plantedAt": planting.plantedAt.isoformat(),

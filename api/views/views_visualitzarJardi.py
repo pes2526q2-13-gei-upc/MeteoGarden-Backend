@@ -24,6 +24,7 @@ from api.serializer import (
     PotSerializer,
 )
 from api.services.xema_sync import ensure_station_synced
+from api.views.views_translate import translate_text
 
 
 def updateWaterMissions(user, plant):
@@ -127,20 +128,16 @@ def water_plant(request, username, garden_name, pot_number):
         garden=garden,
         number=pot_number,
     )
+    user = get_object_or_404(User, username=username)
+    lang = user.language
 
     planting = getattr(pot, "plantingarden", None)
 
     if planting is None:
         return JsonResponse(
-            {"error": "There is no plant in this pot."},
+            {"error": translate_text("There is no plant in this pot.", lang)},
             status=404,
         )
-
-    # ns si actualitzar aqui la planta o no abans de regar
-    # if planting.growthPhase != GrowthState.DEAD:
-    #    station = _sync_user_station(garden.user)
-    #    if station:
-    #        planting = simulate_plant(planting, station)
 
     planting.waterLevel = 100.0
     now = timezone.now()
@@ -153,9 +150,10 @@ def water_plant(request, username, garden_name, pot_number):
 
         return JsonResponse(
             {
-                "error": "Plant was watered recently.",
-                "message": (
-                    f"You must wait {hours}h {minutes}m before watering again."
+                "error": translate_text("Plant was watered recently.", lang),
+                "message": translate_text(
+                    f"You must wait {hours}h {minutes}m before watering again.",
+                    lang,
                 ),
             },
             status=400,
@@ -166,12 +164,11 @@ def water_plant(request, username, garden_name, pot_number):
     planting.lastWateredAt = now
     planting.save()
 
-    user = get_object_or_404(User, username=username)
     plant = Plant.objects.get(scientificName=planting.plant.scientificName)
     updateWaterMissions(user, plant)
 
     data = {
-        "message": "Plant watered successfully.",
+        "message": translate_text("Plant watered successfully."),
         "pot_number": pot.number,
         "plant": {
             "scientific_name": planting.plant.scientificName,

@@ -14,7 +14,6 @@ from ..models import (
     User,
     UserMission,
 )
-from .views_translate import translate_text
 
 
 # Get missions
@@ -22,13 +21,12 @@ from .views_translate import translate_text
 @permission_classes([IsAuthenticated])
 def getUserMissions(request):
     missions = UserMission.objects.filter(user=request.user)
-    lang = request.user.language
     return Response(
         {
             "missions": [
                 {
-                    "Name": translate_text(mission.mission.name, lang),
-                    "Description": translate_text(mission.mission.description, lang),
+                    "Name": mission.mission.name,
+                    "Description": mission.mission.description,
                     "Goal": mission.mission.goal,
                     "Action": mission.mission.action,
                     "Plant needed scientific name": (
@@ -37,12 +35,12 @@ def getUserMissions(request):
                         else None
                     ),
                     "Product needed": (
-                        translate_text(mission.mission.product.name, lang)
+                        mission.mission.product.name
                         if mission.mission.product
                         else None
                     ),
                     "Plant reward common name": (
-                        translate_text(mission.mission.plantReward.commonName, lang)
+                        mission.mission.plantReward.commonName
                         if mission.mission.plantReward
                         else None
                     ),
@@ -53,7 +51,7 @@ def getUserMissions(request):
                     ),
                     "Reward coins": mission.mission.rewardCoins,
                     "Product reward": (
-                        translate_text(mission.mission.productReward.name, lang)
+                        mission.mission.productReward.name
                         if mission.mission.productReward
                         else None
                     ),

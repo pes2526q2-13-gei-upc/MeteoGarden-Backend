@@ -385,9 +385,6 @@ class Shop(models.Model):
         "lavandula_angustifolia": 3,
         "mentha_spicata": 2,
     }
-    STARTER_PRODUCTS = {
-        "Small Heal": 15,
-    }
 
     @classmethod
     def get_solo(cls):
@@ -417,9 +414,7 @@ class Shop(models.Model):
         if not self.seeds:
             self.seeds = self.STARTER_SEEDS.copy()
             self.save()
-        if not self.products:
-            self.products = self.STARTER_PRODUCTS.copy()
-            self.save()
+
 
 
 class Product(models.Model):

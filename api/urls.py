@@ -64,9 +64,9 @@ urlpatterns = [
     path("get_profile/", get_profile, name="get_profile"),
     path("edit_profile/", edit_profile, name="edit_profile"),
     path("delete_profile/", delete_profile, name="delete_profile"),
-    path("auth/google/verify", google_verify),
-    path("auth/google/register", google_register),
-    path("validate_token/", validate_token),
+    path("auth/google/verify", google_verify, name="google_verify"),
+    path("auth/google/register", google_register, name="google_register"),
+    path("validate_token/", validate_token, name="validate_token"),
     path("users/<str:username>/gardens/", user_gardens, name="user_gardens"),
     path(
         "users/<str:username>/gardens/<str:garden_name>/plants/",

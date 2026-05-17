@@ -8,7 +8,7 @@ from third_party_service.models import ApiKey  # Ajusta el camí al teu model
 class ApiKeyAuthentication(BaseAuthentication):
     def authenticate(self, request):
         # 1. Obtenim la clau de la capçalera o de la URL
-        key = request.headers.get("X-API-KEY") or request.GET.get("api_key")
+        key = request.headers.get("X-API-KEY")
 
         if not key:
             return (

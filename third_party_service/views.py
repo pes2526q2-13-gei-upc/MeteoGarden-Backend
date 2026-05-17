@@ -18,6 +18,9 @@ from third_party_service.authentication import ApiKeyAuthentication
 from third_party_service.models import ApiKey
 
 
+message_city = "city is required"
+
+
 def _get_station_by_city(city: str):
     stations = Station.objects.filter(city__icontains=city)
 
@@ -45,7 +48,7 @@ def current_weather(request):
     city = request.GET.get("city")
 
     if not city:
-        return Response({"error": "city is required"}, status=400)
+        return Response({"error": message_city}, status=400)
 
     station = _get_station_by_city(city)
     if not station:
@@ -82,7 +85,7 @@ def daily_weather(request):
     date_str = request.GET.get("date")
 
     if not city:
-        return Response({"error": "city is required"}, status=400)
+        return Response({"error": message_city}, status=400)
 
     if not date_str:
         return Response({"error": "date is required (YYYY-MM-DD)"}, status=400)
@@ -139,7 +142,7 @@ def daily_weather(request):
 def get_stations_for_city(request):
     city = request.GET.get("city")
     if not city:
-        return Response({"error": "city is required"}, status=400)
+        return Response({"error": message_city}, status=400)
     stations = Station.objects.filter(city__icontains=city)
     if not stations.exists():
         return Response({"error": f"No station found for city {city}"}, status=404)
@@ -167,14 +170,14 @@ def register_and_get_key(request):
             {"error": "Username, email i password són obligatoris."}, status=400
         )
 
-    User = get_user_model()
+    user = get_user_model()
 
     # 1. Intentem crear l'usuari real
-    if User.objects.filter(username=username).exists():
+    if user.objects.filter(username=username).exists():
         return Response({"error": "Aquest nom d'usuari ja està agafat."}, status=400)
 
     try:
-        user = User.objects.create_user(
+        user = user.objects.create_user(
             username=username, email=email, password=password
         )
     except Exception as e:
@@ -202,27 +205,22 @@ def login_and_generate_key(request):
     password = request.data.get("password")
     key_name = request.data.get("key_name", "Clau de Sessió").strip()
 
-    # 1. Intentem validar les credencials amb Django
     user = authenticate(username=username, password=password)
 
-    # 2. Comprovació obligatòria: Si les credencials són incorrectes, 'user' serà None
     if user is None:
         return Response(
             {"error": "Credencials incorrectes. Torna-ho a provar."},
             status=status.HTTP_401_UNAUTHORIZED,
         )
 
-    # 3. Si passem el filtre d'adalt, sabem segur que 'user' és un objecte vàlid
     if not user.is_active:
         return Response(
             {"error": "Aquest compte està desactivat."},
             status=status.HTTP_403_FORBIDDEN,
         )
 
-    # 4. Fabriquem la clau per a aquest usuari real
     _, raw_token = ApiKey.issue_token(name=key_name, created_by=user)
 
-    # Ara ja no fallarà, perquè 'user' existeix segur
     return Response(
         {
             "status": "Login correcte",

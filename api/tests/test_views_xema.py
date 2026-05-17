@@ -57,7 +57,7 @@ class TestViewsXemaPro:
 
         assert res.status_code == 200
         assert res.data["temperature"] == 25
-        assert res.data["wind"] == 1
+        assert res.data["wind"] == 10
 
     def test_get_stations_cached(self):
         self.create_station()

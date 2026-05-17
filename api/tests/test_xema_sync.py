@@ -5,7 +5,7 @@ import pytest
 from django.utils import timezone
 
 from api.models import Station, WeatherReading
-from api.xema_sync import (
+from api.services.xema_sync import (
     _build_fields,
     _cleanup_old_readings,
     _fetch_and_save,
@@ -43,7 +43,7 @@ class TestXemaSync:
 
         assert "windSpeed" not in fields
 
-    @patch("api.xema_sync.requests.get")
+    @patch("api.services.xema_sync.requests.get")
     def test_fetch_invalid_response(self, mock_get):
         station = self.create_station()
 
@@ -55,7 +55,7 @@ class TestXemaSync:
 
         assert result == 0
 
-    @patch("api.xema_sync.requests.get")
+    @patch("api.services.xema_sync.requests.get")
     def test_fetch_exception(self, mock_get):
         station = self.create_station()
 
@@ -67,7 +67,7 @@ class TestXemaSync:
 
         assert result == 0
 
-    @patch("api.xema_sync.requests.get")
+    @patch("api.services.xema_sync.requests.get")
     def test_fetch_ignores_invalid_rows(self, mock_get):
         station = self.create_station()
 
@@ -85,8 +85,8 @@ class TestXemaSync:
     def test_ensure_first_time_calls_fetch(self):
         station = self.create_station()
 
-        with patch("api.xema_sync._fetch_and_save") as mock_fetch:
-            with patch("api.xema_sync._cleanup_old_readings"):
+        with patch("api.services.xema_sync._fetch_and_save") as mock_fetch:
+            with patch("api.services.xema_sync._cleanup_old_readings"):
                 result = ensure_station_synced(station)
 
         assert result is True

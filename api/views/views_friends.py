@@ -5,6 +5,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from api.models import FriendRequest, Garden, User
+from api.services.notifications import notify
 
 
 @api_view(["GET"])
@@ -101,6 +102,11 @@ def like_friend(request, username):
                 else:
                     garden.likes += 1
                     friend_ship.likeToRequested = True
+                    notify(
+                        friend_ship.requested,
+                        "Like",
+                        f"This user {request.user.username} liked you.",
+                    )
 
             like_state = friend_ship.likeToRequested
         else:
@@ -111,6 +117,11 @@ def like_friend(request, username):
                 else:
                     garden.likes += 1
                     friend_ship.likeToRequester = True
+                    notify(
+                        friend_ship.requester,
+                        "Like",
+                        f"This user {request.user.username} liked you.",
+                    )
 
             like_state = friend_ship.likeToRequester
 

@@ -1,8 +1,10 @@
+from unittest.mock import patch
+
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APITestCase
 from rest_framework.authtoken.models import Token
-from unittest.mock import patch
+from rest_framework.test import APITestCase
+
 from api.models import Garden, Inventory, Pot, User
 
 
@@ -81,7 +83,7 @@ class AuthTests(APITestCase):
             email="test@example.com",
             city="Barcelona",
             language="es",
-            stationCode="bc"
+            stationCode="bc",
         )
 
         data = {"username": "testuser", "password": "testpassword123"}
@@ -99,13 +101,13 @@ class AuthTests(APITestCase):
             email="test@example.com",
             city="Barcelona",
             language="es",
-            stationCode="bc"
+            stationCode="bc",
         )
 
         response = self.client.post(
             self.login_url,
             {"username": "testuser", "password": "wrongpassword"},
-            format="json"
+            format="json",
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -116,7 +118,7 @@ class AuthTests(APITestCase):
         response = self.client.post(
             self.login_url,
             {"username": "nonexistent", "password": "password"},
-            format="json"
+            format="json",
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -133,7 +135,7 @@ class AuthTests(APITestCase):
             email="j@j.com",
             city="Barcelona",
             language="es",
-            stationCode="bcn"
+            stationCode="bcn",
         )
         Inventory.objects.create(user=user, coins=100)
         Garden.objects.create(user=user, name="Main Garden")
@@ -153,9 +155,7 @@ class AuthTests(APITestCase):
     def test_get_profile_multiple_gardens(self):
         """Obtener perfil con múltiples jardines"""
         user = User.objects.create_user(
-            username="juanjo",
-            password="password",
-            email="j@j.com"
+            username="juanjo", password="password", email="j@j.com"
         )
         Inventory.objects.create(user=user)
         Garden.objects.create(user=user, name="Garden 1")
@@ -193,19 +193,14 @@ class AuthTests(APITestCase):
             email="j@j.com",
             city="Old",
             language="es",
-            stationCode="BCN"
+            stationCode="BCN",
         )
 
         token = Token.objects.create(user=user)
         self.client.credentials(HTTP_AUTHORIZATION="Token " + token.key)
 
         response = self.client.post(
-            self.edit_profile_url,
-            {
-                "city": "Madrid",
-                "language": "en"
-            },
-            format="json"
+            self.edit_profile_url, {"city": "Madrid", "language": "en"}, format="json"
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -216,18 +211,14 @@ class AuthTests(APITestCase):
     def test_edit_profile_email(self):
         """Editar solo el email"""
         user = User.objects.create_user(
-            username="juan",
-            password="1234",
-            email="j@j.com"
+            username="juan", password="1234", email="j@j.com"
         )
 
         token = Token.objects.create(user=user)
         self.client.credentials(HTTP_AUTHORIZATION="Token " + token.key)
 
         response = self.client.post(
-            self.edit_profile_url,
-            {"email": "new@j.com"},
-            format="json"
+            self.edit_profile_url, {"email": "new@j.com"}, format="json"
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -237,19 +228,14 @@ class AuthTests(APITestCase):
     def test_edit_profile_num_plants_collected(self):
         """Editar número de plantas coleccionadas"""
         user = User.objects.create_user(
-            username="juan",
-            password="1234",
-            email="j@j.com",
-            numPlantsCollected=5
+            username="juan", password="1234", email="j@j.com", numPlantsCollected=5
         )
 
         token = Token.objects.create(user=user)
         self.client.credentials(HTTP_AUTHORIZATION="Token " + token.key)
 
         response = self.client.post(
-            self.edit_profile_url,
-            {"numPlantsCollected": 15},
-            format="json"
+            self.edit_profile_url, {"numPlantsCollected": 15}, format="json"
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -259,18 +245,14 @@ class AuthTests(APITestCase):
     def test_edit_profile_password_change(self):
         """Cambiar contraseña"""
         user = User.objects.create_user(
-            username="juan",
-            password="oldpassword",
-            email="j2@j.com"
+            username="juan", password="oldpassword", email="j2@j.com"
         )
 
         token = Token.objects.create(user=user)
         self.client.credentials(HTTP_AUTHORIZATION="Token " + token.key)
 
         response = self.client.post(
-            self.edit_profile_url,
-            {"password": "newpassword"},
-            format="json"
+            self.edit_profile_url, {"password": "newpassword"}, format="json"
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -285,7 +267,7 @@ class AuthTests(APITestCase):
             password="1234",
             email="old@j.com",
             city="Barcelona",
-            language="es"
+            language="es",
         )
 
         token = Token.objects.create(user=user)
@@ -297,9 +279,9 @@ class AuthTests(APITestCase):
                 "email": "new@j.com",
                 "city": "Madrid",
                 "language": "ca",
-                "numPlantsCollected": 20
+                "numPlantsCollected": 20,
             },
-            format="json"
+            format="json",
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -312,9 +294,7 @@ class AuthTests(APITestCase):
     def test_edit_profile_unauthenticated(self):
         """Editar perfil sin token da 401"""
         response = self.client.post(
-            self.edit_profile_url,
-            {"city": "Madrid"},
-            format="json"
+            self.edit_profile_url, {"city": "Madrid"}, format="json"
         )
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
@@ -325,17 +305,13 @@ class AuthTests(APITestCase):
             password="1234",
             email="j@j.com",
             city="Barcelona",
-            language="es"
+            language="es",
         )
 
         token = Token.objects.create(user=user)
         self.client.credentials(HTTP_AUTHORIZATION="Token " + token.key)
 
-        self.client.post(
-            self.edit_profile_url,
-            {"city": "Madrid"},
-            format="json"
-        )
+        self.client.post(self.edit_profile_url, {"city": "Madrid"}, format="json")
 
         user.refresh_from_db()
         self.assertEqual(user.city, "Madrid")
@@ -349,9 +325,7 @@ class AuthTests(APITestCase):
     def test_delete_profile_success(self):
         """Eliminar perfil exitosamente"""
         user = User.objects.create_user(
-            username="delete_me",
-            password="1234",
-            email="delete@test.com"
+            username="delete_me", password="1234", email="delete@test.com"
         )
 
         token = Token.objects.create(user=user)
@@ -365,9 +339,7 @@ class AuthTests(APITestCase):
     def test_delete_profile_cascades(self):
         """Eliminar perfil elimina también inventario, jardín y macetas"""
         user = User.objects.create_user(
-            username="delete_me",
-            password="1234",
-            email="delete@test.com"
+            username="delete_me", password="1234", email="delete@test.com"
         )
         inventory = Inventory.objects.create(user=user)
         garden = Garden.objects.create(user=user, name="Test Garden")
@@ -379,23 +351,11 @@ class AuthTests(APITestCase):
         username = user.username
         self.client.delete(self.delete_profile_url)
 
-        self.assertFalse(
-            User.objects.filter(
-                username=username
-            ).exists()
-        )
+        self.assertFalse(User.objects.filter(username=username).exists())
 
-        self.assertFalse(
-            Inventory.objects.filter(
-                user__username=username
-            ).exists()
-        )
+        self.assertFalse(Inventory.objects.filter(user__username=username).exists())
 
-        self.assertFalse(
-            Garden.objects.filter(
-                user__username=username
-            ).exists()
-        )
+        self.assertFalse(Garden.objects.filter(user__username=username).exists())
 
     def test_delete_profile_unauthenticated(self):
         """Eliminar perfil sin token da 401"""
@@ -409,9 +369,7 @@ class AuthTests(APITestCase):
     def test_validate_token_success(self):
         """Validar token válido"""
         user = User.objects.create_user(
-            username="tokenuser",
-            password="1234",
-            email="token@test.com"
+            username="tokenuser", password="1234", email="token@test.com"
         )
 
         token = Token.objects.create(user=user)
@@ -447,11 +405,7 @@ class GoogleAuthTests(APITestCase):
 
     def test_google_verify_missing_token(self):
         """Error si no mandas id_token"""
-        response = self.client.post(
-            self.google_verify_url,
-            {},
-            format="json"
-        )
+        response = self.client.post(self.google_verify_url, {}, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data["error"], "id_token is required")
@@ -462,9 +416,7 @@ class GoogleAuthTests(APITestCase):
         mock_verify.side_effect = ValueError("Invalid token")
 
         response = self.client.post(
-            self.google_verify_url,
-            {"id_token": "fake"},
-            format="json"
+            self.google_verify_url, {"id_token": "fake"}, format="json"
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -474,21 +426,17 @@ class GoogleAuthTests(APITestCase):
     def test_google_verify_existing_user(self, mock_verify):
         """Usuario Google existente retorna exists=True"""
         User.objects.create_user(
-            username="googleuser",
-            email="google@test.com",
-            google_id="123"
+            username="googleuser", email="google@test.com", google_id="123"
         )
 
         mock_verify.return_value = {
             "sub": "123",
             "email": "google@test.com",
-            "name": "Google User"
+            "name": "Google User",
         }
 
         response = self.client.post(
-            self.google_verify_url,
-            {"id_token": "fake"},
-            format="json"
+            self.google_verify_url, {"id_token": "fake"}, format="json"
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -502,13 +450,11 @@ class GoogleAuthTests(APITestCase):
         mock_verify.return_value = {
             "sub": "999",
             "email": "new@test.com",
-            "name": "New User"
+            "name": "New User",
         }
 
         response = self.client.post(
-            self.google_verify_url,
-            {"id_token": "fake"},
-            format="json"
+            self.google_verify_url, {"id_token": "fake"}, format="json"
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -519,21 +465,16 @@ class GoogleAuthTests(APITestCase):
     @patch("api.views.views_profile_operations.verify_google_token")
     def test_google_verify_by_email(self, mock_verify):
         """Encontrar usuario existente por email si no por google_id"""
-        User.objects.create_user(
-            username="emailuser",
-            email="test@test.com"
-        )
+        User.objects.create_user(username="emailuser", email="test@test.com")
 
         mock_verify.return_value = {
             "sub": "999",
             "email": "test@test.com",
-            "name": "Email User"
+            "name": "Email User",
         }
 
         response = self.client.post(
-            self.google_verify_url,
-            {"id_token": "fake"},
-            format="json"
+            self.google_verify_url, {"id_token": "fake"}, format="json"
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -546,11 +487,7 @@ class GoogleAuthTests(APITestCase):
     @patch("api.views.views_profile_operations.verify_google_token")
     def test_google_register_missing_token(self, mock_verify):
         """Error si no mandas id_token"""
-        response = self.client.post(
-            self.google_register_url,
-            {},
-            format="json"
-        )
+        response = self.client.post(self.google_register_url, {}, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data["error"], "id_token is required")
@@ -558,15 +495,10 @@ class GoogleAuthTests(APITestCase):
     @patch("api.views.views_profile_operations.verify_google_token")
     def test_google_register_missing_fields(self, mock_verify):
         """Error si faltan campos requeridos"""
-        mock_verify.return_value = {
-            "sub": "555",
-            "email": "g@test.com"
-        }
+        mock_verify.return_value = {"sub": "555", "email": "g@test.com"}
 
         response = self.client.post(
-            self.google_register_url,
-            {"id_token": "fake"},
-            format="json"
+            self.google_register_url, {"id_token": "fake"}, format="json"
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -578,9 +510,7 @@ class GoogleAuthTests(APITestCase):
         mock_verify.side_effect = ValueError("Invalid token")
 
         response = self.client.post(
-            self.google_register_url,
-            {"id_token": "fake"},
-            format="json"
+            self.google_register_url, {"id_token": "fake"}, format="json"
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -589,15 +519,10 @@ class GoogleAuthTests(APITestCase):
     def test_google_register_user_already_exists(self, mock_verify):
         """Error si el usuario Google ya existe"""
         User.objects.create_user(
-            username="googleuser",
-            email="google@test.com",
-            google_id="123"
+            username="googleuser", email="google@test.com", google_id="123"
         )
 
-        mock_verify.return_value = {
-            "sub": "123",
-            "email": "google@test.com"
-        }
+        mock_verify.return_value = {"sub": "123", "email": "google@test.com"}
 
         response = self.client.post(
             self.google_register_url,
@@ -607,9 +532,9 @@ class GoogleAuthTests(APITestCase):
                 "city": "Barcelona",
                 "language": "es",
                 "stationCode": "BCN",
-                "gardenName": "Garden"
+                "gardenName": "Garden",
             },
-            format="json"
+            format="json",
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -618,15 +543,9 @@ class GoogleAuthTests(APITestCase):
     @patch("api.views.views_profile_operations.verify_google_token")
     def test_google_register_email_already_registered(self, mock_verify):
         """Error si el email ya está registrado"""
-        User.objects.create_user(
-            username="otheruser",
-            email="existing@test.com"
-        )
+        User.objects.create_user(username="otheruser", email="existing@test.com")
 
-        mock_verify.return_value = {
-            "sub": "999",
-            "email": "existing@test.com"
-        }
+        mock_verify.return_value = {"sub": "999", "email": "existing@test.com"}
 
         response = self.client.post(
             self.google_register_url,
@@ -636,9 +555,9 @@ class GoogleAuthTests(APITestCase):
                 "city": "Barcelona",
                 "language": "es",
                 "stationCode": "BCN",
-                "gardenName": "Garden"
+                "gardenName": "Garden",
             },
-            format="json"
+            format="json",
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -647,15 +566,9 @@ class GoogleAuthTests(APITestCase):
     @patch("api.views.views_profile_operations.verify_google_token")
     def test_google_register_username_already_taken(self, mock_verify):
         """Error si el username ya está en uso"""
-        User.objects.create_user(
-            username="takenusername",
-            email="other@test.com"
-        )
+        User.objects.create_user(username="takenusername", email="other@test.com")
 
-        mock_verify.return_value = {
-            "sub": "999",
-            "email": "new@test.com"
-        }
+        mock_verify.return_value = {"sub": "999", "email": "new@test.com"}
 
         response = self.client.post(
             self.google_register_url,
@@ -665,9 +578,9 @@ class GoogleAuthTests(APITestCase):
                 "city": "Barcelona",
                 "language": "es",
                 "stationCode": "BCN",
-                "gardenName": "Garden"
+                "gardenName": "Garden",
             },
-            format="json"
+            format="json",
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -679,7 +592,7 @@ class GoogleAuthTests(APITestCase):
         mock_verify.return_value = {
             "sub": "123456",
             "email": "newgoogle@test.com",
-            "name": "Google User"
+            "name": "Google User",
         }
 
         response = self.client.post(
@@ -690,9 +603,9 @@ class GoogleAuthTests(APITestCase):
                 "city": "Barcelona",
                 "language": "es",
                 "stationCode": "BCN",
-                "gardenName": "Mi Jardín"
+                "gardenName": "Mi Jardín",
             },
-            format="json"
+            format="json",
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -709,10 +622,7 @@ class GoogleAuthTests(APITestCase):
     @patch("api.views.views_profile_operations.verify_google_token")
     def test_google_register_creates_complete_setup(self, mock_verify):
         """Registro crea usuario, inventario, jardín y macetas"""
-        mock_verify.return_value = {
-            "sub": "new_id",
-            "email": "complete@test.com"
-        }
+        mock_verify.return_value = {"sub": "new_id", "email": "complete@test.com"}
 
         response = self.client.post(
             self.google_register_url,
@@ -722,9 +632,9 @@ class GoogleAuthTests(APITestCase):
                 "city": "Madrid",
                 "language": "en",
                 "stationCode": "MAD",
-                "gardenName": "Complete Garden"
+                "gardenName": "Complete Garden",
             },
-            format="json"
+            format="json",
         )
 
         user = User.objects.get(username="completeuser")

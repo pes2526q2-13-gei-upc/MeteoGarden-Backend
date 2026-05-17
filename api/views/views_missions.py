@@ -19,7 +19,7 @@ from ..models import (
 # Get missions
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def getUserMissions(request):
+def get_user_missions(request):
     missions = UserMission.objects.filter(user=request.user)
     return Response(
         {
@@ -68,7 +68,7 @@ def getUserMissions(request):
 # Create mission
 @api_view(["POST"])
 @permission_classes([AllowAny])
-def createMission(request):
+def create_mission(request):
     # Check the mandatory fields
     name = request.data.get("name")
     description = request.data.get("description")
@@ -76,9 +76,9 @@ def createMission(request):
     goal = request.data.get("goal")
     plant = request.data.get("plant")
     product = request.data.get("product")
-    plantReward = request.data.get("plantReward")
+    plant_reward = request.data.get("plant_reward")
     rewardCoins = request.data.get("rewardCoins")
-    productReward = request.data.get("productReward")
+    product_reward = request.data.get("product_reward")
 
     if not all([name, description, action]):
         return Response(
@@ -90,27 +90,27 @@ def createMission(request):
             {"error": f"Plant with scientific name '{plant}' does not exist"},
             status=400,
         )
-    if plantReward and not Plant.objects.filter(scientificName=plantReward).exists():
+    if plant_reward and not Plant.objects.filter(scientificName=plant_reward).exists():
         return Response(
-            {"error": f"Plant with scientific name '{plantReward}' does not exist"},
+            {"error": f"Plant with scientific name '{plant_reward}' does not exist"},
             status=400,
         )
     if product and not Product.objects.filter(name=product).exists():
         return Response({"error": f"Product '{product}' does not exist"})
-    if productReward and not Product.objects.filter(name=productReward).exists():
-        return Response({"error": f"Product '{productReward}' does not exist"})
+    if product_reward and not Product.objects.filter(name=product_reward).exists():
+        return Response({"error": f"Product '{product_reward}' does not exist"})
     if action not in MissionAction.values:
         return Response(
             {"error": "action must be: PLANT, COLLECT, WATER, FLOWER or DIE"},
             status=400,
         )
     plantIns = Plant.objects.get(scientificName=plant) if plant else None
-    plantRewardIns = (
-        Plant.objects.get(scientificName=plantReward) if plantReward else None
+    plant_reward_ins = (
+        Plant.objects.get(scientificName=plant_reward) if plant_reward else None
     )
-    productIns = Product.objects.get(name=product) if product else None
-    productRewardIns = (
-        Product.objects.get(name=productReward) if productReward else None
+    product_ins = Product.objects.get(name=product) if product else None
+    product_reward_ins = (
+        Product.objects.get(name=product_reward) if product_reward else None
     )
     Mission.objects.create(
         name=name,
@@ -118,10 +118,10 @@ def createMission(request):
         action=action,
         goal=goal,
         plant=plantIns,
-        product=productIns,
-        plantReward=plantRewardIns,
+        product=product_ins,
+        plantReward=plant_reward_ins,
         rewardCoins=int(rewardCoins),
-        productReward=productRewardIns,
+        productReward=product_reward_ins,
     )
     return Response(
         "Mission created successfully",
@@ -131,7 +131,7 @@ def createMission(request):
 # Get missions
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def getMissions(request):
+def get_missions(request):
     missions = Mission.objects.all()
     return Response(
         {
@@ -156,7 +156,7 @@ def getMissions(request):
 # Assign mission to user
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def assignMission(request):
+def assign_mission(request):
     try:
         mission = Mission.objects.get(name=request.data["mission"])
     except Mission.DoesNotExist:
@@ -181,16 +181,16 @@ def assignMission(request):
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def claimReward(request):
+def claim_reward(request):
     mission = Mission.objects.get(name=request.data["mission"])
-    userMission = UserMission.objects.get(user=request.user, mission=mission)
+    user_mission = UserMission.objects.get(user=request.user, mission=mission)
     inventory = Inventory.objects.get(user=request.user)
-    if not userMission:  # No existeix la missió
+    if not user_mission:  # No existeix la missió
         return Response({"error": "Mission does not exist"}, status=400)
-    if userMission.missionState == MissionState.CLAIMED:  # La missió ja esta reclamada
+    if user_mission.missionState == MissionState.CLAIMED:  # La missió ja esta reclamada
         return Response({"error": "Mission already claimed"})
     elif (
-        userMission.missionState == MissionState.IN_PROGRESS
+        user_mission.missionState == MissionState.IN_PROGRESS
     ):  # La missió encara es troba en progrés
         return Response({"error": "Mission in progress"})
 
@@ -206,8 +206,8 @@ def claimReward(request):
             AlbumEntry.objects.create(user=request.user, plant=plant)
         inventory.addSeed(mission.plantReward.scientificName, 1)
     inventory.save()
-    userMission.missionState = MissionState.CLAIMED
-    userMission.save()
+    user_mission.missionState = MissionState.CLAIMED
+    user_mission.save()
     return Response(
         {
             "message": "Mission claimed successfully",

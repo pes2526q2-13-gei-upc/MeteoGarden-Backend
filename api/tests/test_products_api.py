@@ -48,7 +48,7 @@ class TestViewsProductsComprehensive(TestCase):
         self.assertEqual(response.status_code, 404)
 
     @patch(f"{MOCK_PATH}.get_object_or_404")
-    @patch(f"{MOCK_PATH}.updateUseMissions")
+    @patch(f"{MOCK_PATH}.update_user_missions")
     @patch(f"{MOCK_PATH}.apply_product")
     def test_success_instant_product(self, mock_apply, mock_update, mock_get):
         mock_user, mock_pot, mock_plant, mock_product = (
@@ -78,7 +78,7 @@ class TestViewsProductsComprehensive(TestCase):
         self.assertEqual(response.status_code, 200)
 
     @patch(f"{MOCK_PATH}.get_object_or_404")
-    @patch(f"{MOCK_PATH}.updateUseMissions")
+    @patch(f"{MOCK_PATH}.update_user_missions")
     @patch(f"{MOCK_PATH}.apply_product")
     @patch(f"{MOCK_PATH}.ActiveProduct.objects.filter")
     def test_success_duration_product(
@@ -120,7 +120,7 @@ class TestViewsProductsComprehensive(TestCase):
         self.assertIn("2024-05-20T20:00:00", response.json()["expiresAt"])
 
     @patch(f"{MOCK_PATH}.get_object_or_404")
-    @patch(f"{MOCK_PATH}.updateUseMissions")
+    @patch(f"{MOCK_PATH}.update_user_missions")
     @patch(f"{MOCK_PATH}.apply_product")
     @patch(f"{MOCK_PATH}.ActiveProduct.objects.filter")
     def test_error_active_product_does_not_exist(

@@ -5,12 +5,12 @@ import requests
 from api.services.xema_sync import logger
 
 
-def getEventsFromService(url=None) -> dict:
+def get_events_from_service(url=None) -> dict:
     key = os.getenv("API_KEY_GRESCA")
     if not key:
         raise RuntimeError("There's no API key for Gresca.")
     if not url:
-        url = "https://gresca.jaumelopez.dev/api/external/events"
+        url = "https://gresca.photo/api/external/events"
     try:
         headers = {"Authorization": f"Token {key}", "Content-Type": "application/json"}
         response = requests.get(url, headers=headers, timeout=20)

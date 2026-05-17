@@ -13,7 +13,7 @@ from api.serializer import (
     EventSeedSerializer,
     EventSerializer,
 )
-from api.views.views_translate import translate_text
+from api.services.translate import translate_text
 
 logger = logging.getLogger(__name__)
 
@@ -46,22 +46,18 @@ def get_events_from_db(date: str, city: str | None, cat: str | None):
     else:
         target_date = full_date
 
-    if city is not None:
-        return Event.objects.select_related("category").filter(
-            start_date__date__lte=target_date,
-            end_date__date__gte=target_date,
-            city__iexact=city,
-        )
-    elif cat is not None:
-        return Event.objects.select_related("category").filter(
-            start_date__date__lte=target_date,
-            end_date__date__gte=target_date,
-            category__name__iexact=cat,
-        )
-    else:
-        return Event.objects.select_related("category").filter(
-            start_date__date__lte=target_date, end_date__date__gte=target_date
-        )
+    filtres = {
+        "start_date__date__lte": target_date,
+        "end_date__date__gte": target_date,
+    }
+
+    if city and city.strip():
+        filtres["city__iexact"] = city.strip()
+
+    if cat and cat.strip():
+        filtres["category__name__iexact"] = cat.strip()
+
+    return Event.objects.select_related("category").filter(**filtres)
 
 
 def get_all_events(date: str, lang: str, city: str | None, cat: str | None):
@@ -76,25 +72,25 @@ def get_all_events(date: str, lang: str, city: str | None, cat: str | None):
         return []
 
 
-def get_number_of_events(month: str, year: str, city: str | None):
-    if city is None:
-        events = (
-            Event.objects.filter(start_date__year=year, start_date__month=month)
-            .annotate(day=TruncDay("start_date"))
-            .values("day")
-            .annotate(total=Count("id"))
-            .order_by("day")
-        )
-    else:
-        events = (
-            Event.objects.filter(
-                start_date__year=year, start_date__month=month, city__iexact=city
-            )
-            .annotate(day=TruncDay("start_date"))
-            .values("day")
-            .annotate(total=Count("id"))
-            .order_by("day")
-        )
+def get_number_of_events(month: str, year: str, city: str | None, cat: str | None):
+    filtres = {
+        "start_date__year": year,
+        "start_date__month": month,
+    }
+
+    if city and city.strip():
+        filtres["city__iexact"] = city.strip()
+
+    if cat and cat.strip():
+        filtres["category__name__iexact"] = cat.strip()
+
+    events = (
+        Event.objects.filter(**filtres)
+        .annotate(day=TruncDay("start_date"))
+        .values("day")
+        .annotate(total=Count("id"))
+        .order_by("day")
+    )
 
     return events
 
@@ -140,7 +136,8 @@ def get_num_events(request):
     year = request.query_params.get("year")
     month = request.query_params.get("month")
     city = request.query_params.get("city")
-    event = get_number_of_events(month, year, city)
+    category = request.query_params.get("category")
+    event = get_number_of_events(month, year, city, category)
     return Response({"events": event})
 
 

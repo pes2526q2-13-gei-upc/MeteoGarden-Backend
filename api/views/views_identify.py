@@ -23,7 +23,7 @@ PLANTNET_URL = "https://my-api.plantnet.org/v2/identify/all"
 ALLOWED_ORGANS = {"leaf", "flower"}
 
 
-def updatePhotoMissions(user, plant):
+def update_photo_missions(user, plant):
     allUserMissions = UserMission.objects.filter(
         user=user, missionState=MissionState.IN_PROGRESS
     )
@@ -142,7 +142,7 @@ def identifyPlant(request):
     inventory, _ = Inventory.objects.get_or_create(user=uploader)
     Inventory.addSeed(inventory, scientificName, 2)
 
-    updatePhotoMissions(uploader, plant)
+    update_photo_missions(uploader, plant)
 
     return Response(
         {

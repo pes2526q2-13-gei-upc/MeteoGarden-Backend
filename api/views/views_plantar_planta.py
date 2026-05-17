@@ -5,7 +5,32 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
-from ..models import Garden, GrowthState, Inventory, Plant, PlantInGarden, Pot, User
+from ..models import (
+    Garden,
+    GrowthState,
+    Inventory,
+    MissionAction,
+    MissionState,
+    Plant,
+    PlantInGarden,
+    Pot,
+    User,
+    UserMission,
+)
+
+
+def update_plant_missions(user, plant):
+    # Obtenim les missions
+    missions = UserMission.objects.filter(
+        user=user, missionState=MissionState.IN_PROGRESS
+    )
+    for mission in missions:
+        if mission.mission.action == MissionAction.PLANT:
+            if mission.mission.plant is None or mission.mission.plant == plant:
+                mission.current += 1
+                if mission.mission.goal <= mission.current:
+                    mission.missionState = MissionState.COMPLETED
+                mission.save()
 
 
 @csrf_exempt
@@ -74,6 +99,8 @@ def plant_seed(request, username, garden_name, pot_number):
         waterLevel=100.0,
         lastWateredAt=timezone.now(),
     )
+
+    update_plant_missions(user, plant)
 
     data = {
         "message": "Plant planted successfully.",

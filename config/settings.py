@@ -13,9 +13,13 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 
+from celery.schedules import crontab
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# Testing settings
+FIREBASE_ENABLED = True
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -47,8 +51,11 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "storages",
     "corsheaders",
+    "django_celery_beat",
+    "django.contrib.postgres",
     # METEOGARDEN APPS
     "api",
+    "third_party_service",
 ]
 
 MIDDLEWARE = [
@@ -61,6 +68,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -95,7 +103,7 @@ DATABASES = {
         "HOST": os.environ.get("DJANGO_DB_HOST", "localhost"),
         "PORT": os.environ.get("DJANGO_DB_PORT", 5432),
         # "ATOMIC_REQUESTS": True,
-    }
+    },
 }
 
 # REST Framework Configuration
@@ -131,9 +139,6 @@ AWS_S3_CUSTOM_DOMAIN = (
 # Tell Django to use S3 for "media" files
 DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 
-# Tell Django to use S3 for "media" files (user images)
-DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
-
 STORAGES = {
     "default": {
         "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
@@ -147,7 +152,7 @@ STORAGES = {
 MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:62057",
+    "http://localhost:62338",
     "http://127.0.0.1:62057",
 ]
 
@@ -192,3 +197,24 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "api.User"
+
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
+CELERY_TIMEZONE = "Europe/Madrid"
+CELERY_BEAT_SCHEDULE = {
+    "simulate-all-plants": {
+        "task": "api.tasks.simulate_all_plants",
+        "schedule": 1800,  # cada 30 min
+    },
+    "sync-gresca-nightly": {
+        "task": "api.tasks.sync_events_task",
+        "schedule": crontab(hour=3, minute=30),
+    },
+    "cleanup-old-events-nightly": {
+        "task": "api.tasks.cleanup_old_events",
+        "schedule": crontab(hour=4, minute=0),
+    },
+}
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"

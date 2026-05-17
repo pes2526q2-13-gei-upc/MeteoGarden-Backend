@@ -7,6 +7,9 @@ from rest_framework.test import APITestCase
 
 from api.models import Garden, Inventory, Pot, User
 
+TEST_PASSWORD = "test_password_123"  # NOSONAR
+NEW_PASSWORD = "new_password_456"  # NOSONAR
+WRONG_PASSWORD = "wrong_password_789"  # NOSONAR
 
 class AuthTests(APITestCase):
 
@@ -20,7 +23,7 @@ class AuthTests(APITestCase):
 
         self.user_data = {
             "username": "testuser",
-            "password": "testpassword123",
+            "password": TEST_PASSWORD,
             "email": "test@example.com",
             "city": "Barcelona",
             "language": "es",
@@ -79,14 +82,17 @@ class AuthTests(APITestCase):
         """Login exitoso con credenciales correctas"""
         User.objects.create_user(
             username="testuser",
-            password="testpassword123",
+            password=TEST_PASSWORD,
             email="test@example.com",
             city="Barcelona",
             language="es",
             stationCode="bc",
         )
 
-        data = {"username": "testuser", "password": "testpassword123"}
+        data = {
+            "username": "testuser",
+            "password": TEST_PASSWORD
+        }
         response = self.client.post(self.login_url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -97,7 +103,7 @@ class AuthTests(APITestCase):
         """Login falla con contraseña incorrecta"""
         User.objects.create_user(
             username="testuser",
-            password="correctpassword",
+            password=TEST_PASSWORD,
             email="test@example.com",
             city="Barcelona",
             language="es",
@@ -106,7 +112,10 @@ class AuthTests(APITestCase):
 
         response = self.client.post(
             self.login_url,
-            {"username": "testuser", "password": "wrongpassword"},
+            {
+                "username": "testuser",
+                "password": WRONG_PASSWORD
+            },
             format="json",
         )
 
@@ -117,7 +126,10 @@ class AuthTests(APITestCase):
         """Login falla con usuario que no existe"""
         response = self.client.post(
             self.login_url,
-            {"username": "nonexistent", "password": "password"},
+            {
+                "username": "nonexistent",
+                "password": TEST_PASSWORD
+            },
             format="json",
         )
 
@@ -131,7 +143,7 @@ class AuthTests(APITestCase):
         """Obtener perfil con autenticación exitosa"""
         user = User.objects.create_user(
             username="juanjo",
-            password="password",
+            password=TEST_PASSWORD,
             email="j@j.com",
             city="Barcelona",
             language="es",
@@ -189,7 +201,7 @@ class AuthTests(APITestCase):
         """Editar perfil con datos válidos"""
         user = User.objects.create_user(
             username="juan",
-            password="1234",
+            password=TEST_PASSWORD,
             email="j@j.com",
             city="Old",
             language="es",
@@ -211,7 +223,7 @@ class AuthTests(APITestCase):
     def test_edit_profile_email(self):
         """Editar solo el email"""
         user = User.objects.create_user(
-            username="juan", password="1234", email="j@j.com"
+            username="juan", password=TEST_PASSWORD, email="j@j.com"
         )
 
         token = Token.objects.create(user=user)
@@ -228,7 +240,7 @@ class AuthTests(APITestCase):
     def test_edit_profile_num_plants_collected(self):
         """Editar número de plantas coleccionadas"""
         user = User.objects.create_user(
-            username="juan", password="1234", email="j@j.com", numPlantsCollected=5
+            username="juan", password=TEST_PASSWORD, email="j@j.com", numPlantsCollected=5
         )
 
         token = Token.objects.create(user=user)
@@ -245,26 +257,33 @@ class AuthTests(APITestCase):
     def test_edit_profile_password_change(self):
         """Cambiar contraseña"""
         user = User.objects.create_user(
-            username="juan", password="oldpassword", email="j2@j.com"
+            username="juan", password=TEST_PASSWORD, email="j2@j.com"
         )
 
         token = Token.objects.create(user=user)
         self.client.credentials(HTTP_AUTHORIZATION="Token " + token.key)
 
         response = self.client.post(
-            self.edit_profile_url, {"password": "newpassword"}, format="json"
+            self.edit_profile_url, {"password": NEW_PASSWORD}, format="json"
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         user.refresh_from_db()
-        self.assertTrue(user.check_password("newpassword"))
-        self.assertFalse(user.check_password("oldpassword"))
-
+        self.assertTrue(
+            user.check_password(
+                NEW_PASSWORD
+            )
+        )
+        self.assertFalse(
+            user.check_password(
+                TEST_PASSWORD
+            )
+        )
     def test_edit_profile_multiple_fields(self):
         """Editar múltiples campos a la vez"""
         user = User.objects.create_user(
             username="juan",
-            password="1234",
+            password=TEST_PASSWORD,
             email="old@j.com",
             city="Barcelona",
             language="es",
@@ -302,7 +321,7 @@ class AuthTests(APITestCase):
         """Editar un campo no debe afectar otros"""
         user = User.objects.create_user(
             username="juan",
-            password="1234",
+            password=TEST_PASSWORD,
             email="j@j.com",
             city="Barcelona",
             language="es",
@@ -325,7 +344,7 @@ class AuthTests(APITestCase):
     def test_delete_profile_success(self):
         """Eliminar perfil exitosamente"""
         user = User.objects.create_user(
-            username="delete_me", password="1234", email="delete@test.com"
+            username="delete_me", password=TEST_PASSWORD, email="delete@test.com"
         )
 
         token = Token.objects.create(user=user)
@@ -339,9 +358,9 @@ class AuthTests(APITestCase):
     def test_delete_profile_cascades(self):
         """Eliminar perfil elimina también inventario, jardín y macetas"""
         user = User.objects.create_user(
-            username="delete_me", password="1234", email="delete@test.com"
+            username="delete_me", password=TEST_PASSWORD, email="delete@test.com"
         )
-        inventory = Inventory.objects.create(user=user)
+        Inventory.objects.create(user=user)
         garden = Garden.objects.create(user=user, name="Test Garden")
         Pot.objects.create(garden=garden, number=1)
 
@@ -369,7 +388,7 @@ class AuthTests(APITestCase):
     def test_validate_token_success(self):
         """Validar token válido"""
         user = User.objects.create_user(
-            username="tokenuser", password="1234", email="token@test.com"
+            username="tokenuser", password=TEST_PASSWORD, email="token@test.com"
         )
 
         token = Token.objects.create(user=user)
@@ -396,8 +415,8 @@ class AuthTests(APITestCase):
 class GoogleAuthTests(APITestCase):
 
     def setUp(self):
-        self.google_verify_url = reverse("google_verify")
-        self.google_register_url = reverse("google_register")
+        self.google_verify_url = "/api/auth/google/verify"
+        self.google_register_url = "/api/auth/google/register"
 
     ##################################
     # TESTS DE GOOGLE VERIFY

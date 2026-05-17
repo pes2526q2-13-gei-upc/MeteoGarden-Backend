@@ -27,16 +27,25 @@ from api.services.xema_sync import ensure_station_synced
 
 
 def update_water_missions(user, plant):
-    allUserMissions = UserMission.objects.filter(
-        user=user, missionState=MissionState.IN_PROGRESS
+    user_missions = (
+        UserMission.objects.filter(
+            user=user,
+            missionState=MissionState.IN_PROGRESS,
+            mission__action=MissionAction.WATER,
+        )
+        .select_related("mission", "mission__plant")
     )
-    for mission in allUserMissions:
-        if mission.mission.action == MissionAction.WATER:
-            if mission.mission.plant is None or mission.mission.plant == plant:
-                mission.current += 1
-                if mission.mission.goal <= mission.current:
-                    mission.missionState = MissionState.COMPLETED
-                mission.save()
+
+    for user_mission in user_missions:
+        mission = user_mission.mission
+
+        if mission.plant is None or mission.plant == plant:
+            user_mission.current += 1
+
+            if mission.goal <= user_mission.current:
+                user_mission.missionState = MissionState.COMPLETED
+
+            user_mission.save()
 
 
 def _sync_user_station(user: User) -> Station | None:

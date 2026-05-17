@@ -104,7 +104,7 @@ def create_mission(request):
             {"error": "action must be: PLANT, COLLECT, WATER, FLOWER or DIE"},
             status=400,
         )
-    plantIns = Plant.objects.get(scientificName=plant) if plant else None
+    plant_ins = Plant.objects.get(scientificName=plant) if plant else None
     plant_reward_ins = (
         Plant.objects.get(scientificName=plant_reward) if plant_reward else None
     )
@@ -117,7 +117,7 @@ def create_mission(request):
         description=description,
         action=action,
         goal=goal,
-        plant=plantIns,
+        plant=plant_ins,
         product=product_ins,
         plantReward=plant_reward_ins,
         rewardCoins=int(rewardCoins),

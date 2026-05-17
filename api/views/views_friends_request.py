@@ -105,7 +105,7 @@ def cancel_request(request):
     requested_name = request.data.get("requested")
     requested = User.objects.get(username=requested_name)
     try:
-        friendRequest = FriendRequest.objects.get(
+        friend_request = FriendRequest.objects.get(
             requester=request.user, requested=requested
         )
     except FriendRequest.DoesNotExist:
@@ -113,25 +113,21 @@ def cancel_request(request):
             {"error": message},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    if not friendRequest:
-        return Response(
-            {"error": message},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    if friendRequest.accepted is not None:
+
+    if friend_request.accepted is not None:
         return Response(
             {"error": "Friend request is already answered'"},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
     # else
-    friendRequest.delete()
+    friend_request.delete()
     return Response({"Request canceled successfully"})
 
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def getRequests(request):
+def get_requests(request):
     action = request.data.get("action")
     if action == "sent":
         requests = FriendRequest.objects.filter(requester=request.user, accepted=None)

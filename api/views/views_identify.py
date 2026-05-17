@@ -24,12 +24,15 @@ ALLOWED_ORGANS = {"leaf", "flower"}
 
 
 def update_photo_missions(user, plant):
-    user_missions = (UserMission.objects.filter(
-        user=user, missionState=MissionState.IN_PROGRESS,
-        mission__action=MissionAction.PHOTO,
+    user_missions = (
+        UserMission.objects.filter(
+            user=user,
+            missionState=MissionState.IN_PROGRESS,
+            mission__action=MissionAction.PHOTO,
+        )
+        .select_related("mission", "mission__plant")
     )
-    .select_related("mission", "mission__plant")
-    )
+
     for user_mission in user_missions:
         mission = user_mission.mission
 

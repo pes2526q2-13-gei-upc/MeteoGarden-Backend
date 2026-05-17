@@ -91,8 +91,7 @@ def answer_request(request):
         friend_request.save()
         return Response({"Request accepted successfully"})
     if action == "reject":
-        friend_request.accepted = False
-        friend_request.save()
+        friend_request.delete()
         return Response({"Request rejected successfully"})
     return Response(
         {"error": "Action field is not correct"}, status=status.HTTP_400_BAD_REQUEST

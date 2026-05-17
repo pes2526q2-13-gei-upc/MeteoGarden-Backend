@@ -58,8 +58,8 @@ class TestViewsXema:
         res = self.client.get("/api/weather/current/?stationCode=1234")
 
         assert res.status_code == 200
-        assert res.data["temperature"] == 25
-        assert res.data["wind"] == 10
+        assert res.data["temperature"] == pytest.approx(25)
+        assert res.data["wind"] == pytest.approx(10)
 
     def test_get_stations_cached(self):
         self.create_station()
@@ -130,5 +130,5 @@ class TestViewsXema:
         res = self.client.get("/api/weather/current/?stationCode=1234")
 
         assert res.status_code == 200
-        assert res.data["temperature"] == 30
-        assert res.data["wind"] == 20
+        assert res.data["temperature"] == pytest.approx(30)
+        assert res.data["wind"] == pytest.approx(20)

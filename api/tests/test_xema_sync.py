@@ -33,10 +33,10 @@ class TestXemaSync:
 
         fields = _build_fields(codes)
 
-        assert fields["temperature"] == 20
-        assert fields["precipitation"] == 1
-        assert fields["relativeHumidity"] == 60
-        assert fields["windSpeed"] == 5
+        assert fields["temperature"] == pytest.approx(20)
+        assert fields["precipitation"] == pytest.approx(1)
+        assert fields["relativeHumidity"] == pytest.approx(60)
+        assert fields["windSpeed"] == pytest.approx(5)
 
     def test_build_fields_no_wind(self):
         fields = _build_fields({})
@@ -46,7 +46,7 @@ class TestXemaSync:
     def test_build_fields_wind_fallback(self):
         fields = _build_fields({"48": 7})
 
-        assert fields["windSpeed"] == 7
+        assert fields["windSpeed"] == pytest.approx(7)
 
     @patch("api.services.xema_sync.requests.get")
     def test_fetch_invalid_response(self, mock_get):
@@ -168,9 +168,9 @@ class TestXemaSync:
 
         reading = WeatherReading.objects.first()
 
-        assert reading.temperature == 22
-        assert reading.precipitation == 1.5
-        assert reading.windSpeed == 10
+        assert reading.temperature == pytest.approx(22)
+        assert reading.precipitation == pytest.approx(1.5)
+        assert reading.windSpeed == pytest.approx(10)
 
     @patch("api.services.xema_sync.requests.get")
     def test_fetch_updates_existing_reading(self, mock_get):
@@ -203,7 +203,7 @@ class TestXemaSync:
 
         reading = WeatherReading.objects.first()
 
-        assert reading.temperature == 25
+        assert reading.temperature == pytest.approx(25)
 
     def test_ensure_first_time_calls_fetch(self):
         station = self.create_station()

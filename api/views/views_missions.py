@@ -20,7 +20,13 @@ from ..models import (
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_user_missions(request):
-    missions = UserMission.objects.filter(user=request.user)
+    missions = UserMission.objects.filter(user=request.user).select_related(
+        "mission",
+        "mission__plant",
+        "mission__product",
+        "mission__plantReward",
+        "mission__productReward",
+    )
     return Response(
         {
             "missions": [
@@ -77,7 +83,7 @@ def create_mission(request):
     plant = request.data.get("plant")
     product = request.data.get("product")
     plant_reward = request.data.get("plant_reward")
-    rewardCoins = request.data.get("rewardCoins")
+    reward_coins = request.data.get("rewardCoins")
     product_reward = request.data.get("product_reward")
 
     if not all([name, description, action]):
@@ -120,7 +126,7 @@ def create_mission(request):
         plant=plant_ins,
         product=product_ins,
         plantReward=plant_reward_ins,
-        rewardCoins=int(rewardCoins),
+        rewardCoins=int(reward_coins),
         productReward=product_reward_ins,
     )
     return Response(

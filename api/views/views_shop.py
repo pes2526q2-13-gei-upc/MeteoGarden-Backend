@@ -31,7 +31,7 @@ def get_shop(request):
             continue
 
     products_data = []
-    for product in Product.objects.all():
+    for product in Product.objects.only():
         products_data.append(
             {
                 "name": product.name,

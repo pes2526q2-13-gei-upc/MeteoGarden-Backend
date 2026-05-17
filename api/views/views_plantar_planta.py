@@ -22,7 +22,8 @@ from ..models import (
 def update_plant_missions(user, plant):
     # Obtenim les missions
     missions = UserMission.objects.filter(
-        user=user, missionState=MissionState.IN_PROGRESS,
+        user=user,
+        missionState=MissionState.IN_PROGRESS,
         mission__action=MissionAction.PLANT,
     )
     for user_mission in missions:

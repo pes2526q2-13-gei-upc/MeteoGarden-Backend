@@ -23,6 +23,7 @@ from api.services.xema_sync import ensure_station_synced
 
 logger = logging.getLogger(__name__)
 
+
 # Aquestes són totes les funcions que pot executar el celery
 @shared_task
 def simulate_all_plants():
@@ -67,11 +68,7 @@ def get_user_station(user):
 
 
 def get_latest_weather_reading(station):
-    return (
-        WeatherReading.objects.filter(station=station)
-        .order_by("-timestamp")
-        .first()
-    )
+    return WeatherReading.objects.filter(station=station).order_by("-timestamp").first()
 
 
 def build_weather_snapshot(reading, fallback_reading):

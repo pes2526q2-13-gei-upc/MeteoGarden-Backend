@@ -1,3 +1,4 @@
+import logging
 from datetime import timedelta
 
 from django.utils import timezone
@@ -5,7 +6,6 @@ from firebase_admin import messaging
 
 from api.models import Device
 from api.services.translate import translate_text
-import logging
 
 logger = logging.getLogger(__name__)
 

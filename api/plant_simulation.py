@@ -259,6 +259,7 @@ def _apply_reading(
 
     return pig
 
+
 # Recaulate phase
 def _normalize_planted_at(planted_at, current_time):
     if planted_at.tzinfo is None and current_time.tzinfo is not None:
@@ -315,6 +316,7 @@ def _recalculate_phase(pig: PlantInGarden, health: float, current_time) -> str:
         _apply_phase_mission_if_needed(pig, next_phase)
 
     return target_phase
+
 
 def _next_phase(phase: str, can_flower: bool) -> str | None:
     try:

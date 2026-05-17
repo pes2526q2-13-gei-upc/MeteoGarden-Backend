@@ -17,7 +17,6 @@ from api.services.xema_sync import _fetch_and_save, ensure_station_synced
 from third_party_service.authentication import ApiKeyAuthentication
 from third_party_service.models import ApiKey
 
-
 message_city = "city is required"
 
 

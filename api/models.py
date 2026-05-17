@@ -418,7 +418,6 @@ class Shop(models.Model):
             self.save()
 
 
-
 class Product(models.Model):
     EFFECT_TYPES = [
         ("health", "Health"),

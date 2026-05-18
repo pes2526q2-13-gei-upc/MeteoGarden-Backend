@@ -30,21 +30,20 @@ def get_shop(request):
         except Plant.DoesNotExist:
             continue
 
-    products_data = []
-    for product in Product.objects.all():
-        products_data.append(
-            {
-                "name": product.name,
-                "description": product.description,
-                "effectType": product.effectType,
-                "value": product.value,
-                "durationHours": product.durationHours,
-                "isInstant": product.isInstant,
-                "price": product.price,
-                "image_url": product.image_url.url if product.image_url else None,
-                "rarity": product.rarity,
-            }
-        )
+    products_data = [
+        {
+            "name": product.name,
+            "description": product.description,
+            "effectType": product.effectType,
+            "value": product.value,
+            "durationHours": product.durationHours,
+            "isInstant": product.isInstant,
+            "price": product.price,
+            "image_url": product.image_url.url if product.image_url else None,
+            "rarity": product.rarity,
+        }
+        for product in Product.objects.all()
+    ]
 
     return JsonResponse(
         {

@@ -1,4 +1,5 @@
 from .settings import *  # noqa: F403
+import os
 
 DEBUG = False
 
@@ -7,11 +8,11 @@ SECRET_KEY = "test-secret-key"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "meteogarden_test",  # noqa: F405
-        "USER": "meteogarden",
-        "PASSWORD": "meteogarden",  # Noncompliant
-        "HOST": "localhost",
-        "PORT": "5432",
+        "NAME": os.getenv("POSTGRES_DB", "meteogarden_test"),
+        "USER": os.getenv("POSTGRES_USER", "meteogarden"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD", "test-db-password"),
+        "HOST": os.getenv("POSTGRES_HOST", "localhost"),
+        "PORT": os.getenv("POSTGRES_PORT", "5432"),
     }
 }
 

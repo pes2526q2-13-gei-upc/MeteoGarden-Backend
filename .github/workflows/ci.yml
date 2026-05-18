@@ -26,7 +26,7 @@ jobs:
       - name: Install tools
         run: |
           pip install --upgrade pip
-          pip install black isort flake8
+          pip install --only-binary :all: black==26.3.0 isort==8.0.1 flake8==7.3.0
 
       - name: isort (check)
         run: python -m isort . --check-only --diff
@@ -78,7 +78,7 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest pytest-django coverage
+          pip install --only-binary :all: pytest==9.0.3 pytest-django==4.12.0 coverage==7.13.5
 
       - name: Django check
         run: python manage.py check

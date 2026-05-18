@@ -140,7 +140,10 @@ class FriendRequestTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        req = FriendRequest.objects.get(requester=self.user2, requested=self.user1)
+        # CAMBIO: Especificar accepted=True en la búsqueda para evitar ambigüedad
+        req = FriendRequest.objects.get(
+            requester=self.user2, requested=self.user1, accepted=True
+        )
 
         self.assertTrue(req.accepted)
 
@@ -158,7 +161,10 @@ class FriendRequestTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        req = FriendRequest.objects.get(requester=self.user2, requested=self.user1)
+        # CAMBIO: Especificar accepted=False en la búsqueda para evitar ambigüedad
+        req = FriendRequest.objects.get(
+            requester=self.user2, requested=self.user1, accepted=False
+        )
 
         self.assertFalse(req.accepted)
 

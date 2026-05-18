@@ -11,6 +11,7 @@ TEST_PASSWORD = "test_password_123"  # NOSONAR
 NEW_PASSWORD = "new_password_456"  # NOSONAR
 WRONG_PASSWORD = "wrong_password_789"  # NOSONAR
 
+
 class AuthTests(APITestCase):
 
     def setUp(self):
@@ -89,10 +90,7 @@ class AuthTests(APITestCase):
             stationCode="bc",
         )
 
-        data = {
-            "username": "testuser",
-            "password": TEST_PASSWORD
-        }
+        data = {"username": "testuser", "password": TEST_PASSWORD}
         response = self.client.post(self.login_url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -112,10 +110,7 @@ class AuthTests(APITestCase):
 
         response = self.client.post(
             self.login_url,
-            {
-                "username": "testuser",
-                "password": WRONG_PASSWORD
-            },
+            {"username": "testuser", "password": WRONG_PASSWORD},
             format="json",
         )
 
@@ -126,10 +121,7 @@ class AuthTests(APITestCase):
         """Login falla con usuario que no existe"""
         response = self.client.post(
             self.login_url,
-            {
-                "username": "nonexistent",
-                "password": TEST_PASSWORD
-            },
+            {"username": "nonexistent", "password": TEST_PASSWORD},
             format="json",
         )
 
@@ -240,7 +232,10 @@ class AuthTests(APITestCase):
     def test_edit_profile_num_plants_collected(self):
         """Editar número de plantas coleccionadas"""
         user = User.objects.create_user(
-            username="juan", password=TEST_PASSWORD, email="j@j.com", numPlantsCollected=5
+            username="juan",
+            password=TEST_PASSWORD,
+            email="j@j.com",
+            numPlantsCollected=5,
         )
 
         token = Token.objects.create(user=user)
@@ -269,16 +264,9 @@ class AuthTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         user.refresh_from_db()
-        self.assertTrue(
-            user.check_password(
-                NEW_PASSWORD
-            )
-        )
-        self.assertFalse(
-            user.check_password(
-                TEST_PASSWORD
-            )
-        )
+        self.assertTrue(user.check_password(NEW_PASSWORD))
+        self.assertFalse(user.check_password(TEST_PASSWORD))
+
     def test_edit_profile_multiple_fields(self):
         """Editar múltiples campos a la vez"""
         user = User.objects.create_user(

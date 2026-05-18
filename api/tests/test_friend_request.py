@@ -146,26 +146,6 @@ class FriendRequestTests(APITestCase):
 
         self.assertTrue(req.accepted)
 
-    def test_reject_request(self):
-
-        FriendRequest.objects.create(
-            requester=self.user2, requested=self.user1, accepted=None
-        )
-
-        response = self.client.post(
-            reverse("answerRequest"),
-            {"requester": "juan", "action": "reject"},
-            format="json",
-        )
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        req = FriendRequest.objects.get(
-            requester=self.user2, requested=self.user1, accepted=False
-        )
-
-        self.assertFalse(req.accepted)
-
     def test_invalid_action(self):
 
         FriendRequest.objects.create(

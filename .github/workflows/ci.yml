@@ -50,6 +50,6 @@ jobs:
             -Dsonar.projectKey=pes2526q2-13-gei-upc_MeteoGarden-Backend
             -Dsonar.organization=pes2526q2-13-gei-upc
             -Dsonar.sources=.
-            -Dsonar.exclusions=**/migrations/**,**/__pycache__/**,**/.venv/**,**/venv/**
+            -Dsonar.exclusions=**/migrations/**,**/tests/**,**/__pycache__/**,**/.venv/**,**/venv/**
             -Dsonar.coverage.exclusions=**/migrations/**,**/tests/**
-            -Dsonar.cpd.exclusions=**/migrations/**
+            -Dsonar.cpd.exclusions=**/migrations/**,**/tests/**

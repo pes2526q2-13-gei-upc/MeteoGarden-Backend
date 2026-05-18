@@ -1,5 +1,6 @@
-from .settings import *  # noqa: F403
 import os
+
+from .settings import *  # noqa: F403
 
 DEBUG = False
 

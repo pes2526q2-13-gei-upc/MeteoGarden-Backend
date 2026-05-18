@@ -63,19 +63,26 @@ PHASE_ORDER = [
 ]
 
 
-def update_missions(plantInGarden, action):
-    user = plantInGarden.pot.garden.user
-    plant = plantInGarden.plant
-    all_user_missions = UserMission.objects.filter(
-        user=user, missionState=MissionState.IN_PROGRESS
-    )
-    for mission in all_user_missions:
-        if mission.mission.action == action:
-            if mission.mission.plant is None or mission.mission.plant == plant:
-                mission.current += 1
-                if mission.mission.goal <= mission.current:
-                    mission.missionState = MissionState.COMPLETED
-                mission.save()
+def update_missions(plant_in_garden, action):
+    user = plant_in_garden.pot.garden.user
+    plant = plant_in_garden.plant
+
+    user_missions = UserMission.objects.filter(
+        user=user,
+        missionState=MissionState.IN_PROGRESS,
+        mission__action=action,
+    ).select_related("mission", "mission__plant")
+
+    for user_mission in user_missions:
+        mission = user_mission.mission
+
+        if mission.plant is None or mission.plant == plant:
+            user_mission.current += 1
+
+            if mission.goal <= user_mission.current:
+                user_mission.missionState = MissionState.COMPLETED
+
+            user_mission.save()
 
 
 def simulate_plant(plant_in_garden: PlantInGarden, station: Station) -> PlantInGarden:

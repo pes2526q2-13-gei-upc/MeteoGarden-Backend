@@ -40,14 +40,17 @@ class PotSerializer(serializers.ModelSerializer):
 
         active_products = [
             {
-                "name": ap.product.name,
-                "applied_at": ap.applied_at.isoformat(),
+                "name": active_product.product.name,
+                "applied_at": active_product.applied_at.isoformat(),
                 "expires_at": (
-                    ap.applied_at + timedelta(hours=ap.product.durationHours)
+                    active_product.applied_at
+                    + timedelta(hours=active_product.product.durationHours)
                 ).isoformat(),
             }
-            for ap in ActiveProduct.objects.filter(plant=planting)
-            if ap.is_active()
+            for active_product in ActiveProduct.objects.filter(
+                plant=planting
+            ).select_related("product")
+            if active_product.is_active()
         ]
         return {
             "scientific_name": planting.plant.scientificName,

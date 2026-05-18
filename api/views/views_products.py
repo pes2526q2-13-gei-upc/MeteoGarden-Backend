@@ -22,8 +22,10 @@ from api.plant_simulation import apply_product
 def update_user_missions(user, product_name):
     # Obtenim totes les missions en progres
     all_user_misions = UserMission.objects.filter(
-        user=user, missionState=MissionState.IN_PROGRESS
-    )
+        user=user,
+        missionState=MissionState.IN_PROGRESS,
+        mission__action=MissionAction.USE,
+    ).select_related("mission", "mission__product")
     product = Product.objects.get(name=product_name)
     for mission in all_user_misions:
         if mission.mission.action == MissionAction.USE:

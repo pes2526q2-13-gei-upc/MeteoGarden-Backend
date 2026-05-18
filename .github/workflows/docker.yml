@@ -22,7 +22,7 @@ jobs:
         env:
           POSTGRES_DB: meteogarden_test
           POSTGRES_USER: meteogarden
-          POSTGRES_PASSWORD: test-db-password
+          POSTGRES_PASSWORD: test-db-secret
         options: >-
           --health-cmd "pg_isready -U meteogarden -d meteogarden_test"
           --health-interval 5s

@@ -11,7 +11,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": os.getenv("POSTGRES_DB", "meteogarden_test"),
         "USER": os.getenv("POSTGRES_USER", "meteogarden"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD", "test-db-password"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD", "test-db-secret"),
         "HOST": os.getenv("POSTGRES_HOST", "localhost"),
         "PORT": os.getenv("POSTGRES_PORT", "5432"),
     }

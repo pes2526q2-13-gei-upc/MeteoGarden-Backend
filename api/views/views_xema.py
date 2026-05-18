@@ -6,8 +6,9 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from api.services.xema_sync import ensure_station_synced
+
 from ..models import Station, WeatherReading
-from ..xema_sync import ensure_station_synced
 
 load_dotenv()
 
@@ -56,8 +57,8 @@ def current_weather(request):
             "temperature": latest.temperature,
             "precipitation": latest.precipitation,
             "wind": latest.windSpeed,
-            # "solarIrradiance": latest.solarIrradiance,
-            # "relativeHumidity": latest.relativeHumidity,
+            "solarIrradiance": latest.solarIrradiance,
+            "relativeHumidity": latest.relativeHumidity,
         }
     )
 

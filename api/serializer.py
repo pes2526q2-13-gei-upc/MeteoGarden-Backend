@@ -1,6 +1,8 @@
+from datetime import timedelta
+
 from rest_framework import serializers
 
-from api.models import Image, Plant, Pot, Product
+from api.models import ActiveProduct, Event, EventsCategory, Image, Plant, Pot, Product
 
 
 class PotSerializer(serializers.ModelSerializer):
@@ -36,6 +38,20 @@ class PotSerializer(serializers.ModelSerializer):
         ).first()
         image_url = image.url.url if image and image.url else None
 
+        active_products = [
+            {
+                "name": active_product.product.name,
+                "applied_at": active_product.applied_at.isoformat(),
+                "expires_at": (
+                    active_product.applied_at
+                    + timedelta(hours=active_product.product.durationHours)
+                ).isoformat(),
+            }
+            for active_product in ActiveProduct.objects.filter(
+                plant=planting
+            ).select_related("product")
+            if active_product.is_active()
+        ]
         return {
             "scientific_name": planting.plant.scientificName,
             "common_name": planting.plant.commonName,
@@ -44,6 +60,7 @@ class PotSerializer(serializers.ModelSerializer):
             "min_temperature": planting.plant.minTemperature,
             "max_temperature": planting.plant.maxTemperature,
             "image_url": image_url,
+            "active_products": active_products,
         }
 
     def get_growth_phase(self, obj):
@@ -77,18 +94,26 @@ class InventorySeedSerializer(serializers.Serializer):
     scientificName = serializers.CharField()
     amount = serializers.IntegerField()
     image_url = serializers.SerializerMethodField()
+    description = serializers.SerializerMethodField()
 
-    def get_image_url(self, obj):
+    def get_plant(self, obj):
         scientific_name = obj.get("scientificName")
 
         try:
-            plant = Plant.objects.get(scientificName=scientific_name)
+            return Plant.objects.get(scientificName=scientific_name)
         except Plant.DoesNotExist:
             return None
 
+    def get_image_url(self, obj):
+        plant = self.get_plant(obj)
+        if not plant:
+            return None
         image = Image.objects.filter(plant=plant, growthPhase="mature").first()
-
         return image.url.url if image and image.url else None
+
+    def get_description(self, obj):
+        plant = self.get_plant(obj)
+        return plant.description if plant else None
 
 
 class ShopSeedSerializer(serializers.Serializer):
@@ -113,11 +138,54 @@ class InventoryProductSerializer(serializers.Serializer):
     productName = serializers.CharField()
     amount = serializers.IntegerField()
     image_url = serializers.SerializerMethodField()
+    description = serializers.SerializerMethodField()
 
-    def get_image_url(self, obj):
+    def get_product(self, obj):
         product_name = obj.get("productName")
+
         try:
-            product = Product.objects.get(name=product_name)
+            return Product.objects.get(name=product_name)
         except Product.DoesNotExist:
             return None
-        return product.image_url.url if product.image_url else None
+
+    def get_image_url(self, obj):
+        product = self.get_product(obj)
+        return product.image_url.url if product and product.image_url else None
+
+    def get_description(self, obj):
+        product = self.get_product(obj)
+        return product.description if product else None
+
+
+class EventsCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EventsCategory
+        fields = ["id", "name"]
+
+
+class EventSeedSerializer(serializers.ModelSerializer):
+    category = EventsCategorySerializer(read_only=True)
+
+    class Meta:
+        model = Event
+        fields = "__all__"
+
+
+class EventSerializer(serializers.ModelSerializer):
+    title = serializers.CharField()
+    subtitle = serializers.CharField()
+    category = EventsCategorySerializer(read_only=True)
+
+    class Meta:
+        model = Event
+        fields = [
+            "id",
+            "title",
+            "subtitle",
+            "city",
+            "start_date",
+            "category",
+            "end_date",
+            "price",
+            "image",
+        ]

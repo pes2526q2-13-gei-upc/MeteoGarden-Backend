@@ -1,19 +1,39 @@
 import json
 from datetime import timedelta
 
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from api.models import (
     ActiveProduct,
+    MissionAction,
+    MissionState,
     PlantInGarden,
     Pot,
     Product,
     User,
+    UserMission,
 )
 from api.plant_simulation import apply_product
+
+
+def update_user_missions(user, product_name):
+    # Obtenim totes les missions en progres
+    all_user_misions = UserMission.objects.filter(
+        user=user,
+        missionState=MissionState.IN_PROGRESS,
+        mission__action=MissionAction.USE,
+    ).select_related("mission", "mission__product")
+    product = Product.objects.get(name=product_name)
+    for mission in all_user_misions:
+        if mission.mission.action == MissionAction.USE:
+            if mission.mission.product is None or mission.mission.product == product:
+                mission.current += 1
+                if mission.mission.goal <= mission.current:
+                    mission.missionState = MissionState.COMPLETED
+                mission.save()
 
 
 @csrf_exempt
@@ -40,6 +60,7 @@ def use_product(request):
         product = get_object_or_404(Product, name=product_name)
 
         apply_product(user, plant, product_name)
+        update_user_missions(user, product_name)
         plant.refresh_from_db()
 
         response = {
@@ -69,10 +90,13 @@ def use_product(request):
                 }
             )
 
-        return JsonResponse(response)
+        return JsonResponse(response, status=200)
 
     except ActiveProduct.DoesNotExist:
         return JsonResponse({"error": "Active product not found"}, status=404)
+
+    except Http404 as e:
+        return JsonResponse({"error": str(e)}, status=404)
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=400)

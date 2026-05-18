@@ -120,7 +120,7 @@ class AvatarViewsTests(APITestCase):
         avatar = Avatar.objects.get(user=self.user)
         self.assertEqual(avatar.body, "3")
         self.assertEqual(avatar.expression, "sad")
-        self.assertEqual(avatar.expression_variant, "2")
+        self.assertEqual(avatar.expression_variant, 2)
 
         data = res.json()
         self.assertTrue(data["body"].endswith("/avatar/body/3.png"))

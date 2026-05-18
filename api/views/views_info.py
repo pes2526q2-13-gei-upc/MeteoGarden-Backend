@@ -7,9 +7,9 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from ..models import Plant
-from .views_image import createPlantImages
-from .views_translate import translate_text
+from api.models import Plant
+from api.services.translate import translate_text
+from api.views.views_image import createPlantImages
 
 TEMPS_RANGES = [
     (-51.1, 20),
@@ -39,7 +39,7 @@ def getTemperature(zone_min, zone_max) -> tuple[float | None, float | None]:
     return float(TEMPS_RANGES[zone_min - 1][0]), float(TEMPS_RANGES[zone_max - 1][1])
 
 
-def inferCanFlowerFromGBIF(scientific_name: str) -> bool | None:
+def inferCanFlowerFromGBIF(scientific_name: str) -> bool:
     try:
         response = requests.get(
             "https://api.gbif.org/v1/species/match",
@@ -58,9 +58,9 @@ def inferCanFlowerFromGBIF(scientific_name: str) -> bool | None:
             return True
         if phylum in NON_FLOWERING_PHYLA:
             return False
-        return None
+        return False
     except Exception:
-        return None
+        return False
 
 
 def getInfoFromWikipedia(scientific_name: str) -> dict:
@@ -97,7 +97,7 @@ def getInfoFromWikipedia(scientific_name: str) -> dict:
         }
 
     except Exception:
-        return {"canFlower": None, "description": None}
+        return {"canFlower": False, "description": None}
 
 
 def resolveScientificName(scientific_name: str) -> str:

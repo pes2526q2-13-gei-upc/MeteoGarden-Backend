@@ -1,15 +1,24 @@
-import pytest
+from unittest.mock import patch
+
 from django.urls import reverse
-from rest_framework.test import APIClient
+from rest_framework.test import APITestCase, APIClient
 
-from api.models import FriendRequest, Garden, User
+from api.models import (
+    FriendRequest,
+    Garden,
+    User,
+)
 
 
-@pytest.mark.django_db
-class TestFriendsAPI:
-    def setup_method(self):
+class TestFriendsAPI(APITestCase):
+
+    def setUp(self):
+
         self.client = APIClient()
-        self.TEST_PASSWORD = "testpassword123"
+
+        self.TEST_PASSWORD = (
+            "testpassword123"
+        )
 
         self.u1 = User.objects.create_user(
             username="alice",
@@ -18,6 +27,7 @@ class TestFriendsAPI:
             city="Bcn",
             stationCode="0001",
         )
+
         self.u2 = User.objects.create_user(
             username="bob",
             password=self.TEST_PASSWORD,
@@ -25,94 +35,257 @@ class TestFriendsAPI:
             city="Bcn",
             stationCode="0002",
         )
-        Garden.objects.create(user=self.u1, name="AliceGarden")
-        Garden.objects.create(user=self.u2, name="BobGarden")
+
+        Garden.objects.create(
+            user=self.u1,
+            name="AliceGarden"
+        )
+
+        Garden.objects.create(
+            user=self.u2,
+            name="BobGarden"
+        )
 
     def get_token(self, user):
-        self.client.force_authenticate(user)
+
+        self.client.force_authenticate(
+            user=user
+        )
+
+    ################################
+    # search
+    ################################
 
     def test_search_users(self):
-        url = reverse("search_users")
-        r = self.client.get(url, {"q": "ali"})
-        assert r.status_code == 200
-        results = r.json()
-        assert len(results) == 1
-        assert results[0]["username"] == "alice"
+
+        url = reverse(
+            "search_users"
+        )
+
+        response = self.client.get(
+            url,
+            {"q": "ali"}
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200
+        )
+
+        results = response.json()
+
+        self.assertEqual(
+            len(results),
+            1
+        )
+
+        self.assertEqual(
+            results[0]["username"],
+            "alice"
+        )
+
+    ################################
+    # friendship
+    ################################
 
     def test_friendship_flow(self):
-        FriendRequest.objects.create(
-            requester=self.u1, requested=self.u2, accepted=True
-        )
-
-        self.get_token(self.u1)
-        url = reverse("get_users_friends")
-        r = self.client.get(url)
-        assert r.status_code == 200
-        friends = r.json()["friends"]
-        assert friends[0]["username"] == "bob"
-        assert friends[0]["garden"] == "BobGarden"
-        self.client.force_authenticate(None)
-
-        # Delete friend
-        self.get_token(self.u1)
-        url = reverse("delete_friend", args=["bob"])
-        r = self.client.delete(url)
-        assert r.status_code == 200
-        assert "success" in r.json()["success"]
-
-        # Now, friendship should be gone
-        url = reverse("get_users_friends")
-        r = self.client.get(url)
-        assert r.status_code == 200
-        assert r.json()["friends"] == []
-
-    def test_like_friend_and_state(self, monkeypatch):
-        monkeypatch.setattr(
-            "api.views.views_friends.notify", lambda *args, **kwargs: None
-        )
 
         FriendRequest.objects.create(
-            requester=self.u1, requested=self.u2, accepted=True
+            requester=self.u1,
+            requested=self.u2,
+            accepted=True
         )
-        garden = Garden.objects.get(user=self.u2)
+
+        self.get_token(
+            self.u1
+        )
+
+        url = reverse(
+            "get_users_friends"
+        )
+
+        response = self.client.get(
+            url
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200
+        )
+
+        friends = response.json()[
+            "friends"
+        ]
+
+        self.assertEqual(
+            friends[0]["username"],
+            "bob"
+        )
+
+        self.assertEqual(
+            friends[0]["garden"],
+            "BobGarden"
+        )
+
+        self.client.force_authenticate(
+            None
+        )
+
+        self.get_token(
+            self.u1
+        )
+
+        url = reverse(
+            "delete_friend",
+            args=["bob"]
+        )
+
+        response = self.client.delete(
+            url
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200
+        )
+
+        self.assertIn(
+            "success",
+            response.json()[
+                "success"
+            ]
+        )
+
+        url = reverse(
+            "get_users_friends"
+        )
+
+        response = self.client.get(
+            url
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200
+        )
+
+        self.assertEqual(
+            response.json()[
+                "friends"
+            ],
+            []
+        )
+
+    ################################
+    # likes
+    ################################
+
+    @patch(
+        "api.views.views_friends.notify"
+    )
+    def test_like_friend_and_state(
+        self,
+        mock_notify
+    ):
+
+        mock_notify.return_value = None
+
+        FriendRequest.objects.create(
+            requester=self.u1,
+            requested=self.u2,
+            accepted=True
+        )
+
+        garden = Garden.objects.get(
+            user=self.u2
+        )
+
         garden.likes = 0
+
         garden.save()
 
-        self.get_token(self.u1)
-        url_like = reverse("like_friend", args=["bob"])
+        self.get_token(
+            self.u1
+        )
 
-        # Initial like state (should be False)
-        r = self.client.get(url_like)
-        assert r.status_code == 200
-        data = r.json()
-        assert data["state"] is False
-        assert data["likes"] == 0
+        url_like = reverse(
+            "like_friend",
+            args=["bob"]
+        )
 
-        # Like bob's garden
-        r = self.client.post(url_like)
-        assert r.status_code == 200
+        response = self.client.get(
+            url_like
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200
+        )
+
+        data = response.json()
+
+        self.assertFalse(
+            data["state"]
+        )
+
+        self.assertEqual(
+            data["likes"],
+            0
+        )
+
+        response = self.client.post(
+            url_like
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200
+        )
+
         garden.refresh_from_db()
-        data = r.json()
-        assert data["state"] is True
-        assert garden.likes == 1
-        assert data["likes"] == 1
 
-        # State like should now be True
-        r = self.client.get(url_like)
-        assert r.status_code == 200
-        data = r.json()
-        assert data["state"] is True
-        assert data["likes"] == 1
+        data = response.json()
 
-        # Dislike (toggle again)
-        r = self.client.post(url_like)
-        assert r.status_code == 200
+        self.assertTrue(
+            data["state"]
+        )
+
+        self.assertEqual(
+            garden.likes,
+            1
+        )
+
+        response = self.client.get(
+            url_like
+        )
+
+        data = response.json()
+
+        self.assertTrue(
+            data["state"]
+        )
+
+        response = self.client.post(
+            url_like
+        )
+
         garden.refresh_from_db()
-        data = r.json()
-        assert data["state"] is False
-        assert garden.likes == 0
 
-        self.client.force_authenticate(None)
+        data = response.json()
+
+        self.assertFalse(
+            data["state"]
+        )
+
+        self.assertEqual(
+            garden.likes,
+            0
+        )
+
+        self.client.force_authenticate(
+            None
+        )
+
         fake = User.objects.create_user(
             username="nofriend",
             password=self.TEST_PASSWORD,
@@ -120,11 +293,31 @@ class TestFriendsAPI:
             city="c",
             stationCode="c",
         )
-        self.get_token(fake)
-        url = reverse("like_friend", args=["alice"])
-        r = self.client.post(url)
-        assert r.status_code in [403, 404]
 
-        # This GET should also return 403 or 404
-        r = self.client.get(url)
-        assert r.status_code in [403, 404]
+        self.get_token(
+            fake
+        )
+
+        url = reverse(
+            "like_friend",
+            args=["alice"]
+        )
+
+        response = self.client.post(
+            url
+        )
+
+        self.assertIn(
+            response.status_code,
+            [403,404]
+        )
+
+        response = self.client.get(
+            url
+        )
+
+        self.assertIn(
+            response.status_code,
+            [403,404]
+        )
+

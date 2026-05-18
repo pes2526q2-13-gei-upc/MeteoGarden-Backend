@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from api.models import (
+    AlbumEntry,
     Garden,
     GrowthState,
     Inventory,
@@ -54,6 +55,16 @@ class CollectPlantTests(APITestCase):
             minTemperature=5,
             maxTemperature=35,
             description="Una rosa muy bonita",
+        )
+
+        # IMPORTANT:
+        # addSeed() requereix que la planta
+        # existeixi a l'àlbum
+
+        AlbumEntry.objects.create(
+            user=self.user,
+            plant=self.plant,
+            description="test"
         )
 
         self.garden = Garden.objects.create(

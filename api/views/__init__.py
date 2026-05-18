@@ -16,7 +16,7 @@ from .views_friends import (  # noqa: F401
 from .views_friends_request import (  # noqa: F401
     answer_request,
     cancel_request,
-    getRequests,
+    get_requests,
     send_friend_request,
 )
 from .views_identify import identifyPlant  # noqa: F401

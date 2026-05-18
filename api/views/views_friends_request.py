@@ -104,7 +104,7 @@ def cancel_request(request):
     requested_name = request.data.get("requested")
     requested = User.objects.get(username=requested_name)
     try:
-        friendRequest = FriendRequest.objects.get(
+        friend_request = FriendRequest.objects.get(
             requester=request.user, requested=requested
         )
     except FriendRequest.DoesNotExist:
@@ -112,36 +112,37 @@ def cancel_request(request):
             {"error": message},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    if not friendRequest:
-        return Response(
-            {"error": message},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    if friendRequest.accepted is not None:
+
+    if friend_request.accepted is not None:
         return Response(
             {"error": "Friend request is already answered'"},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
     # else
-    friendRequest.delete()
+    friend_request.delete()
     return Response({"Request canceled successfully"})
 
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def getRequests(request):
+def get_requests(request):
     action = request.data.get("action")
     if action == "sent":
-        requests = FriendRequest.objects.filter(requester=request.user, accepted=None)
+        requests = FriendRequest.objects.filter(
+            requester=request.user, accepted=None
+        ).select_related("requested")
         return Response({"requests_sent to": [r.requested.username for r in requests]})
-    elif action == "received":
-        requests = FriendRequest.objects.filter(requested=request.user, accepted=None)
+
+    if action == "received":
+        requests = FriendRequest.objects.filter(
+            requested=request.user, accepted=None
+        ).select_related("requester")
         return Response(
             {"requests_received from": [r.requester.username for r in requests]}
         )
-    else:
-        return Response(
-            {"error": "Field action must be 'sent' or 'received'."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+
+    return Response(
+        {"error": "Field action must be 'sent' or 'received'."},
+        status=status.HTTP_400_BAD_REQUEST,
+    )

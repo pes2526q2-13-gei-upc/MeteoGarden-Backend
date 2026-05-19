@@ -59,7 +59,7 @@ def get_shop(request):
             "seeds": ShopSeedSerializer(
                 seeds_data,
                 many=True,
-                context={"request": request},
+                context={"language": lang},
             ).data,
             "products": products_data,
         },

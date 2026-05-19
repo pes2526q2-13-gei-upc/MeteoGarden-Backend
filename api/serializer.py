@@ -34,8 +34,7 @@ class PotSerializer(serializers.ModelSerializer):
         if planting is None:
             return None
 
-        request = self.context.get("request")
-        lang = request.GET.get("lang", "en") if request else "en"
+        lang = self.context.get("language", "en")
 
         image = Image.objects.filter(
             plant=planting.plant, growthPhase=planting.growthPhase
@@ -117,8 +116,11 @@ class InventorySeedSerializer(serializers.Serializer):
         return image.url.url if image and image.url else None
 
     def get_description(self, obj):
+        lang = self.context.get("language", "en")
         plant = self.get_plant(obj)
-        return plant.description if plant else None
+        if not plant or not plant.description:
+            return None
+        return translate_text(plant.description, lang)
 
 
 class ShopSeedSerializer(serializers.Serializer):
@@ -136,8 +138,7 @@ class ShopSeedSerializer(serializers.Serializer):
         return translate_text(common_name, lang)
 
     def get_description(self, obj):
-        request = self.context.get("request")
-        lang = request.GET.get("lang", "en") if request else "en"
+        lang = self.context.get("language", "en")
         description = obj.get("description", "")
         return translate_text(description, lang)
 
@@ -159,9 +160,7 @@ class InventoryProductSerializer(serializers.Serializer):
     description = serializers.SerializerMethodField()
 
     def get_displayName(self, obj):
-        request = self.context.get("request")
-        lang = request.GET.get("lang", "en") if request else "en"
-
+        lang = self.context.get("language", "en")
         return translate_text(obj.get("productName"), lang)
 
     def get_product(self, obj):
@@ -177,8 +176,11 @@ class InventoryProductSerializer(serializers.Serializer):
         return product.image_url.url if product and product.image_url else None
 
     def get_description(self, obj):
+        lang = self.context.get("language", "en")
         product = self.get_product(obj)
-        return product.description if product else None
+        if not product or not product.description:
+            return None
+        return translate_text(product.description, lang)
 
 
 class EventsCategorySerializer(serializers.ModelSerializer):

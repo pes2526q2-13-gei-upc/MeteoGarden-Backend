@@ -60,7 +60,8 @@ def garden_plants(request, username, garden_name):
         .order_by("number")
         .select_related("plantingarden", "plantingarden__plant")
     )
-    serializer = PotSerializer(pots, many=True, context={"request": request})
+    user = get_object_or_404(User, username=username)
+    serializer = PotSerializer(pots, many=True, context={"language": user.language})
     return JsonResponse(serializer.data, safe=False)
 
 
@@ -91,7 +92,8 @@ def plant_status(request, username, garden_name, pot_number):
             planting = simulate_plant(planting, station)
             planting.save()
 
-    serializer = PotSerializer(pot, context={"request": request})
+    user = get_object_or_404(User, username=username)
+    serializer = PotSerializer(pot, context={"language": user.language})
     return JsonResponse(serializer.data)
 
 
@@ -188,7 +190,9 @@ def user_seeds(request, username):
         for seed, amount in inventory.seeds.items()
     ]
 
-    serializer = InventorySeedSerializer(seeds_data, many=True)
+    serializer = InventorySeedSerializer(
+        seeds_data, many=True, context={"language": user.language}
+    )
     return JsonResponse(serializer.data, safe=False)
 
 
@@ -205,6 +209,6 @@ def user_products(request, username):
     ]
 
     serializer = InventoryProductSerializer(
-        products_data, many=True, context={"request": request}
+        products_data, many=True, context={"language": user.language}
     )
     return JsonResponse(serializer.data, safe=False)

@@ -204,5 +204,9 @@ def user_products(request, username):
         for product, amount in sorted(inventory.products.items())
     ]
 
-    serializer = InventoryProductSerializer(products_data, many=True)
+    serializer = InventoryProductSerializer(
+        products_data,
+        many=True,
+        context={"request": request}
+    )
     return JsonResponse(serializer.data, safe=False)

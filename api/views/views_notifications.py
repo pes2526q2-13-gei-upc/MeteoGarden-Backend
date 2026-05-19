@@ -14,7 +14,10 @@ def save_fcm_token(request):
     if not token:
         return Response({"error": "No token"}, status=400)
 
-    Device.objects.get_or_create(user=user, token=token)
+    Device.objects.update_or_create(
+        token=token,
+        defaults={"user": user},
+    )
 
     return Response({"status": "ok"})
 

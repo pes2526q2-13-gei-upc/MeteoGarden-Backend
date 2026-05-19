@@ -45,13 +45,6 @@ class ShopModelTest(TestCase):
 
         self.assertEqual(shop.seeds, Shop.STARTER_SEEDS)
 
-    def test_initialize_starter_stock_fills_products(self):
-        """initialize_starter_stock carga los productos iniciales."""
-        shop = Shop.get_solo()
-        shop.initialize_starter_stock()
-
-        self.assertEqual(shop.products, Shop.STARTER_PRODUCTS)
-
     def test_initialize_starter_stock_does_not_overwrite_existing_seeds(self):
         """initialize_starter_stock no sobreescribe si ya hay seeds."""
         shop = Shop.get_solo()

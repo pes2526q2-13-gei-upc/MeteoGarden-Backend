@@ -1,7 +1,7 @@
 import requests
 from django.core.management.base import BaseCommand
 
-from third_party_service.models import Station
+from api.models import Station
 
 
 class Command(BaseCommand):
@@ -22,10 +22,12 @@ class Command(BaseCommand):
                 stationCode=row.get("codi_estacio"),
                 defaults={
                     "station": row.get("nom_estacio", ""),
-                    "city": row.get("nom_municipi", ""),
+                    "city": row.get("nom_estacio", ""),
                     "solarIrradiance": 0,
                     "temperature": 0.0,
                     "precipitation": 0.0,
+                    "windSpeed": 0.0,
+                    "relativeHumidity": 0.0,
                 },
             )
             if was_created:

@@ -1,6 +1,7 @@
 import logging
 import os
 from datetime import datetime, timedelta
+from datetime import timezone as dt_timezone
 
 import requests
 from django.utils import timezone
@@ -55,6 +56,43 @@ def ensure_station_synced(station: Station) -> bool:
     return True
 
 
+def _process_row(row):
+    """Extracted logic to handle row validation and parsing."""
+    ts_str = row.get("data_lectura", "")
+    var_code = row.get("codi_variable", "")
+    val = row.get("valor_lectura")
+
+    if not ts_str or var_code not in ALL_VARIABLE_CODES or val is None:
+        return None, None, None
+
+    try:
+        return ts_str, var_code, float(val)
+    except (ValueError, TypeError):
+        return None, None, None
+
+
+def _parse_timestamp(ts_str):
+    """Standardizes timestamp parsing with UTC fallback."""
+    try:
+        ts = datetime.fromisoformat(ts_str)
+        return ts.replace(tzinfo=dt_timezone.utc) if ts.tzinfo is None else ts
+    except (ValueError, TypeError):
+        return None
+
+
+def _fetch_xema_data(station_code, url):
+    """Handles the HTTP request logic and error logging."""
+    try:
+        response = requests.get(url, headers={"X-App-Token": XEMA_TOKEN}, timeout=15)
+        data = response.json()
+        if isinstance(data, list):
+            return data
+        logger.exception(f"[XEMA sync] Resposta inesperada per {station_code}: {data}")
+    except Exception as e:
+        logger.exception(f"[XEMA sync] Error consultant {station_code}: {e}")
+    return []
+
+
 def _fetch_and_save(station: Station, since: datetime, until: datetime) -> int:
 
     fmt = "%Y-%m-%dT%H:%M:%S"
@@ -72,58 +110,30 @@ def _fetch_and_save(station: Station, since: datetime, until: datetime) -> int:
         f"&$limit=5000"
     )
 
-    try:
-        rows = requests.get(
-            url,
-            headers={"X-App-Token": XEMA_TOKEN},
-            timeout=15,
-        ).json()
-    except Exception as e:
-        logger.error(
-            f"[XEMA sync] Error consultant l'estació {station.stationCode}: {e}"
-        )
-        return 0
-
-    if not isinstance(rows, list):
-        logger.error(f"[XEMA sync] Resposta inesperada: {rows}")
+    rows = _fetch_xema_data(station.stationCode, url)
+    if not rows:
         return 0
 
     # Agrupa variables per data { "2026-03-17T10:00:00": {"32": 18.4, "35": 0.0, ...} }
     by_timestamp: dict[str, dict[str, float]] = {}
-
     for row in rows:
-        ts_str = row.get("data_lectura", "")
-        var_code = row.get("codi_variable", "")
-        val = row.get("valor_lectura")
-
-        if not ts_str or var_code not in ALL_VARIABLE_CODES or val is None:
-            continue
-        try:
-            float_val = float(val)
-        except ValueError:
-            continue
-
-        if ts_str not in by_timestamp:
-            by_timestamp[ts_str] = {}
-        by_timestamp[ts_str][var_code] = float_val
+        ts_str, var_code, val = _process_row(row)
+        if ts_str:
+            by_timestamp.setdefault(ts_str, {})[var_code] = val
 
     # Guardem a la BD
     saved = 0
     for ts_str, codes in by_timestamp.items():
-        try:
-            ts = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
-        except ValueError:
+        ts = _parse_timestamp(ts_str)
+        if not ts:
             continue
-
-        fields = _build_fields(codes)
 
         _, created = WeatherReading.objects.update_or_create(
             station=station,
             timestamp=ts,
-            defaults=fields,
+            defaults=_build_fields(codes),
         )
-        if created:
-            saved += 1
+        saved += int(created)
 
     logger.info(
         f"[XEMA sync] {station.stationCode}: {saved} lectures noves "

@@ -1,44 +1,23 @@
 from datetime import date, datetime, timedelta
 from datetime import timezone as dt_timezone
-from functools import wraps
 
+from django.contrib.auth import authenticate, get_user_model
 from django.db.models import Max, Min
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework import status
+from rest_framework.decorators import (
+    api_view,
+    authentication_classes,
+    permission_classes,
+)
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
-from third_party_service.models import ApiKey, Station, WeatherReading
-from third_party_service.xema_sync import _fetch_and_save, ensure_station_synced
+from api.models import Station, WeatherReading
+from api.services.xema_sync import _fetch_and_save, ensure_station_synced
+from third_party_service.authentication import ApiKeyAuthentication
+from third_party_service.models import ApiKey
 
-
-def require_api_key(func):
-    @wraps(func)
-    def wrapper(request, *args, **kwargs):
-        key = request.headers.get("X-API-KEY") or request.GET.get("api_key")
-        if not key or len(key) < 16:
-            return Response({"error": "Invalid or missing API key"}, status=401)
-        prefix = key[:16]
-        hashed = ApiKey.hash_token(key)
-        try:
-            token = ApiKey.objects.get(
-                key_prefix=prefix,
-                key_hash=hashed,
-                revoked_at__isnull=True,
-            )
-            if not token.is_active:
-                return Response({"error": "API key is expired or revoked"}, status=401)
-            request.token = token
-            if token.created_by:
-                request.user = token.created_by
-            from django.utils import timezone
-
-            token.last_used_at = timezone.now()
-            token.save(update_fields=["last_used_at"])
-        except ApiKey.DoesNotExist:
-            return Response({"error": "Invalid or missing API key"}, status=401)
-        return func(request, *args, **kwargs)
-
-    return wrapper
+message_city = "city is required"
 
 
 def _get_station_by_city(city: str):
@@ -47,12 +26,10 @@ def _get_station_by_city(city: str):
     if not stations.exists():
         return None
 
-    # Si hi ha coincidència exacta, la prioritzem
     exact = stations.filter(city__iexact=city).first()
     if exact:
         return exact
 
-    # Si no, retornem la primera coincidència parcial
     return stations.first()
 
 
@@ -64,13 +41,13 @@ def _aggregate_day(station, day_start, day_end):
 
 # GET {BASE_URL}/api/weather/current/?city=<ciutat>
 @api_view(["GET"])
-@permission_classes([AllowAny])
-@require_api_key
+@permission_classes([IsAuthenticated])
+@authentication_classes([ApiKeyAuthentication])
 def current_weather(request):
     city = request.GET.get("city")
 
     if not city:
-        return Response({"error": "city is required"}, status=400)
+        return Response({"error": message_city}, status=400)
 
     station = _get_station_by_city(city)
     if not station:
@@ -100,14 +77,14 @@ def current_weather(request):
 
 # GET {BASE_URL}/api/weather/daily/?city=<ciutat>&date=YYYY-MM-DD
 @api_view(["GET"])
-@permission_classes([AllowAny])
-@require_api_key
+@permission_classes([IsAuthenticated])
+@authentication_classes([ApiKeyAuthentication])
 def daily_weather(request):
     city = request.GET.get("city")
     date_str = request.GET.get("date")
 
     if not city:
-        return Response({"error": "city is required"}, status=400)
+        return Response({"error": message_city}, status=400)
 
     if not date_str:
         return Response({"error": "date is required (YYYY-MM-DD)"}, status=400)
@@ -158,26 +135,96 @@ def daily_weather(request):
     )
 
 
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+@authentication_classes([ApiKeyAuthentication])
+def get_stations_for_city(request):
+    city = request.GET.get("city")
+    if not city:
+        return Response({"error": message_city}, status=400)
+    stations = Station.objects.filter(city__icontains=city)
+    if not stations.exists():
+        return Response({"error": f"No station found for city {city}"}, status=404)
+
+    results = []
+    for station in stations:
+        results.append(
+            {
+                "city": station.city,
+            }
+        )
+    return Response({"cities": results})
+
+
 @api_view(["POST"])
-@permission_classes([AllowAny])  # o [IsAuthenticated]
-def create_api_key(request):
-    name = request.data.get("name", "")
-    if not name:
-        return Response({"error": 'El camp "name" és obligatori.'}, status=400)
+@permission_classes([IsAdminUser])
+def register_and_get_key(request):
+    username = request.data.get("username", "").strip()
+    email = request.data.get("email", "").strip()
+    password = request.data.get("password", "")
+    key_name = request.data.get("key_name", "Default API Key").strip()
 
-    # Si fas servir auth, pots associar la clau a l'usuari autenticat:
-    user = request.user if request.user.is_authenticated else None
-
-    # Potser vols comprovar que no existeix ja una key amb el mateix nom:
-    if ApiKey.objects.filter(name=name).exists():
+    if not username or not email or not password:
         return Response(
-            {"error": "Ja existeix una API key amb aquest nom."}, status=400
+            {"error": "Username, email i password són obligatoris."}, status=400
         )
 
-    _, raw_token = ApiKey.issue_token(name=name, created_by=user)
+    user = get_user_model()
+
+    # 1. Intentem crear l'usuari real
+    if user.objects.filter(username=username).exists():
+        return Response({"error": "Aquest nom d'usuari ja està agafat."}, status=400)
+
+    try:
+        user = user.objects.create_user(
+            username=username, email=email, password=password
+        )
+    except Exception as e:
+        return Response({"error": f"Error al crear l'usuari: {str(e)}"}, status=400)
+
+    # 2. Li creem la seva primera API Key automàticament
+    _, raw_token = ApiKey.issue_token(name=key_name, created_by=user)
+
+    # 3. Retornem tot de cop
     return Response(
         {
-            "name": name,
-            "api_key": raw_token,  # <-- Aquesta és la clau en clar, el client l'ha de guardar!
-        }
+            "message": "Usuari registrat amb èxit!",
+            "username": user.username,
+            "api_key": raw_token,
+            "note": "Guarda bé aquesta clau, no es tornarà a mostrar.",
+        },
+        status=status.HTTP_201_CREATED,
+    )
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def login_and_generate_key(request):
+    username = request.data.get("username")
+    password = request.data.get("password")
+    key_name = request.data.get("key_name", "Clau de Sessió").strip()
+
+    user = authenticate(username=username, password=password)
+
+    if user is None:
+        return Response(
+            {"error": "Credencials incorrectes. Torna-ho a provar."},
+            status=status.HTTP_401_UNAUTHORIZED,
+        )
+
+    if not user.is_active:
+        return Response(
+            {"error": "Aquest compte està desactivat."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    _, raw_token = ApiKey.issue_token(name=key_name, created_by=user)
+
+    return Response(
+        {
+            "status": "Login correcte",
+            "username": user.get_username(),
+            "api_key": raw_token,
+        },
+        status=status.HTTP_200_OK,
     )

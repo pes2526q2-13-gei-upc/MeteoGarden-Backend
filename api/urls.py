@@ -80,7 +80,7 @@ urlpatterns = [
     ),
     path("weather/current/", current_weather),
     path("stations/", get_stations),
-    path("plants/info/", importPlant),
+    path("plants/info/", importPlant, name="importPlant"),
     path("plants/identify", identifyPlant, name="identifyPlant"),
     path("users/<str:username>/album/", getUserAlbum),
     path(

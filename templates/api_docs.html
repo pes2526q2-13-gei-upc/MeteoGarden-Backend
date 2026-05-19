@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Swagger UI - XEMA Weather API</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.29.0/swagger-ui.min.css" integrity="sha512-QIJpSy6rqOKoEjIR+Pp7r5lTkNPJPJCRejWzG4jb12bCT1EeL/vcjZtk4NNKeEuVRXY+d34d/t9y1CHzZbgeJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body { margin: 0; padding: 0; }
+    </style>
+</head>
+<body>
+    <div id="swagger-ui"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.29.0/swagger-ui-bundle.min.js" integrity="sha512-uRL0dWo7kTNu+5ZwjyjVBt1Seg5JM14NX0Yo3nToKUVJPLINpNYvFrOYQq2ALBxRMCSMT4vSAexXYDUp5Qbt/A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        globalThis.onload = () => {
+            globalThis.ui = SwaggerUIBundle({
+                url: "/static/openapi.yaml",
+                dom_id: '#swagger-ui',
+                deepLinking: true,
+                presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIBundle.SwaggerUIStandalonePreset
+                ],
+            });
+        };
+    </script>
+</body>
+</html>

@@ -31,23 +31,21 @@ def get_shop(request):
             continue
 
     products_data = []
-    for name, price in shop.products.items():
-        try:
-            product = Product.objects.get(name=name)
-            products_data.append(
-                {
-                    "name": product.name,
-                    "description": product.description,
-                    "effectType": product.effectType,
-                    "value": product.value,
-                    "durationHours": product.durationHours,
-                    "isInstant": product.isInstant,
-                    "price": price,
-                    "image_url": product.image_url.url if product.image_url else None,
-                }
-            )
-        except Product.DoesNotExist:
-            continue
+
+    for product in Product.objects.select_related().all():
+        products_data.append(
+            {
+                "name": product.name,
+                "description": product.description,
+                "effectType": product.effectType,
+                "value": product.value,
+                "durationHours": product.durationHours,
+                "isInstant": product.isInstant,
+                "price": product.price,
+                "image_url": product.image_url.url if product.image_url else None,
+                "rarity": product.rarity,
+            }
+        )
 
     return JsonResponse(
         {
@@ -82,9 +80,13 @@ def buy_item(request, username):
         price = shop.seeds[item_name]
 
     elif item_type == "product":
-        if item_name not in shop.products:
-            return JsonResponse({"error": "Product not found in shop"}, status=404)
-        price = shop.products[item_name]
+        try:
+            product = Product.objects.get(name=item_name)
+
+        except Product.DoesNotExist:
+            return JsonResponse({"error": "Product not found"}, status=404)
+
+        price = product.price
 
     else:
         return JsonResponse(

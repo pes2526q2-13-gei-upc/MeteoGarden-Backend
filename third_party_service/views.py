@@ -9,7 +9,7 @@ from rest_framework.decorators import (
     authentication_classes,
     permission_classes,
 )
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
 from api.models import Station, WeatherReading
@@ -157,7 +157,7 @@ def get_stations_for_city(request):
 
 
 @api_view(["POST"])
-@permission_classes([AllowAny])
+@permission_classes([IsAdminUser])
 def register_and_get_key(request):
     username = request.data.get("username", "").strip()
     email = request.data.get("email", "").strip()

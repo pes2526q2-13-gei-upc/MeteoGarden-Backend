@@ -5,11 +5,14 @@ from rest_framework.response import Response
 
 from api.models import FriendRequest, User
 from api.views.views_translate import translate_text
+from api.services.notifications import notify
+
+message = "Friend request doesn't exist"
 
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def sendFriendRequest(request):
+def send_friend_request(request):
     lang = request.user.language
     requested_name = request.data.get("requested")
     try:
@@ -56,12 +59,17 @@ def sendFriendRequest(request):
     FriendRequest.objects.create(
         requester=request.user, requested=requested, accepted=None
     )
+    notify(
+        requested,
+        "👤 New notification!",
+        f"'{request.user.username}' has sent you a friend request!",
+    )
     return Response({translate_text("Request sent successfully", lang)})
 
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def answerRequest(request):
+def answer_request(request):
     lang = request.user.language
     action = request.data.get("action")
     if action is None:
@@ -79,25 +87,24 @@ def answerRequest(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
     try:
-        friendRequest = FriendRequest.objects.get(requested=user, requester=requester)
+        friend_request = FriendRequest.objects.get(requested=user, requester=requester)
     except FriendRequest.DoesNotExist:
         return Response(
-            {"error": translate_text("Friend request doesn't exist", lang)},
+            {"error": message},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    if friendRequest.accepted is not None:
+    if friend_request.accepted is not None:
         return Response(
             {"error": translate_text("Friend request is already answered", lang)},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
     if action == "accept":
-        friendRequest.accepted = True
-        friendRequest.save()
+        friend_request.accepted = True
+        friend_request.save()
         return Response({translate_text("Request accepted successfully", lang)})
     if action == "reject":
-        friendRequest.accepted = False
-        friendRequest.save()
+        friend_request.delete()
         return Response({translate_text("Request rejected successfully", lang)})
     return Response(
         {"error": translate_text("Action field is not correct", lang)},
@@ -107,54 +114,50 @@ def answerRequest(request):
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def cancelRequest(request):
+def cancel_request(request):
     lang = request.user.language
     requested_name = request.data.get("requested")
     requested = User.objects.get(username=requested_name)
     try:
-        friendRequest = FriendRequest.objects.get(
+        friend_request = FriendRequest.objects.get(
             requester=request.user, requested=requested
         )
     except FriendRequest.DoesNotExist:
         return Response(
-            {"error": translate_text("Friend request doesn't exist", lang)},
+            {"error": message},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    if not friendRequest:
-        return Response(
-            {"error": translate_text("Friend request doesn't exist", lang)},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    if friendRequest.accepted is not None:
+
+    if friend_request.accepted is not None:
         return Response(
             {"error": translate_text("Friend request is already answered'", lang)},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
     # else
-    friendRequest.delete()
+    friend_request.delete()
     return Response({translate_text("Request canceled successfully", lang)})
 
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def getRequests(request):
+def get_requests(request):
     lang = request.user.language
     action = request.data.get("action")
     if action == "sent":
-        requests = FriendRequest.objects.filter(requester=request.user, accepted=None)
+        requests = FriendRequest.objects.filter(
+            requester=request.user, accepted=None
+        ).select_related("requested")
         return Response({"requests_sent to": [r.requested.username for r in requests]})
-    elif action == "received":
-        requests = FriendRequest.objects.filter(requested=request.user, accepted=None)
+
+    if action == "received":
+        requests = FriendRequest.objects.filter(
+            requested=request.user, accepted=None
+        ).select_related("requester")
         return Response(
             {"requests_received from": [r.requester.username for r in requests]}
         )
-    else:
-        return Response(
-            {
-                "error": translate_text(
-                    "Field action must be 'sent' or 'received'.", lang
-                )
-            },
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+    return Response(
+        {"error": translate_text("Field action must be 'sent' or 'received'.", lang)},
+        status=status.HTTP_400_BAD_REQUEST,
+    )

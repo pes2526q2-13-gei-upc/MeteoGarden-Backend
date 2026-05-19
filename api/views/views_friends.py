@@ -6,11 +6,12 @@ from rest_framework.response import Response
 
 from api.models import FriendRequest, Garden, User
 from api.views.views_translate import translate_text
+from api.services.notifications import notify
 
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def searchUsers(request):
+def search_users(request):
     query = request.query_params.get("q", "")
 
     if query:
@@ -20,16 +21,14 @@ def searchUsers(request):
 
     results = []
     for u in users:
-        results.append(
-            {"username": u.username, "avatar": u.avatar.url if u.avatar else None}
-        )
+        results.append({"username": u.username})
 
     return Response(results)
 
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def getUsersFriends(request):
+def get_users_friends(request):
     user = request.user
 
     friend_requests = FriendRequest.objects.filter(
@@ -44,15 +43,16 @@ def getUsersFriends(request):
         friends_list.append(
             {
                 "username": friend_user.username,
-                "avatar": friend_user.avatar.url if friend_user.avatar else None,
                 "garden": Garden.objects.filter(user=friend_user).first().name,
             }
         )
 
+    return Response({"friends": friends_list})
+
 
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
-def deleteFriend(request, username):
+def delete_friend(request, username):
     lang = request.user.language
     try:
         friend = User.objects.get(username=username)
@@ -81,39 +81,81 @@ def deleteFriend(request, username):
     )
 
 
-@api_view(["POST"])
+@api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated])
-def likeFriend(request, username):
+def like_friend(request, username):
     lang = request.user.language
     try:
         friend = User.objects.get(username=username)
     except User.DoesNotExist:
         return Response({"error": translate_text("User not found.", lang)}, status=404)
 
-    is_friend = FriendRequest.objects.filter(
-        (
-            Q(requester=request.user, requested=friend)
-            | Q(requester=friend, requested=request.user)
-        ),
-        accepted=True,
-    ).exists()
+    friend_ship = get_friendship(request.user, friend)
 
-    if not is_friend:
-        return Response(
-            {"error": translate_text("You are not friends with this user.", lang)},
-            status=403,
-        )
+    if not friend_ship:
+        return Response({"error": translate_text("You are not friends with this user.", lang)}, status=403)
 
     try:
         garden = Garden.objects.get(user=friend)
-        garden.likes += 1
-        garden.save()
     except Garden.DoesNotExist:
-        return Response(
-            {"error": translate_text("This user does not have a garden yet.", lang)},
-            status=404,
+        return Response({"error": translate_text("This user does not have a garden yet.", lang)}, status=404)
+
+    like_state = handle_like_action(request, friend_ship, garden)
+
+    friend_ship.save()
+    garden.save()
+
+    return Response({"state": like_state, "likes": garden.likes}, status=200)
+
+
+def get_friendship(user, friend):
+    return FriendRequest.objects.filter(
+        (Q(requester=user, requested=friend) | Q(requester=friend, requested=user)),
+        accepted=True,
+    ).first()
+
+
+def handle_like_action(request, friend_ship, garden):
+    if friend_ship.requester == request.user:
+        return handle_requested_like(request, friend_ship, garden)
+
+    return handle_requester_like(request, friend_ship, garden)
+
+
+def handle_requested_like(request, friend_ship, garden):
+    if request.method == "POST":
+        friend_ship.likeToRequested = toggle_like(
+            current_state=friend_ship.likeToRequested,
+            garden=garden,
+            notified_user=friend_ship.requested,
+            liker=request.user,
         )
 
-    return Response(
-        {"success": translate_text(f"Total likes: {garden.likes}", lang)}, status=200
+    return friend_ship.likeToRequested
+
+
+def handle_requester_like(request, friend_ship, garden):
+    if request.method == "POST":
+        friend_ship.likeToRequester = toggle_like(
+            current_state=friend_ship.likeToRequester,
+            garden=garden,
+            notified_user=friend_ship.requester,
+            liker=request.user,
+        )
+
+    return friend_ship.likeToRequester
+
+
+def toggle_like(current_state, garden, notified_user, liker):
+    if current_state:
+        garden.likes -= 1
+        return False
+
+    garden.likes += 1
+    notify(
+        notified_user,
+        "Like",
+        f"This user {liker.username} liked you.",
     )
+    return True
+

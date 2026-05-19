@@ -20,18 +20,23 @@ from ..models import (
 from .views_translate import translate_text
 
 
-def updatePlantMissions(user, plant):
+def update_plant_missions(user, plant):
     # Obtenim les missions
     missions = UserMission.objects.filter(
-        user=user, missionState=MissionState.IN_PROGRESS
+        user=user,
+        missionState=MissionState.IN_PROGRESS,
+        mission__action=MissionAction.PLANT,
     )
-    for mission in missions:
-        if mission.mission.action == MissionAction.PLANT:
-            if mission.mission.plant is None or mission.mission.plant == plant:
-                mission.current += 1
-                if mission.mission.goal <= mission.current:
-                    mission.missionState = MissionState.COMPLETED
-                mission.save()
+    for user_mission in missions:
+        mission = user_mission.mission
+
+        if mission.plant is None or mission.plant == plant:
+            user_mission.current += 1
+
+            if mission.goal <= user_mission.current:
+                user_mission.missionState = MissionState.COMPLETED
+
+            user_mission.save()
 
 
 @csrf_exempt
@@ -106,7 +111,7 @@ def plant_seed(request, username, garden_name, pot_number):
         lastWateredAt=timezone.now(),
     )
 
-    updatePlantMissions(user, plant)
+    update_plant_missions(user, plant)
 
     data = {
         "message": translate_text("Plant planted successfully.", lang),

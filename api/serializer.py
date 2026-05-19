@@ -44,15 +44,18 @@ class PotSerializer(serializers.ModelSerializer):
 
         active_products = [
             {
-                "name": ap.product.name,
-                "displayName": translate_text(ap.product.name, lang),
-                "applied_at": ap.applied_at.isoformat(),
+                "name": active_product.product.name,
+                "displayName": translate_text(active_product.product.name, lang),
+                "applied_at": active_product.applied_at.isoformat(),
                 "expires_at": (
-                    ap.applied_at + timedelta(hours=ap.product.durationHours)
+                    active_product.applied_at
+                    + timedelta(hours=active_product.product.durationHours)
                 ).isoformat(),
             }
-            for ap in ActiveProduct.objects.filter(plant=planting)
-            if ap.is_active()
+            for active_product in ActiveProduct.objects.filter(
+                plant=planting
+            ).select_related("product")
+            if active_product.is_active()
         ]
         return {
             "scientific_name": planting.plant.scientificName,
@@ -96,18 +99,26 @@ class InventorySeedSerializer(serializers.Serializer):
     scientificName = serializers.CharField()
     amount = serializers.IntegerField()
     image_url = serializers.SerializerMethodField()
+    description = serializers.SerializerMethodField()
 
-    def get_image_url(self, obj):
+    def get_plant(self, obj):
         scientific_name = obj.get("scientificName")
 
         try:
-            plant = Plant.objects.get(scientificName=scientific_name)
+            return Plant.objects.get(scientificName=scientific_name)
         except Plant.DoesNotExist:
             return None
 
+    def get_image_url(self, obj):
+        plant = self.get_plant(obj)
+        if not plant:
+            return None
         image = Image.objects.filter(plant=plant, growthPhase="mature").first()
-
         return image.url.url if image and image.url else None
+
+    def get_description(self, obj):
+        plant = self.get_plant(obj)
+        return plant.description if plant else None
 
 
 class ShopSeedSerializer(serializers.Serializer):
@@ -145,6 +156,7 @@ class InventoryProductSerializer(serializers.Serializer):
     displayName = serializers.SerializerMethodField()
     amount = serializers.IntegerField()
     image_url = serializers.SerializerMethodField()
+    description = serializers.SerializerMethodField()
 
     def get_displayName(self, obj):
         request = self.context.get("request")
@@ -152,13 +164,22 @@ class InventoryProductSerializer(serializers.Serializer):
 
         return translate_text(obj.get("productName"), lang)
 
-    def get_image_url(self, obj):
+    def get_product(self, obj):
         product_name = obj.get("productName")
+
         try:
-            product = Product.objects.get(name=product_name)
+            return Product.objects.get(name=product_name)
         except Product.DoesNotExist:
             return None
-        return product.image_url.url if product.image_url else None
+
+    def get_image_url(self, obj):
+        product = self.get_product(obj)
+        return product.image_url.url if product and product.image_url else None
+
+    def get_description(self, obj):
+        product = self.get_product(obj)
+        return product.description if product else None
+
 
 
 class EventsCategorySerializer(serializers.ModelSerializer):

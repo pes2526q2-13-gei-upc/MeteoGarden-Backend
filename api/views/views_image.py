@@ -13,7 +13,7 @@ from ..models import AlbumEntry, GrowthState, Image, Plant, User
 
 POLLINATIONS_URL = "https://gen.pollinations.ai/image"
 STATE_DESCRIPTIONS = {
-    "seed": "a single small round brown seed, surface texture detailed",
+    "seed": "a single small round brown seed, surface texture detailed, no leaf",
     "germination": "tiny green sprout emerging from a seed, two small cotyledon leaves, delicate stem",
     "growth": "young plant, vibrant green leaves, developing stem, bushy and healthy growth",
     "mature": "full-grown plant, lush foliage, complex leaf structure, thick sturdy stem, vigorous appearance",

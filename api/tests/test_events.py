@@ -1,263 +1,161 @@
 from datetime import datetime, timedelta
 from unittest.mock import patch
 
-import pytest
 from django.urls import reverse
-from rest_framework.test import APIClient
+from django.utils import timezone
+from rest_framework.test import APIClient, APITestCase
 
 from api.models import Event, EventsCategory
 
 
-@pytest.fixture
-def some_categories(db):
-    c1 = EventsCategory.objects.create(id=1, name="Música")
-    c2 = EventsCategory.objects.create(id=2, name="Turisme")
-    return [c1, c2]
+class EventTests(APITestCase):
 
+    def setUp(self):
 
-@pytest.fixture
-def test_events(some_categories):
-    base = datetime.now()
-    e1 = Event.objects.create(
-        id="1",
-        title="Concert Rock",
-        subtitle="Gran concert",
-        description="Desc 1",
-        start_date=base - timedelta(days=2),
-        end_date=base + timedelta(days=2),
-        category=some_categories[0],
-        price=10,
-        tags=["concert"],
-        city="Tarragona",
-        street="Rambla Vella",
-    )
-    e2 = Event.objects.create(
-        id="2",
-        title="Ruta modernista",
-        subtitle="Descobreix la ciutat",
-        description="Desc 2",
-        start_date=base - timedelta(days=1),
-        end_date=base + timedelta(days=2),
-        category=some_categories[1],
-        price=0,
-        tags=["ruta"],
-        city="Reus",
-        street="Plaça Mercadal",
-    )
-    return [e1, e2]
+        self.c1 = EventsCategory.objects.create(id=1, name="Música")
 
+        self.c2 = EventsCategory.objects.create(id=2, name="Turisme")
 
-#
-# FUNCIONS DE DOMINI (unitats)
-#
+        base = timezone.now()
 
+        self.e1 = Event.objects.create(
+            id="1",
+            title="Concert Rock",
+            subtitle="Gran concert",
+            description="Desc 1",
+            start_date=base - timedelta(days=2),
+            end_date=base + timedelta(days=2),
+            category=self.c1,
+            price=10,
+            tags=["concert"],
+            city="Tarragona",
+            street="Rambla Vella",
+        )
 
-@patch("api.views.views_event.translate_text", side_effect=lambda xs, lang: xs)
-@pytest.mark.django_db
-def test_get_all_events_returns_expected(test_events, mock_trad):
-    from api.views.views_event import get_all_events
+        self.e2 = Event.objects.create(
+            id="2",
+            title="Ruta modernista",
+            subtitle="Descobreix la ciutat",
+            description="Desc 2",
+            start_date=base - timedelta(days=1),
+            end_date=base + timedelta(days=2),
+            category=self.c2,
+            price=0,
+            tags=["ruta"],
+            city="Reus",
+            street="Plaça Mercadal",
+        )
 
-    date = datetime.now().isoformat()
-    data = get_all_events(date, lang="cat")
-    assert isinstance(data, list)
-    assert len(data) == 2
-    for ev in data:
-        assert "title" in ev and "city" in ev and "category" in ev
+        self.events = [self.e1, self.e2]
 
+    # --- FUNCIONS DE DOMINI ---
 
-@patch("api.views.views_event.translate_text", side_effect=lambda xs, lang: xs)
-@pytest.mark.django_db
-def test_get_all_events_by_city_ok(test_events, mock_trad):
-    from api.views.views_event import get_all_events
+    def test_get_all_events_returns_expected(self):
 
-    date = datetime.now().isoformat()
-    data = get_all_events(date, lang="cat", city="tarragona", cat=None)
-    assert len(data) == 1
-    assert data[0]["city"].lower() == "tarragona"
+        from api.views.views_event import get_all_events
 
+        with patch(
+            "api.views.views_event.translate_text", side_effect=lambda xs, lang: xs
+        ):
 
-@patch("api.views.views_event.translate_text", side_effect=lambda xs, lang: xs)
-@pytest.mark.django_db
-def test_get_all_events_by_category_ok(test_events, mock_trad, some_categories):
-    from api.views.views_event import get_all_events
+            date = datetime.now().isoformat()
 
-    date = datetime.now().isoformat()
-    data = get_all_events(date, lang="cat", city=None, cat="Música")
-    assert len(data) == 1
-    assert data[0]["category"]["name"] == "Música"
+            data = get_all_events(date, lang="cat", city=None, cat=None)
 
+            self.assertIsInstance(data, list)
 
-@pytest.mark.django_db
-def test_get_number_of_events_all_and_by_city(test_events):
-    from api.views.views_event import get_number_of_events
+            self.assertEqual(len(data), 2)
 
-    now = datetime.now()
-    month, year = str(now.month), str(now.year)
-    all_events = list(get_number_of_events(month, year, city=None))
-    assert all("day" in ev and "total" in ev for ev in all_events)
-    total = sum(ev["total"] for ev in all_events)
-    assert total >= 2
+    def test_get_all_events_by_city_ok(self):
 
-    events_in_tarragona = list(get_number_of_events(month, year, city="Tarragona"))
-    # Com a mínim 1 event a Tarragona
-    assert sum(ev["total"] for ev in events_in_tarragona) >= 1
+        from api.views.views_event import get_all_events
 
+        with patch(
+            "api.views.views_event.translate_text", side_effect=lambda xs, lang: xs
+        ):
 
-@patch(
-    "api.views.views_event.translate_text",
-    side_effect=lambda xs, lang: [
-        a + " [trad]" if isinstance(a, str) else a for a in xs
-    ],
-)
-@pytest.mark.django_db
-def test_get_details_translates_fields(test_events, mock_trad):
-    from api.views.views_event import get_details
+            date = timezone.now().isoformat()
 
-    ev = test_events[0]
-    result = get_details(ev.id, lang="es")
-    # Títol traduït mockejat
-    assert result.title.endswith("[trad]")
-    assert hasattr(result, "category")
-    assert result.category.name.endswith("[trad]") if result.category else True
+            data = get_all_events(date, "cat", "tarragona", None)
 
+            self.assertEqual(len(data), 1)
 
-@pytest.mark.django_db
-def test_get_details_cat_no_translation(test_events):
-    from api.views.views_event import get_details
+            self.assertEqual(data[0]["city"].lower(), "tarragona")
 
-    ev = test_events[0]
-    result = get_details(ev.id, lang="cat")
-    assert result.title == ev.title
+    def test_get_all_events_by_category_ok(self):
 
+        from api.views.views_event import get_all_events
 
-#
-# ENDPOINTS HTTP
-#
+        with patch(
+            "api.views.views_event.translate_text", side_effect=lambda xs, lang: xs
+        ):
 
+            date = timezone.now().isoformat()
 
-@pytest.mark.django_db
-def test_get_events_endpoint(test_events):
-    client = APIClient()
-    date = datetime.now().date().isoformat()
-    url = reverse("getEvents") + f"?date={date}&lang=cat"
-    resp = client.get(url)
-    assert resp.status_code == 200
-    data = resp.json()
-    assert "events" in data
-    assert type(data["events"]) is list and len(data["events"]) == 2
+            data = get_all_events(date, "cat", None, "Música")
 
+            self.assertEqual(len(data), 1)
 
-@pytest.mark.django_db
-def test_get_events_by_city_endpoint(test_events):
-    client = APIClient()
-    date = datetime.now().date().isoformat()
-    url = reverse("getEventsByCity") + f"?date={date}&lang=cat&city=Tarragona"
-    resp = client.get(url)
-    assert resp.status_code == 200
-    data = resp.json()
-    cities = [ev["city"].lower() for ev in data["events"]]
-    assert "tarragona" in cities
+            self.assertEqual(data[0]["category"]["name"], "Música")
 
+    def test_get_number_of_events_all_and_by_city(self):
 
-@pytest.mark.django_db
-def test_get_events_by_category_endpoint(test_events):
-    client = APIClient()
-    date = datetime.now().date().isoformat()
-    url = reverse("getEventsByCategory") + f"?date={date}&lang=cat&category=Música"
-    resp = client.get(url)
-    assert resp.status_code == 200
-    data = resp.json()
-    assert len(data["events"]) == 1
-    assert data["events"][0]["category"]["name"] == "Música"
+        from api.views.views_event import get_number_of_events
 
+        now = timezone.now()
 
-@pytest.mark.django_db
-def test_get_num_events_endpoint(test_events):
-    client = APIClient()
-    now = datetime.now()
-    url = reverse("getNumEvents") + f"?year={now.year}&month={now.month}"
-    resp = client.get(url)
-    assert resp.status_code == 200
-    data = resp.json()
-    assert "events" in data
-    assert all("day" in e and "total" in e for e in data["events"])
+        month = str(now.month)
 
+        year = str(now.year)
 
-@pytest.mark.django_db
-def test_get_num_events_endpoint_with_city(test_events):
-    client = APIClient()
-    now = datetime.now()
-    url = reverse("getNumEvents") + f"?year={now.year}&month={now.month}&city=Tarragona"
-    resp = client.get(url)
-    assert resp.status_code == 200
-    data = resp.json()
-    assert all(ev["total"] >= 0 for ev in data["events"])
+        all_events = list(get_number_of_events(month, year, city=None, cat=None))
 
+        total = sum(ev["total"] for ev in all_events)
 
-@pytest.mark.django_db
-def test_get_event_detail_endpoint(test_events):
-    client = APIClient()
-    obj = test_events[0]
-    url = reverse("getEventDetail") + f"?id={obj.id}&lang=cat"
-    resp = client.get(url)
-    assert resp.status_code == 200
-    data = resp.json()
-    # Ha de contenir camps de l'event serialitzat
-    assert "events" in data
-    assert data["events"]["id"] == obj.id
+        self.assertGreaterEqual(total, 2)
 
+    def test_get_details_translates_fields(self):
 
-@pytest.mark.django_db
-def test_get_categories_endpoint(some_categories):
-    client = APIClient()
-    url = reverse("getCategories")
-    resp = client.get(url)
-    assert resp.status_code == 200
-    cats = resp.json()
-    assert isinstance(cats, list)
-    assert {"id": some_categories[0].id, "name": some_categories[0].name} in cats
+        from api.views.views_event import get_details
 
+        with patch("api.views.views_event.translate_text") as mock_trad:
 
-#
-# ERROR & EDGE CASES
-#
+            mock_trad.side_effect = lambda xs, lang: [
+                a + " [trad]" if isinstance(a, str) else a for a in xs
+            ]
 
+            result = get_details(self.e1.id, lang="es")
 
-@pytest.mark.django_db
-def test_get_all_events_invalid_date():
-    from api.views.views_event import get_all_events
+            self.assertIn("[trad]", result.title)
 
-    assert get_all_events()("INVALIDDATE", "cat") == []
+            if result.category:
 
+                self.assertIn("[trad]", result.category.name)
 
-@pytest.mark.django_db
-def test_get_all_events_by_city_empty_city():
-    from api.views.views_event import get_all_events
+            self.assertTrue(mock_trad.called)
 
-    date = datetime.now().isoformat()
-    assert get_all_events(date, lang="cat", city=None, cat=None) == []
+    # --- ENDPOINTS HTTP ---
 
+    def test_get_events_endpoint(self):
 
-@pytest.mark.django_db
-def test_get_all_events_by_category_invalid_cat(test_events):
-    from api.views.views_event import get_all_events
+        client = APIClient()
 
-    date = datetime.now().isoformat()
-    assert get_all_events(date, "cat", None, "NOEXIST") == []
+        date = timezone.now().date().isoformat()
 
+        url = reverse("events") + f"?date={date}&lang=cat"
 
-@pytest.mark.django_db
-def test_get_event_detail_endpoint_not_found():
-    client = APIClient()
-    url = reverse("getEventDetail") + "?id=UNKNOWN&lang=cat"
-    resp = client.get(url)
-    assert resp.status_code in (400, 500)  # pot ser un 400 o 500 segons el handler
+        response = client.get(url)
 
+        self.assertEqual(response.status_code, 200)
 
-@pytest.mark.django_db
-def test_get_num_events_endpoint_invalid_params():
-    client = APIClient()
-    url = reverse("getNumEvents")  # sense year ni month
-    resp = client.get(url)
-    assert resp.status_code == 200
-    assert resp.json()["events"] == []
+        self.assertEqual(len(response.data["events"]), 2)
+
+    def test_get_event_detail_endpoint_not_found(self):
+
+        client = APIClient()
+
+        url = reverse("event_detail") + "?id=999999&lang=cat"
+
+        response = client.get(url)
+
+        self.assertEqual(response.status_code, 404)

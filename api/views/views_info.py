@@ -7,9 +7,9 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from ..models import Plant
-from .views_image import createPlantImages
-from .views_translate import translate_text
+from api.models import Plant
+from api.services.translate import translate_text
+from api.views.views_image import createPlantImages
 
 TEMPS_RANGES = [
     (-51.1, 20),

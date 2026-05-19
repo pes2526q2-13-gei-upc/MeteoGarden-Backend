@@ -63,19 +63,26 @@ PHASE_ORDER = [
 ]
 
 
-def updateMissions(plantInGarden, action):
-    user = plantInGarden.pot.garden.user
-    plant = plantInGarden.plant
-    allUserMissions = UserMission.objects.filter(
-        user=user, missionState=MissionState.IN_PROGRESS
-    )
-    for mission in allUserMissions:
-        if mission.mission.action == action:
-            if mission.mission.plant is None or mission.mission.plant == plant:
-                mission.current += 1
-                if mission.mission.goal <= mission.current:
-                    mission.missionState = MissionState.COMPLETED
-                mission.save()
+def update_missions(plant_in_garden, action):
+    user = plant_in_garden.pot.garden.user
+    plant = plant_in_garden.plant
+
+    user_missions = UserMission.objects.filter(
+        user=user,
+        missionState=MissionState.IN_PROGRESS,
+        mission__action=action,
+    ).select_related("mission", "mission__plant")
+
+    for user_mission in user_missions:
+        mission = user_mission.mission
+
+        if mission.plant is None or mission.plant == plant:
+            user_mission.current += 1
+
+            if mission.goal <= user_mission.current:
+                user_mission.missionState = MissionState.COMPLETED
+
+            user_mission.save()
 
 
 def simulate_plant(plant_in_garden: PlantInGarden, station: Station) -> PlantInGarden:
@@ -249,7 +256,7 @@ def _apply_reading(
         pig.waterLevel = new_water
         pig.lastSimulatedAt = reading.timestamp
         pig.diedAt = timezone.now()
-        updateMissions(pig, MissionAction.DIE)
+        update_missions(pig, MissionAction.DIE)
         return pig
 
     # Actualitzar vives
@@ -260,35 +267,60 @@ def _apply_reading(
     return pig
 
 
+# Recaulate phase
+def _normalize_planted_at(planted_at, current_time):
+    if planted_at.tzinfo is None and current_time.tzinfo is not None:
+        return timezone.make_aware(planted_at)
+
+    return planted_at
+
+
+def _calculate_total_hours(planted_at, current_time) -> float:
+    planted_at = _normalize_planted_at(planted_at, current_time)
+    return (current_time - planted_at).total_seconds() / 3600.0
+
+
+def _phase_reached(total_hours: float, accumulated: float) -> bool:
+    return total_hours >= accumulated
+
+
+def _apply_phase_mission_if_needed(pig: PlantInGarden, next_phase: str | None) -> None:
+    if next_phase == GrowthState.FLOWERING:
+        update_missions(pig, MissionAction.FLOWER)
+
+
 def _recalculate_phase(pig: PlantInGarden, health: float, current_time) -> str:
     current_phase = pig.growthPhase
 
     if current_phase in (GrowthState.FLOWERING, GrowthState.DEAD):
         return current_phase
+
     if health < MIN_HEALTH_TO_GROW:
         return current_phase
 
-    planted_at = pig.plantedAt
-    if planted_at.tzinfo is None and current_time.tzinfo is not None:
-        planted_at = timezone.make_aware(planted_at)
+    total_hours = _calculate_total_hours(pig.plantedAt, current_time)
 
-    total_hours = (current_time - planted_at).total_seconds() / 3600.0
     accumulated = 0.0
     target_phase = current_phase
 
     for phase in PHASE_ORDER:
         duration = HOURS_PER_PHASE.get(phase)
+
         if duration is None:
             break
+
         accumulated += duration
-        if total_hours >= accumulated:
-            nxt = _next_phase(phase, pig.plant.canFlower)
-            if nxt:
-                target_phase = nxt
-                if nxt == GrowthState.FLOWERING:
-                    updateMissions(pig, MissionAction.FLOWER)
-        else:
+
+        if not _phase_reached(total_hours, accumulated):
             break
+
+        next_phase = _next_phase(phase, pig.plant.canFlower)
+
+        if not next_phase:
+            continue
+
+        target_phase = next_phase
+        _apply_phase_mission_if_needed(pig, next_phase)
 
     return target_phase
 

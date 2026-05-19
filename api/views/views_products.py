@@ -20,13 +20,15 @@ from api.plant_simulation import apply_product
 from api.views.views_translate import translate_text
 
 
-def updateUseMissions(user, productName):
+def update_user_missions(user, product_name):
     # Obtenim totes les missions en progres
-    allUserMisions = UserMission.objects.filter(
-        user=user, misssionState=MissionState.IN_PROGRESS
-    )
-    product = Product.objects.get(name=productName)
-    for mission in allUserMisions:
+    all_user_misions = UserMission.objects.filter(
+        user=user,
+        missionState=MissionState.IN_PROGRESS,
+        mission__action=MissionAction.USE,
+    ).select_related("mission", "mission__product")
+    product = Product.objects.get(name=product_name)
+    for mission in all_user_misions:
         if mission.mission.action == MissionAction.USE:
             if mission.mission.product is None or mission.mission.product == product:
                 mission.current += 1
@@ -60,7 +62,7 @@ def use_product(request):
         product = get_object_or_404(Product, name=product_name)
 
         apply_product(user, plant, product_name)
-        updateUseMissions(user, product_name)
+        update_user_missions(user, product_name)
         plant.refresh_from_db()
 
         response = {

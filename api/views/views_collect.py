@@ -19,17 +19,23 @@ from api.models import (
 from api.views.views_translate import translate_text
 
 
-def updateCollectMissions(user, plant):
-    allUserMissions = UserMission.objects.filter(
-        user=user, missionState=MissionState.IN_PROGRESS
-    )
-    for mission in allUserMissions:
-        if mission.mission.action == MissionAction.COLLECT:
-            if mission.mission.plant is None or mission.mission.plant == plant:
-                mission.current += 1
-                if mission.mission.goal <= mission.current:
-                    mission.missionState = MissionState.COMPLETED
-                mission.save()
+def update_collect_missions(user, plant):
+    user_missions = UserMission.objects.filter(
+        user=user,
+        missionState=MissionState.IN_PROGRESS,
+        mission__action=MissionAction.COLLECT,
+    ).select_related("mission", "mission__plant")
+
+    for user_mission in user_missions:
+        mission = user_mission.mission
+
+        if mission.plant is None or mission.plant == plant:
+            user_mission.current += 1
+
+            if mission.goal <= user_mission.current:
+                user_mission.missionState = MissionState.COMPLETED
+
+            user_mission.save()
 
 
 @api_view(["POST"])
@@ -76,7 +82,7 @@ def collect_plant(request, username, garden_name, pot_number):
     inventory.save()
 
     user.increment_plants()
-    updateCollectMissions(user, plant)
+    update_collect_missions(user, plant)
 
     return Response(
         {

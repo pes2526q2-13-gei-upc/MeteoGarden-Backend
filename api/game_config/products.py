@@ -27,7 +27,7 @@ PRODUCTS = [
         "isInstant": True,
         "price": 50,
         "rarity": "rare",
-        "image_url": "/products/pocio_salut_max.jpeg",
+        "image_url": "/products/pocio_salut_max.png",
     },
     {
         "name": "Phase Boost",
@@ -47,7 +47,7 @@ PRODUCTS = [
         "isInstant": True,
         "price": 90,
         "rarity": "epic",
-        "image_url": "/products/pocio_reviure.jpeg",
+        "image_url": "/products/pocio_reviure.png",
     },
     {
         "name": "Hydration Shield",
@@ -69,7 +69,7 @@ PRODUCTS = [
         "isInstant": False,
         "price": 60,
         "rarity": "rare",
-        "image_url": "/products/pocio_meteo.jpeg",
+        "image_url": "/products/pocio_meteo.png",
     },
     {
         "name": "Solar Shield",

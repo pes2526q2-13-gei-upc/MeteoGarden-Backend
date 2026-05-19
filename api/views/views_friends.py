@@ -5,8 +5,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from api.models import FriendRequest, Garden, User
-from api.views.views_translate import translate_text
 from api.services.notifications import notify
+from api.views.views_translate import translate_text
 
 
 @api_view(["GET"])
@@ -93,12 +93,18 @@ def like_friend(request, username):
     friend_ship = get_friendship(request.user, friend)
 
     if not friend_ship:
-        return Response({"error": translate_text("You are not friends with this user.", lang)}, status=403)
+        return Response(
+            {"error": translate_text("You are not friends with this user.", lang)},
+            status=403,
+        )
 
     try:
         garden = Garden.objects.get(user=friend)
     except Garden.DoesNotExist:
-        return Response({"error": translate_text("This user does not have a garden yet.", lang)}, status=404)
+        return Response(
+            {"error": translate_text("This user does not have a garden yet.", lang)},
+            status=404,
+        )
 
     like_state = handle_like_action(request, friend_ship, garden)
 
@@ -158,4 +164,3 @@ def toggle_like(current_state, garden, notified_user, liker):
         f"This user {liker.username} liked you.",
     )
     return True
-

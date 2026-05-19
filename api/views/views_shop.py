@@ -102,7 +102,10 @@ def buy_item(request, username):
             product = Product.objects.get(name=item_name)
 
         except Product.DoesNotExist:
-            return JsonResponse({"error": translate_text("Product not found", user.language)}, status=404)
+            return JsonResponse(
+                {"error": translate_text("Product not found", user.language)},
+                status=404,
+            )
 
         price = product.price
     else:

@@ -181,7 +181,6 @@ class InventoryProductSerializer(serializers.Serializer):
         return product.description if product else None
 
 
-
 class EventsCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = EventsCategory

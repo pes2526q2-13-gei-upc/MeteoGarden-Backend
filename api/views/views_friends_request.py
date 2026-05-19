@@ -4,8 +4,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from api.models import FriendRequest, User
-from api.views.views_translate import translate_text
 from api.services.notifications import notify
+from api.views.views_translate import translate_text
 
 message = "Friend request doesn't exist"
 

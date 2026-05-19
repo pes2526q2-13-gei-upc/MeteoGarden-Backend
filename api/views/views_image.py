@@ -33,12 +33,12 @@ def createPlantImages(scientificName):
 
     style = f"""
         game-ready 2D farming game asset,
-        isolated object cutout on pure transparent background,
+        isolated object cutout on pure white background,
         front-facing orthographic view,
         centered composition,
         clean sharp edges, no blur,
         botanically accurate {scientificName} characteristics,
-        stem and leaves only,
+        stem,
         NO pot, NO container, NO soil, NO ground, NO shadow, NO surface,
         bright vibrant colors, soft cel-shaded cartoon style,
         high quality digital art, PNG format,

@@ -58,6 +58,9 @@ jobs:
 
     env:
       DJANGO_SETTINGS_MODULE: config.settings_test
+      DJANGO_SECRET_KEY: ci-only-dummy-secret-key
+      DJANGO_DB_PASSWORD: test-db-secret
+      DEBUG: "False"
       POSTGRES_DB: meteogarden_test
       POSTGRES_USER: meteogarden
       POSTGRES_PASSWORD: test-db-secret

@@ -12,7 +12,7 @@ MOCK_PATH = "api.views.views_products"
 
 class TestViewsProductsComprehensive(TestCase):
     def setUp(self):
-        self.url = reverse("use_product")
+        self.url = "/api/use_product/"
         self.auth_user = User.objects.create_user(
             username="authuser", password="testpass"
         )

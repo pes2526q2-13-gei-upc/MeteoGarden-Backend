@@ -66,7 +66,11 @@ class TestFriendsAPI:
         assert r.status_code == 200
         assert r.json()["friends"] == []
 
-    def test_like_friend_and_state(self):
+    def test_like_friend_and_state(self, monkeypatch):
+        monkeypatch.setattr(
+            "api.views.views_friends.notify", lambda *args, **kwargs: None
+        )
+
         FriendRequest.objects.create(
             requester=self.u1, requested=self.u2, accepted=True
         )
@@ -76,10 +80,9 @@ class TestFriendsAPI:
 
         self.get_token(self.u1)
         url_like = reverse("like_friend", args=["bob"])
-        url_state = reverse("get_state_like", args=["bob"])
 
         # Initial like state (should be False)
-        r = self.client.get(url_state)
+        r = self.client.get(url_like)
         assert r.status_code == 200
         data = r.json()
         assert data["state"] is False
@@ -95,7 +98,7 @@ class TestFriendsAPI:
         assert data["likes"] == 1
 
         # State like should now be True
-        r = self.client.get(url_state)
+        r = self.client.get(url_like)
         assert r.status_code == 200
         data = r.json()
         assert data["state"] is True
@@ -122,5 +125,6 @@ class TestFriendsAPI:
         r = self.client.post(url)
         assert r.status_code in [403, 404]
 
-        r = self.client.get(reverse("get_state_like", args=["alice"]))
+        # This GET should also return 403 or 404
+        r = self.client.get(url)
         assert r.status_code in [403, 404]

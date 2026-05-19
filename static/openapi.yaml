@@ -1,0 +1,377 @@
+openapi: "3.1.0"
+info:
+  title: "XEMA Weather Third-Party Service API"
+  version: "1.0.0"
+  summary: "API REST per consultar dades meteorològiques en temps real i diàries d'estacions XEMA."
+  description: |
+    Aquest servei exposa endpoints per consultar dades meteorològiques de la xarxa XEMA de Catalunya.
+
+    **Autenticació**
+    Els endpoints meteorològics requereixen una API Key. Es pot enviar d'aquesta manera:
+    1. A la capçalera: `X-API-Key: <la_teva_api_key>`
+    
+    **Notes**
+    - Les dades s'actualitzen cada 30 minuts.
+    - Es conserven dades dels últims 30 dies.
+    - La cerca per ciutat és parcial i no distingeix majúscules.
+    - No es poden consultar dates futures.
+servers:
+
+
+tags:
+  - name: "Autenticació"
+    description: "Endpoints públics per gestionar usuaris i obtenir claus d'accés"
+  - name: "Weather"
+    description: "Endpoints de consulta meteorològica"
+  - name: "Estacions"
+    description: "Endpoints de consulta d'estacions geogràfiques"
+
+security:
+  - ApiKeyAuth: []
+  - ApiKeyQuery: []
+
+paths:
+  # ========================================================================
+  # ENDPOINTS D'AUTENTICACIÓ (PÚBLICS)
+  # ========================================================================
+  /third-party-service/register/:
+    post:
+      tags: ["Autenticació"]
+      operationId: "registerUser"
+      summary: "Registre de nou usuari i generació d'API Key"
+      description: "Crea un usuari a la base de dades de Django i li retorna la seva primera clau d'accés."
+      security: [] # Obert a tothom (AllowAny)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: "Usuari registrat i clau generada"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegisterResponse"
+        "400":
+          description: "Dades incompletes o usuari ja existent"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /third-party-service/login/:
+    post:
+      tags: ["Autenticació"]
+      operationId: "loginUser"
+      summary: "Login d'usuari i generació de nova API Key"
+      description: "Valida les credencials contra Django i genera una nova clau vinculada a l'usuari."
+      security: [] # Obert a tothom (AllowAny)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: "Login correcte i clau tramesa"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "401":
+          description: "Credencials incorrectes"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: "Compte d'usuari desactivat"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ========================================================================
+  # ENDPOINTS METEOROLÒGICS i ESTACIONS (PROTEGITS)
+  # ========================================================================
+  /api/weather/current/:
+    get:
+      tags: ["Weather"]
+      operationId: "getCurrentWeather"
+      summary: "Dades actuals per ciutat"
+      description: "Retorna la darrera lectura meteorològica disponible per a una ciutat."
+      parameters:
+        - name: "city"
+          in: "query"
+          required: true
+          description: "Nom (parcial) de la ciutat/estació (case-insensitive)."
+          schema:
+            type: "string"
+            minLength: 1
+          examples:
+            barcelona:
+              value: "Barcelona"
+      responses:
+        "200":
+          description: "Dades meteorològiques actuals"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentWeatherResponse"
+              examples:
+                ok:
+                  value:
+                    city: "Barcelona - el Raval"
+                    temperature: 18.4
+                    precipitation: 0.0
+                    solarIrradiance: 612.5
+        "400":
+          description: "Paràmetre invàlid o faltant"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: "API Key incorrecta o absent"
+        "404":
+          description: "Ciutat o dades no trobades"
+        "503":
+          description: "Sense dades disponibles"
+
+  /api/weather/daily/:
+    get:
+      tags: ["Weather"]
+      operationId: "getDailyMinMax"
+      summary: "Màxima i mínima diària per ciutat i data"
+      description: "Retorna la temperatura màxima i mínima d'un dia concret per a una ciutat.\n\nLa data ha d'estar en format `YYYY-MM-DD` i no pot ser futura."
+      parameters:
+        - name: "city"
+          in: "query"
+          required: true
+          description: "Nom (parcial) de la ciutat/estació (case-insensitive)."
+          schema:
+            type: "string"
+            minLength: 1
+          examples:
+            barcelona:
+              value: "Barcelona"
+        - name: "date"
+          in: "query"
+          required: true
+          description: "Data consultada en format ISO (YYYY-MM-DD)."
+          schema:
+            type: "string"
+            format: "date"
+          examples:
+            exampleDate:
+              value: "2026-04-18"
+      responses:
+        "200":
+          description: "Dades diàries (màxima/mínima)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DailyWeatherResponse"
+              examples:
+                ok:
+                  value:
+                    city: "Barcelona - el Raval"
+                    date: "2026-04-18"
+                    temperatureMax: 22.1
+                    temperatureMin: 11.3
+        "400":
+          description: "Paràmetre invàlid o faltant"
+        "401":
+          description: "API Key incorrecta o absent"
+        "404":
+          description: "Ciutat o dades no trobades"
+
+  /api/weather/stations/:
+    get:
+      tags: ["Estacions"]
+      operationId: "getStationsForCity"
+      summary: "Cercar estacions per ciutat"
+      description: "Retorna un llistat de les estacions que coincideixen amb el filtre de text de la ciutat."
+      parameters:
+        - name: "city"
+          in: "query"
+          required: true
+          description: "Nom o fragment del nom de la ciutat."
+          schema:
+            type: "string"
+            minLength: 1
+          examples:
+            cerca:
+              value: "Barce"
+      responses:
+        "200":
+          description: "Llistat de ciutats/estacions trobades"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StationsResponse"
+              examples:
+                ok:
+                  value:
+                    cities:
+                      - city: "Barcelona - el Raval"
+                      - city: "Barcelona - Zona Universitària"
+        "400":
+          description: "Falta el paràmetre city"
+        "401":
+          description: "API Key incorrecta o absent"
+        "404":
+          description: "No s'ha trobat cap estació"
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: "apiKey"
+      in: "header"
+      name: "X-API-Key"
+      description: "API key enviada a la capçalera `X-API-Key`."
+    ApiKeyQuery:
+      type: "apiKey"
+      in: "query"
+      name: "api_key"
+      description: "API key enviada com a paràmetre query `?api_key=...`"
+
+  schemas:
+    # --- Esquemes de peticions (Requests) ---
+    RegisterRequest:
+      type: "object"
+      additionalProperties: false
+      required: ["username", "email", "password"]
+      properties:
+        username:
+          type: "string"
+          example: "client_temps_nou"
+        email:
+          type: "string"
+          format: "email"
+          example: "client@temps.com"
+        password:
+          type: "string"
+          format: "password"
+          example: "ContrasenyaSuperSegura123!"
+        key_name:
+          type: "string"
+          description: "Nom descriptiu per a la clau."
+          example: "Clau per al meu script web"
+
+    LoginRequest:
+      type: "object"
+      additionalProperties: false
+      required: ["username", "password"]
+      properties:
+        username:
+          type: "string"
+          example: "joan_meteo"
+        password:
+          type: "string"
+          format: "password"
+          example: "LaMevaContrasenya123"
+        key_name:
+          type: "string"
+          description: "Nom opcional per a la nova clau generada."
+          example: "Clau de Postman"
+
+    # --- Esquemes de respostes (Responses) ---
+    RegisterResponse:
+      type: "object"
+      properties:
+        message:
+          type: "string"
+          example: "Usuari registrat amb èxit!"
+        username:
+          type: "string"
+          example: "client_temps_nou"
+        api_key:
+          type: "string"
+          example: "4fe89b12f61a3b8cd901de456fef3a12"
+        note:
+          type: "string"
+          example: "Guarda bé aquesta clau, no es tornarà a mostrar."
+
+    LoginResponse:
+      type: "object"
+      properties:
+        status:
+          type: "string"
+          example: "Login correcte"
+        username:
+          type: "string"
+          example: "joan_meteo"
+        api_key:
+          type: "string"
+          example: "a81fbc91e2b3c4d5e6f708192a3b4c5d"
+
+    CurrentWeatherResponse:
+      type: "object"
+      additionalProperties: false
+      required: ["city", "temperature", "precipitation", "solarIrradiance"]
+      properties:
+        city:
+          type: "string"
+          description: "Nom de l'estació retornada."
+        temperature:
+          type: "number"
+          format: "float"
+          description: "Temperatura actual (ºC)."
+        precipitation:
+          type: "number"
+          format: "float"
+          description: "Precipitació acumulada (mm)."
+        solarIrradiance:
+          type: "number"
+          format: "float"
+          description: "Irradiància solar global (W/m²)."
+
+    DailyWeatherResponse:
+      type: "object"
+      additionalProperties: false
+      required: ["city", "date", "temperatureMax", "temperatureMin"]
+      properties:
+        city:
+          type: "string"
+          description: "Nom de l'estació retornada."
+        date:
+          type: "string"
+          format: "date"
+          description: "Data consultada (YYYY-MM-DD)."
+        temperatureMax:
+          type: "number"
+          format: "float"
+          description: "Temperatura màxima del dia (ºC)."
+          nullable: true
+        temperatureMin:
+          type: "number"
+          format: "float"
+          description: "Temperatura mínima del dia (ºC)."
+          nullable: true
+
+    StationsResponse:
+      type: "object"
+      required: ["cities"]
+      properties:
+        cities:
+          type: "array"
+          items:
+            type: "object"
+            required: ["city"]
+            properties:
+              city:
+                type: "string"
+                example: "Barcelona - el Raval"
+
+    ErrorResponse:
+      type: "object"
+      additionalProperties: false
+      required: ["error"]
+      properties:
+        error:
+          type: "string"
+          description: "Missatge d'error del servidor."

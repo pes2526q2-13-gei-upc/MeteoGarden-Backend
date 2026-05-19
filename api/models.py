@@ -381,14 +381,10 @@ class Shop(models.Model):
     products = models.JSONField(default=dict, blank=True)
 
     STARTER_SEEDS = {
-        "helianthus_annuus": 4,
-        "dianthus_caryophyllus": 4,
-        "rosa_canina": 2,
-        "lavandula_angustifolia": 3,
-        "mentha_spicata": 2,
-    }
-    STARTER_PRODUCTS = {
-        "Small Heal": 15,
+        "dahlia_pinnata": 3,
+        "rosa_rugosa": 4,
+        "orchidaceae": 5,
+        "dendrobium_anosmum": 4,
     }
 
     @classmethod
@@ -418,9 +414,6 @@ class Shop(models.Model):
     def initialize_starter_stock(self):
         if not self.seeds:
             self.seeds = self.STARTER_SEEDS.copy()
-            self.save()
-        if not self.products:
-            self.products = self.STARTER_PRODUCTS.copy()
             self.save()
 
 
@@ -487,8 +480,8 @@ class Event(models.Model):
     price = models.PositiveIntegerField()
     tags = models.JSONField(default=list)
     image = models.ImageField(upload_to="events/", null=True, blank=True)
-    city = models.CharField(max_length=150, null=True)
-    street = models.CharField(max_length=255, null=True)
+    city = models.CharField(max_length=150, blank=True)
+    street = models.CharField(max_length=255, blank=True)
 
 
 class Mission(models.Model):

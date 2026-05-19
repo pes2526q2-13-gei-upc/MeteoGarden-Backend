@@ -5,6 +5,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from api.models import FriendRequest, Garden, User
+from api.services.notifications import notify
 
 
 @api_view(["GET"])
@@ -80,43 +81,71 @@ def like_friend(request, username):
     except User.DoesNotExist:
         return Response({"error": "User not found."}, status=404)
 
-    friend_ship = FriendRequest.objects.filter(
-        (
-            Q(requester=request.user, requested=friend)
-            | Q(requester=friend, requested=request.user)
-        ),
-        accepted=True,
-    ).first()
+    friend_ship = get_friendship(request.user, friend)
 
     if not friend_ship:
         return Response({"error": "You are not friends with this user."}, status=403)
 
     try:
         garden = Garden.objects.get(user=friend)
-        if friend_ship.requester == request.user:
-            if request.method == "POST":
-                if friend_ship.likeToRequested:
-                    garden.likes -= 1
-                    friend_ship.likeToRequested = False
-                else:
-                    garden.likes += 1
-                    friend_ship.likeToRequested = True
-
-            like_state = friend_ship.likeToRequested
-        else:
-            if request.method == "POST":
-                if friend_ship.likeToRequester:
-                    garden.likes -= 1
-                    friend_ship.likeToRequester = False
-                else:
-                    garden.likes += 1
-                    friend_ship.likeToRequester = True
-
-            like_state = friend_ship.likeToRequester
-
-        friend_ship.save()
-        garden.save()
     except Garden.DoesNotExist:
         return Response({"error": "This user does not have a garden yet."}, status=404)
 
+    like_state = handle_like_action(request, friend_ship, garden)
+
+    friend_ship.save()
+    garden.save()
+
     return Response({"state": like_state, "likes": garden.likes}, status=200)
+
+
+def get_friendship(user, friend):
+    return FriendRequest.objects.filter(
+        (Q(requester=user, requested=friend) | Q(requester=friend, requested=user)),
+        accepted=True,
+    ).first()
+
+
+def handle_like_action(request, friend_ship, garden):
+    if friend_ship.requester == request.user:
+        return handle_requested_like(request, friend_ship, garden)
+
+    return handle_requester_like(request, friend_ship, garden)
+
+
+def handle_requested_like(request, friend_ship, garden):
+    if request.method == "POST":
+        friend_ship.likeToRequested = toggle_like(
+            current_state=friend_ship.likeToRequested,
+            garden=garden,
+            notified_user=friend_ship.requested,
+            liker=request.user,
+        )
+
+    return friend_ship.likeToRequested
+
+
+def handle_requester_like(request, friend_ship, garden):
+    if request.method == "POST":
+        friend_ship.likeToRequester = toggle_like(
+            current_state=friend_ship.likeToRequester,
+            garden=garden,
+            notified_user=friend_ship.requester,
+            liker=request.user,
+        )
+
+    return friend_ship.likeToRequester
+
+
+def toggle_like(current_state, garden, notified_user, liker):
+    if current_state:
+        garden.likes -= 1
+        return False
+
+    garden.likes += 1
+    notify(
+        notified_user,
+        "Like",
+        f"This user {liker.username} liked you.",
+    )
+    return True

@@ -1,3 +1,4 @@
+import logging
 from datetime import timedelta
 
 from django.utils import timezone
@@ -5,6 +6,8 @@ from firebase_admin import messaging
 
 from api.models import Device
 from api.services.translate import translate_text
+
+logger = logging.getLogger(__name__)
 
 USER_NOTIFICATION_COOLDOWN = timedelta(seconds=0)
 
@@ -20,6 +23,14 @@ def send_push_notification(user, title, body):
         notification=messaging.Notification(
             title=title,
             body=body,
+        ),
+        android=messaging.AndroidConfig(
+            priority="high",
+            notification=messaging.AndroidNotification(
+                channel_id="meteogarden_channel",
+                priority="max",
+                default_sound=True,
+            ),
         ),
         tokens=tokens,
     )
@@ -57,4 +68,4 @@ def notify(user, title, body):
     user.lastNotificationAt = timezone.now()
     user.save(update_fields=["lastNotificationAt"])
 
-    print(f"[NOTIFICATION] " f"{user.username} | " f"{translated_title}")
+    logger.info("[NOTIFICATION] %s | %s", user.username, translated_title)

@@ -77,7 +77,7 @@ def garden_plants(request, username, garden_name):
         .order_by("number")
         .select_related("plantingarden", "plantingarden__plant")
     )
-    serializer = PotSerializer(pots, many=True)
+    serializer = PotSerializer(pots, many=True, context={"request": request})
     return JsonResponse(serializer.data, safe=False)
 
 

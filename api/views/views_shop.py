@@ -17,6 +17,7 @@ from api.serializer import ShopSeedSerializer
 def get_shop(request):
     shop = Shop.get_solo()
     shop.initialize_starter_stock()
+    lang = request.user.language
 
     seeds_data = []
     for scientific_name, price in shop.seeds.items():
@@ -41,7 +42,8 @@ def get_shop(request):
             products_data.append(
                 {
                     "name": product.name,
-                    "description": product.description,
+                    "displayName": translate_text(product.name, lang),
+                    "description": translate_text(product.description, lang),
                     "effectType": product.effectType,
                     "value": product.value,
                     "durationHours": product.durationHours,

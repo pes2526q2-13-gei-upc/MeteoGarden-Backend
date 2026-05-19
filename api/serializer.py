@@ -3,6 +3,7 @@ from datetime import timedelta
 from rest_framework import serializers
 
 from api.models import ActiveProduct, Event, EventsCategory, Image, Plant, Pot, Product
+from api.views.views_translate import translate_text
 
 
 class PotSerializer(serializers.ModelSerializer):
@@ -33,6 +34,9 @@ class PotSerializer(serializers.ModelSerializer):
         if planting is None:
             return None
 
+        request = self.context.get("request")
+        lang = request.GET.get("lang", "en") if request else "en"
+
         image = Image.objects.filter(
             plant=planting.plant, growthPhase=planting.growthPhase
         ).first()
@@ -41,6 +45,7 @@ class PotSerializer(serializers.ModelSerializer):
         active_products = [
             {
                 "name": ap.product.name,
+                "displayName": translate_text(ap.product.name, lang),
                 "applied_at": ap.applied_at.isoformat(),
                 "expires_at": (
                     ap.applied_at + timedelta(hours=ap.product.durationHours)
@@ -51,7 +56,7 @@ class PotSerializer(serializers.ModelSerializer):
         ]
         return {
             "scientific_name": planting.plant.scientificName,
-            "common_name": planting.plant.commonName,
+            "common_name": translate_text(planting.plant.commonName, lang),
             "family": planting.plant.family,
             "can_flower": planting.plant.canFlower,
             "min_temperature": planting.plant.minTemperature,
@@ -107,11 +112,23 @@ class InventorySeedSerializer(serializers.Serializer):
 
 class ShopSeedSerializer(serializers.Serializer):
     scientificName = serializers.CharField()
-    commonName = serializers.CharField()
+    commonName = serializers.SerializerMethodField()
     family = serializers.CharField()
-    description = serializers.CharField()
+    description = serializers.SerializerMethodField()
     price = serializers.IntegerField()
     image_url = serializers.SerializerMethodField()
+
+    def get_commonName(self, obj):
+        request = self.context.get("request")
+        lang = request.GET.get("lang", "en") if request else "en"
+        common_name = obj.get("commonName", "")
+        return translate_text(common_name, lang)
+
+    def get_description(self, obj):
+        request = self.context.get("request")
+        lang = request.GET.get("lang", "en") if request else "en"
+        description = obj.get("description", "")
+        return translate_text(description, lang)
 
     def get_image_url(self, obj):
         scientific_name = obj.get("scientificName")
@@ -125,8 +142,15 @@ class ShopSeedSerializer(serializers.Serializer):
 
 class InventoryProductSerializer(serializers.Serializer):
     productName = serializers.CharField()
+    displayName = serializers.SerializerMethodField()
     amount = serializers.IntegerField()
     image_url = serializers.SerializerMethodField()
+
+    def get_displayName(self, obj):
+        request = self.context.get("request")
+        lang = request.GET.get("lang", "en") if request else "en"
+
+        return translate_text(obj.get("productName"), lang)
 
     def get_image_url(self, obj):
         product_name = obj.get("productName")

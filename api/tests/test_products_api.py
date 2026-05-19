@@ -5,8 +5,7 @@ from unittest.mock import MagicMock, patch
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from api.models import ActiveProduct
-from api.models import User
+from api.models import ActiveProduct, User
 
 MOCK_PATH = "api.views.views_products"
 
@@ -15,8 +14,7 @@ class TestViewsProductsComprehensive(TestCase):
     def setUp(self):
         self.url = reverse("use_product")
         self.auth_user = User.objects.create_user(
-            username="authuser",
-            password="testpass"
+            username="authuser", password="testpass"
         )
         self.client.force_login(self.auth_user)
 

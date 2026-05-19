@@ -38,14 +38,9 @@ class CollectPlantTests(APITestCase):
 
         self.token = Token.objects.create(user=self.user)
 
-        self.client.credentials(
-            HTTP_AUTHORIZATION="Token " + self.token.key
-        )
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
 
-        self.inventory = Inventory.objects.create(
-            user=self.user,
-            coins=10
-        )
+        self.inventory = Inventory.objects.create(user=self.user, coins=10)
 
         self.plant = Plant.objects.create(
             scientificName="rosa_canina",
@@ -61,22 +56,11 @@ class CollectPlantTests(APITestCase):
         # addSeed() requereix que la planta
         # existeixi a l'àlbum
 
-        AlbumEntry.objects.create(
-            user=self.user,
-            plant=self.plant,
-            description="test"
-        )
+        AlbumEntry.objects.create(user=self.user, plant=self.plant, description="test")
 
-        self.garden = Garden.objects.create(
-            user=self.user,
-            name="Garden1"
-        )
+        self.garden = Garden.objects.create(user=self.user, name="Garden1")
 
-        self.pot = Pot.objects.create(
-            garden=self.garden,
-            number=1,
-            occupied=False
-        )
+        self.pot = Pot.objects.create(garden=self.garden, number=1, occupied=False)
 
         self.collect_url = reverse(
             "collect_plant",
@@ -87,10 +71,7 @@ class CollectPlantTests(APITestCase):
             },
         )
 
-    def create_plant_in_garden(
-        self,
-        phase=GrowthState.MATURE
-    ):
+    def create_plant_in_garden(self, phase=GrowthState.MATURE):
 
         return PlantInGarden.objects.create(
             pot=self.pot,
@@ -109,77 +90,44 @@ class CollectPlantTests(APITestCase):
         self.create_plant_in_garden()
 
         response = self.client.post(
-            self.collect_url,
-            {"plant": self.plant.scientificName},
-            format="json"
+            self.collect_url, {"plant": self.plant.scientificName}, format="json"
         )
 
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_200_OK
-        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.inventory.refresh_from_db()
 
-        self.assertEqual(
-            self.inventory.coins,
-            12
-        )
+        self.assertEqual(self.inventory.coins, 12)
 
-        self.assertFalse(
-            PlantInGarden.objects.filter(
-                pot=self.pot
-            ).exists()
-        )
+        self.assertFalse(PlantInGarden.objects.filter(pot=self.pot).exists())
 
         self.pot.refresh_from_db()
 
-        self.assertFalse(
-            self.pot.occupied
-        )
+        self.assertFalse(self.pot.occupied)
 
     def test_collect_missing_fields(self):
 
-        response = self.client.post(
-            self.collect_url,
-            {},
-            format="json"
-        )
+        response = self.client.post(self.collect_url, {}, format="json")
 
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_400_BAD_REQUEST
-        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_collect_plant_not_found(self):
 
         response = self.client.post(
-            self.collect_url,
-            {"plant": "inventada"},
-            format="json"
+            self.collect_url, {"plant": "inventada"}, format="json"
         )
 
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_404_NOT_FOUND
-        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_collect_not_mature(self):
 
-        self.create_plant_in_garden(
-            GrowthState.SEED
-        )
+        self.create_plant_in_garden(GrowthState.SEED)
 
         response = self.client.post(
-            self.collect_url,
-            {"plant": self.plant.scientificName},
-            format="json"
+            self.collect_url, {"plant": self.plant.scientificName}, format="json"
         )
 
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_404_NOT_FOUND
-        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_collect_completes_collect_mission(self):
 
@@ -201,27 +149,16 @@ class CollectPlantTests(APITestCase):
         )
 
         response = self.client.post(
-            self.collect_url,
-            {"plant": self.plant.scientificName},
-            format="json"
+            self.collect_url, {"plant": self.plant.scientificName}, format="json"
         )
 
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_200_OK
-        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         user_mission.refresh_from_db()
 
-        self.assertEqual(
-            user_mission.current,
-            1
-        )
+        self.assertEqual(user_mission.current, 1)
 
-        self.assertEqual(
-            user_mission.missionState,
-            MissionState.COMPLETED
-        )
+        self.assertEqual(user_mission.missionState, MissionState.COMPLETED)
 
     def test_collect_wrong_plant_does_not_complete_mission(self):
 
@@ -254,19 +191,11 @@ class CollectPlantTests(APITestCase):
         )
 
         self.client.post(
-            self.collect_url,
-            {"plant": self.plant.scientificName},
-            format="json"
+            self.collect_url, {"plant": self.plant.scientificName}, format="json"
         )
 
         user_mission.refresh_from_db()
 
-        self.assertEqual(
-            user_mission.current,
-            0
-        )
+        self.assertEqual(user_mission.current, 0)
 
-        self.assertEqual(
-            user_mission.missionState,
-            MissionState.IN_PROGRESS
-        )
+        self.assertEqual(user_mission.missionState, MissionState.IN_PROGRESS)

@@ -91,7 +91,7 @@ def plant_status(request, username, garden_name, pot_number):
             planting = simulate_plant(planting, station)
             planting.save()
 
-    serializer = PotSerializer(pot)
+    serializer = PotSerializer(pot, context={"request": request})
     return JsonResponse(serializer.data)
 
 
@@ -205,8 +205,6 @@ def user_products(request, username):
     ]
 
     serializer = InventoryProductSerializer(
-        products_data,
-        many=True,
-        context={"request": request}
+        products_data, many=True, context={"request": request}
     )
     return JsonResponse(serializer.data, safe=False)

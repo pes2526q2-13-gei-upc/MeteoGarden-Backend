@@ -6,10 +6,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from .views_translate import translate_text
 
 from api.models import Inventory, Plant, Product, Shop, User
 from api.serializer import ShopSeedSerializer
+
+from .views_translate import translate_text
 
 
 @api_view(["GET"])

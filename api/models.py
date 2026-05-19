@@ -381,11 +381,10 @@ class Shop(models.Model):
     products = models.JSONField(default=dict, blank=True)
 
     STARTER_SEEDS = {
-        "helianthus_annuus": 4,
-        "dianthus_caryophyllus": 4,
-        "rosa_canina": 2,
-        "lavandula_angustifolia": 3,
-        "mentha_spicata": 2,
+        "dahlia_pinnata": 3,
+        "rosa_rugosa": 4,
+        "orchidaceae": 5,
+        "dendrobium_anosmum": 4,
     }
 
     @classmethod

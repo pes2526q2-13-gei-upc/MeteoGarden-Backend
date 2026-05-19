@@ -132,8 +132,7 @@ class ShopSeedSerializer(serializers.Serializer):
     image_url = serializers.SerializerMethodField()
 
     def get_commonName(self, obj):
-        request = self.context.get("request")
-        lang = request.GET.get("lang", "en") if request else "en"
+        lang = self.context.get("language", "en")
         common_name = obj.get("commonName", "")
         return translate_text(common_name, lang)
 

@@ -87,7 +87,10 @@ def test_simulate_all_plants(monkeypatch):
     )
 
     # Mocks
-    monkeypatch.setattr("api.firebase.initialize_firebase", lambda: None)
+    # 1. Fem el mock directament apuntant a com s'ha importat dins d'api.tasks
+    monkeypatch.setattr("api.tasks.initialize_firebase", lambda: None)
+
+    # La resta de mocks es mantenen igual
     monkeypatch.setattr("api.plant_simulation.simulate_plant", lambda p, s: p)
     monkeypatch.setattr("api.services.xema_sync.ensure_station_synced", lambda s: None)
     monkeypatch.setattr("api.services.notifications.notify", lambda *a, **kw: None)
@@ -95,6 +98,7 @@ def test_simulate_all_plants(monkeypatch):
         "api.services.notifications.can_send_notification", lambda u: False
     )
 
+    # Importem la tasca DESPRÉS de configurar els mocadors (recomanat)
     from api.tasks import simulate_all_plants
 
-    simulate_all_plants()  # No debe lanzar excepción
+    simulate_all_plants()  # Ara sí que cridarà al lambda buit i no fallarà

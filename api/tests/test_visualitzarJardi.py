@@ -31,6 +31,7 @@ class TestGardenViewsAPI(APITestCase):
             city="bcn",
             stationCode="0001",
         )
+        self.client.force_login(self.user)
 
         self.garden = Garden.objects.create(user=self.user, name="garden")
 

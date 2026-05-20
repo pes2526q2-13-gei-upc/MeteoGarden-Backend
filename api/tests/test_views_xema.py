@@ -5,16 +5,13 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from api.models import Station, WeatherReading, User
+from api.models import Station, User, WeatherReading
 
 
 @override_settings(MEDIA_URL="/media/")
 class XemaViewsTests(APITestCase):
     def setUp(self):
-        self.user = User.objects.create_user(
-            username="alice",
-            password="test123"
-        )
+        self.user = User.objects.create_user(username="alice", password="test123")
 
         self.client.force_authenticate(user=self.user)
 

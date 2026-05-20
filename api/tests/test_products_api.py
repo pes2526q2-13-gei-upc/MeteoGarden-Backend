@@ -14,10 +14,7 @@ class TestViewsProductsComprehensive(TestCase):
     def setUp(self):
         self.client = Client()
 
-        self.user = User.objects.create_user(
-            username="alice",
-            password="test123"
-        )
+        self.user = User.objects.create_user(username="alice", password="test123")
 
         self.client.force_login(self.user)
 

@@ -2,8 +2,9 @@ from unittest.mock import MagicMock, patch
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
-from api.models import Product, Shop, User
 from rest_framework.test import APIClient
+
+from api.models import Product, Shop, User
 
 
 class ShopModelTest(TestCase):
@@ -14,10 +15,7 @@ class ShopModelTest(TestCase):
 
         self.client = APIClient()
 
-        self.user = User.objects.create_user(
-            username="alice",
-            password="test123"
-        )
+        self.user = User.objects.create_user(username="alice", password="test123")
 
         self.client.force_authenticate(user=self.user)
 
@@ -152,10 +150,7 @@ class ShopViewTest(TestCase):
 
         self.client = APIClient()
 
-        self.user = User.objects.create_user(
-            username="alice",
-            password="test123"
-        )
+        self.user = User.objects.create_user(username="alice", password="test123")
 
         self.client.force_authenticate(user=self.user)
 
@@ -168,7 +163,8 @@ class ShopViewTest(TestCase):
             price=15,
             isInstant=True,
         )
-    #------------------------------------------------------------
+
+    # ------------------------------------------------------------
     # Caso 1: respuesta básica OK
     # ------------------------------------------------------------------
     def test_get_shop_returns_200(self):

@@ -14,6 +14,7 @@ class DeletePlantEndpointTest(TestCase):
             city="Barcelona",
             stationCode="0001",
         )
+        self.client.force_login(self.user)
 
         self.garden = Garden.objects.create(
             user=self.user,

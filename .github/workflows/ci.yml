@@ -86,9 +86,6 @@ jobs:
       - name: Django check
         run: python manage.py check
 
-      - name: Create firebase-key.json
-        run: echo "${{ secrets.FIREBASE_KEY_JSON }}" > firebase-key.json
-
       - name: Run tests with coverage
         run: |
           coverage run -m pytest

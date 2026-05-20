@@ -1,13 +1,13 @@
 import json
-from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import Client, TestCase
 
 import pytest
-from django.test import RequestFactory
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import Client, RequestFactory, TestCase
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from api.models import Inventory, Plant, Product, Shop, User
 from api.views.views_shop import buy_item, get_shop
+
 
 def make_user(username="testuser", password="pass1234"):
     user = User.objects.create_user(
@@ -19,6 +19,7 @@ def make_user(username="testuser", password="pass1234"):
     )
     Inventory.objects.get_or_create(user=user)
     return user
+
 
 def make_product(name="health_potion", price=15, **kwargs):
     defaults = dict(
@@ -32,6 +33,7 @@ def make_product(name="health_potion", price=15, **kwargs):
     )
     defaults.update(kwargs)
     return Product.objects.get_or_create(name=name, defaults=defaults)[0]
+
 
 class ShopModelTest(TestCase):
     """Tests unitarios del modelo Shop."""
@@ -216,9 +218,6 @@ class ShopViewTest(TestCase):
         product = next(p for p in data["products"] if p["name"] == "health_potion")
         self.assertIsNone(product["image_url"])
 
-
-
-
     # ─────────────────────────────────────────────
     # GET /api/shop/ — updated behaviour
     # ─────────────────────────────────────────────
@@ -261,7 +260,9 @@ class ShopViewTest(TestCase):
             make_product("rare_gem", price=50, rarity="rare")
 
             response = self.client.get("/api/shop/")
-            product = next(p for p in response.json()["products"] if p["name"] == "rare_gem")
+            product = next(
+                p for p in response.json()["products"] if p["name"] == "rare_gem"
+            )
             self.assertIn("rarity", product)
             self.assertEqual(product["rarity"], "rare")
 
@@ -270,9 +271,20 @@ class ShopViewTest(TestCase):
             make_product("potion", price=10)
 
             response = self.client.get("/api/shop/")
-            product = next(p for p in response.json()["products"] if p["name"] == "potion")
-            for field in ("name", "description", "effectType", "value", "durationHours",
-                          "isInstant", "price", "image_url", "rarity"):
+            product = next(
+                p for p in response.json()["products"] if p["name"] == "potion"
+            )
+            for field in (
+                "name",
+                "description",
+                "effectType",
+                "value",
+                "durationHours",
+                "isInstant",
+                "price",
+                "image_url",
+                "rarity",
+            ):
                 self.assertIn(field, product, msg=f"Campo ausente: {field}")
 
         def test_no_products_in_db_returns_empty_list(self):
@@ -324,7 +336,11 @@ class ShopViewTest(TestCase):
             shop.save()
 
             response = self.client.get("/api/shop/")
-            seed = next(s for s in response.json()["seeds"] if s["scientificName"] == "dahlia_pinnata")
+            seed = next(
+                s
+                for s in response.json()["seeds"]
+                if s["scientificName"] == "dahlia_pinnata"
+            )
             self.assertEqual(seed["commonName"], "Dalia")
             self.assertEqual(seed["family"], "Asteraceae")
             self.assertEqual(seed["description"], "Flor ornamental")
@@ -341,7 +357,11 @@ class ShopViewTest(TestCase):
             shop.save()
 
             response = self.client.get("/api/shop/")
-            seed = next(s for s in response.json()["seeds"] if s["scientificName"] == "orchidaceae")
+            seed = next(
+                s
+                for s in response.json()["seeds"]
+                if s["scientificName"] == "orchidaceae"
+            )
             self.assertEqual(seed["price"], 99)
 
         def test_mixed_seeds_some_with_plant_some_without(self):
@@ -594,6 +614,7 @@ class ShopViewTest(TestCase):
                 content_type="application/json",
             )
             self.assertEqual(response.status_code, 404)
+
 
 @pytest.mark.django_db
 class TestShopViewMissingCoverage:
@@ -898,7 +919,9 @@ class TestShopViewMissingCoverage:
             content_type="application/json",
         )
 
-        fake_user = User.objects.create_user(username="authenticated_user", password="testpass")
+        fake_user = User.objects.create_user(
+            username="authenticated_user", password="testpass"
+        )
         force_authenticate(request, user=fake_user)
 
         response = buy_item(request, username="missing_user")
@@ -906,7 +929,9 @@ class TestShopViewMissingCoverage:
         assert response.status_code == 404
 
     def test_buy_item_inventory_not_found_returns_404(self):
-        user = User.objects.create_user(username="user_without_inventory", password="testpass")
+        user = User.objects.create_user(
+            username="user_without_inventory", password="testpass"
+        )
 
         factory = APIRequestFactory()
         request = factory.post(

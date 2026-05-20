@@ -9,7 +9,7 @@ load_dotenv(BASE_DIR / ".env")
 
 os.environ.setdefault("DJANGO_SECRET_KEY", "test-secret-key")
 
-from .settings import *  # noqa: F403, E402
+from .settings import *  # noqa: F403, E402, F401
 
 DEBUG = False
 

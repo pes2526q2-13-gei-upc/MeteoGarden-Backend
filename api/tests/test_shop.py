@@ -1,9 +1,9 @@
 from unittest.mock import MagicMock, patch
 
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import Client, TestCase
-
-from api.models import Product, Shop
+from django.test import TestCase
+from api.models import Product, Shop, User
+from rest_framework.test import APIClient
 
 
 class ShopModelTest(TestCase):
@@ -11,6 +11,25 @@ class ShopModelTest(TestCase):
 
     def setUp(self):
         Shop.objects.all().delete()
+
+        self.client = APIClient()
+
+        self.user = User.objects.create_user(
+            username="alice",
+            password="test123"
+        )
+
+        self.client.force_authenticate(user=self.user)
+
+        self.product = Product.objects.create(
+            name="health_potion",
+            description="Recupera la salud instantáneamente",
+            effectType="health",
+            value=30,
+            durationHours=0,
+            price=15,
+            isInstant=True,
+        )
 
     # ------------------------------------------------------------------
     # get_solo
@@ -130,7 +149,15 @@ class ShopViewTest(TestCase):
 
     def setUp(self):
         Shop.objects.all().delete()
-        self.client = Client()
+
+        self.client = APIClient()
+
+        self.user = User.objects.create_user(
+            username="alice",
+            password="test123"
+        )
+
+        self.client.force_authenticate(user=self.user)
 
         self.product = Product.objects.create(
             name="health_potion",
@@ -141,8 +168,7 @@ class ShopViewTest(TestCase):
             price=15,
             isInstant=True,
         )
-
-    # ------------------------------------------------------------------
+    #------------------------------------------------------------
     # Caso 1: respuesta básica OK
     # ------------------------------------------------------------------
     def test_get_shop_returns_200(self):

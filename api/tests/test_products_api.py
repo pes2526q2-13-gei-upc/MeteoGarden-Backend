@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from api.models import ActiveProduct, GrowthState
+from api.models import ActiveProduct, GrowthState, User
 
 MOCK_PATH = "api.views.views_products"
 
@@ -13,6 +13,14 @@ MOCK_PATH = "api.views.views_products"
 class TestViewsProductsComprehensive(TestCase):
     def setUp(self):
         self.client = Client()
+
+        self.user = User.objects.create_user(
+            username="alice",
+            password="test123"
+        )
+
+        self.client.force_login(self.user)
+
         try:
             self.url = reverse("use_product")
         except:

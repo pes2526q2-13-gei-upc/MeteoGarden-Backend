@@ -225,3 +225,33 @@ class TestGardenViewsAPI(APITestCase):
         response = self.client.post(url)
 
         self.assertEqual(response.status_code, 405)
+
+    def test_water_successfully(self):
+        planting = PlantInGarden.objects.create(
+            pot=self.pot,
+            plant=self.plant,
+            healthLevel=50,
+            waterLevel=40,
+            lastWateredAt=timezone.now() - timedelta(hours=11),
+        )
+
+        url = reverse("water_plant", args=["alice", "garden", 1])
+
+        response = self.client.patch(url)
+
+        self.assertEqual(response.status_code, 200)
+
+        data = response.json()
+
+        self.assertEqual(data["message"], "Plant watered successfully.")
+        self.assertEqual(data["pot_number"], 1)
+        self.assertEqual(data["plant"]["scientific_name"], "Rose")
+        self.assertEqual(data["plant"]["common_name"], "Rose")
+        self.assertEqual(data["water_level"], 100.0)
+        self.assertEqual(data["health_level"], 55.0)
+        self.assertIn("last_watered_at", data)
+
+        planting.refresh_from_db()
+
+        self.assertEqual(planting.waterLevel, 100.0)
+        self.assertEqual(planting.healthLevel, 55.0)

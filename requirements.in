@@ -1,0 +1,61 @@
+# --- DJANGO CORE ---
+Django==5.2.12
+djangorestframework==3.16.1
+django-cors-headers==4.9.0
+django-storages==1.14.6
+django-environ==0.13.0
+django-timezone-field==7.2.1
+dj-database-url==3.1.2
+
+# --- AUTH ---
+django-allauth==65.16.0
+social-auth-app-django==5.7.0
+djangorestframework-simplejwt==5.5.1
+
+# --- API DOCS ---
+drf-spectacular==0.29.0
+
+# --- DATABASE ---
+psycopg[binary]==3.3.3
+
+# --- CELERY / REDIS ---
+celery==5.6.3
+django-celery-beat==2.9.0
+redis==7.4.0
+
+# --- GOOGLE / FIREBASE ---
+firebase-admin==7.4.0
+google-auth==2.49.2
+google-cloud-firestore==2.27.0
+google-cloud-storage==3.10.1
+
+# --- AWS / STORAGE ---
+boto3==1.42.84
+
+# --- SERVER ---
+gunicorn==25.3.0
+whitenoise==6.12.0
+
+# --- HTTP / CONFIG ---
+requests==2.32.5
+python-dotenv==1.2.2
+PyYAML==6.0.3
+
+# --- DATA / ML ---
+numpy==2.4.4
+scipy==1.17.1
+scikit-image==0.26.0
+pillow==12.2.0
+onnxruntime==1.25.1
+rembg==2.0.75
+numba==0.65.1
+
+# --- DEV / TEST ---
+pytest==9.0.3
+pytest-django==4.12.0
+coverage==7.13.5
+
+# --- LINT / FORMAT ---
+black==26.3.0
+flake8==7.3.0
+isort==8.0.1

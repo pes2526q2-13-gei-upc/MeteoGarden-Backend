@@ -3,7 +3,8 @@ from datetime import timedelta
 from django.http import HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 
 from api.models import (
     Garden,
@@ -97,7 +98,8 @@ def plant_status(request, username, garden_name, pot_number):
     return JsonResponse(serializer.data)
 
 
-@csrf_exempt
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
 def water_plant(request, username, garden_name, pot_number):
     if request.method != "PATCH":
         return HttpResponseNotAllowed(["PATCH"])

@@ -1,4 +1,5 @@
 from datetime import timedelta
+from math import isclose
 
 from django.utils import timezone
 
@@ -242,7 +243,7 @@ def _apply_reading(
             )
 
     # Recuperació si tot va bé
-    if health_delta_per_hour == 0.0:
+    if isclose(health_delta_per_hour, 0.0, abs_tol=1e-9):
         health_delta_per_hour = HEALTH_RECOVERY_PER_HOUR
 
     new_health = _clamp(

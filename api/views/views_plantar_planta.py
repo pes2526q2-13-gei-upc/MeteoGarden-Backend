@@ -3,7 +3,8 @@ import json
 from django.http import HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 
 from ..models import (
     Garden,
@@ -39,7 +40,8 @@ def update_plant_missions(user, plant):
             user_mission.save()
 
 
-@csrf_exempt
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def plant_seed(request, username, garden_name, pot_number):
     if request.method != "POST":
         return HttpResponseNotAllowed(["POST"])
@@ -130,11 +132,9 @@ def plant_seed(request, username, garden_name, pot_number):
     return JsonResponse(data, status=201)
 
 
-@csrf_exempt
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
 def delete_plant(request, username, garden_name, pot_number):
-    if request.method != "DELETE":
-        return HttpResponseNotAllowed(["DELETE"])
-
     user = get_object_or_404(User, username=username)
     lang = user.language
 

@@ -21,6 +21,7 @@ firebase-key.json
 *.pem
 *.key
 *.crt
+config/settings_coverage.py
 
 staticfiles/
 media/

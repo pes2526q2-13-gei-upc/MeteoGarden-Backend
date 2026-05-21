@@ -9,11 +9,9 @@ WORKDIR /app
 COPY requirements.txt .
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/* \
-    && pip install --upgrade pip \
-    && pip install --only-binary :all: -r requirements.txt
+    && python -m pip install --no-cache-dir --only-binary=:all: --require-hashes -r requirements.txt
 
 COPY . .
 

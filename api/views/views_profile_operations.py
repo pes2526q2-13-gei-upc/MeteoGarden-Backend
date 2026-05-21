@@ -7,16 +7,20 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from ..models import Garden, Inventory, Pot, User, Mission, UserMission, MissionState
+from ..models import Garden, Inventory, Mission, MissionState, Pot, User, UserMission
 
 GOOGLE_CLIENT_ID = (
     "413098408136-jci0fe83maj5uonf6s9v065cnobktrmt.apps.googleusercontent.com"
 )
 
+
 def assignAllMissions(user):
     missions = Mission.objects.all()
     for mission in missions:
-        UserMission.objects.create(user=user, mission=mission, missionState=MissionState.IN_PROGRESS)
+        UserMission.objects.create(
+            user=user, mission=mission, missionState=MissionState.IN_PROGRESS
+        )
+
 
 def verify_google_token(token_str):
     # 1. Si el token es de Android/iOS (ID Token JWT, empieza por 'eyJ')

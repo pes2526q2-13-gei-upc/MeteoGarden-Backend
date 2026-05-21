@@ -34,21 +34,22 @@ def get_user_missions(request):
             "missions": [
                 {
                     "Name": mission.mission.name,
+                    "displayName": translate_text(mission.mission.name, lang),
                     "Description": translate_text(mission.mission.description, lang),
                     "Goal": mission.mission.goal,
                     "Action": mission.mission.action,
                     "Plant needed scientific name": (
-                        mission.mission.plant.scientificName
+                        translate_text(mission.mission.plant.scientificName, lang)
                         if mission.mission.plant
                         else None
                     ),
                     "Product needed": (
-                        mission.mission.product.name
+                        translate_text(mission.mission.product.name, lang)
                         if mission.mission.product
                         else None
                     ),
                     "Plant reward common name": (
-                        mission.mission.plantReward.commonName
+                        translate_text(mission.mission.plantReward.commonName, lang)
                         if mission.mission.plantReward
                         else None
                     ),
@@ -59,7 +60,7 @@ def get_user_missions(request):
                     ),
                     "Reward coins": mission.mission.rewardCoins,
                     "Product reward": (
-                        mission.mission.productReward.name
+                        translate_text(mission.mission.productReward.name, lang)
                         if mission.mission.productReward
                         else None
                     ),

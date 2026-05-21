@@ -7,12 +7,16 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from ..models import Garden, Inventory, Pot, User
+from ..models import Garden, Inventory, Pot, User, Mission, UserMission, MissionState
 
 GOOGLE_CLIENT_ID = (
     "413098408136-jci0fe83maj5uonf6s9v065cnobktrmt.apps.googleusercontent.com"
 )
 
+def assignAllMissions(user):
+    missions = Mission.objects.all()
+    for mission in missions:
+        UserMission.objects.create(user=user, mission=mission, missionState=MissionState.IN_PROGRESS)
 
 def verify_google_token(token_str):
     # 1. Si el token es de Android/iOS (ID Token JWT, empieza por 'eyJ')
@@ -73,6 +77,7 @@ def register(request):
         numPlantsCollected=0,
         stationCode=request.data["stationCode"],
     )
+    assignAllMissions(user)
 
     # Create the inventory
     Inventory.objects.create(user=user)
@@ -245,6 +250,7 @@ def google_register(request):
         stationCode=station_code,
         numPlantsCollected=0,
     )
+    assignAllMissions(user)
 
     # Reutilitzem el codi de register:
     # Create the inventory

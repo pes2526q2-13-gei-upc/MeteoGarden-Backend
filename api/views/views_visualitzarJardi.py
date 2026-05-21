@@ -151,7 +151,7 @@ def water_plant(request, username, garden_name, pot_number):
     planting.lastWateredAt = now
     planting.save()
     data = {
-        "message": translate_text("Plant watered successfully."),
+        "message": translate_text("Plant watered successfully.", lang),
         "pot_number": pot.number,
         "plant": {
             "scientific_name": planting.plant.scientificName,

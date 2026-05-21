@@ -3,13 +3,10 @@ import json
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, RequestFactory, TestCase
-from rest_framework.test import APIRequestFactory, force_authenticate
+from rest_framework.test import APIClient, APIRequestFactory, force_authenticate
 
 from api.models import Inventory, Plant, Product, Shop, User
 from api.views.views_shop import buy_item, get_shop
-from django.test import TestCase
-from rest_framework.test import APIClient
-from api.models import Product, Shop, User
 
 
 def make_user(username="testuser", password="pass1234"):
@@ -23,6 +20,7 @@ def make_user(username="testuser", password="pass1234"):
     Inventory.objects.get_or_create(user=user)
     return user
 
+
 def make_product(name="health_potion", price=15, **kwargs):
     defaults = dict(
         description="Recupera salud",
@@ -35,6 +33,7 @@ def make_product(name="health_potion", price=15, **kwargs):
     )
     defaults.update(kwargs)
     return Product.objects.get_or_create(name=name, defaults=defaults)[0]
+
 
 class ShopModelTest(TestCase):
     """Tests unitarios del modelo Shop."""

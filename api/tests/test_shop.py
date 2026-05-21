@@ -2,7 +2,7 @@ import json
 
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import Client, RequestFactory, TestCase
+from django.test import Client, TestCase
 from rest_framework.test import APIClient, APIRequestFactory, force_authenticate
 
 from api.models import Inventory, Plant, Product, Shop, User
@@ -680,12 +680,19 @@ class TestShopViewMissingCoverage:
             rarity=rarity,
         )
 
-    def test_get_shop_returns_seed_when_matching_plant_exists(self, monkeypatch):
+    def test_get_shop_returns_seed_when_matching_plant_exists(
+        self,
+        monkeypatch,
+    ):
         shop = Shop.get_solo()
         shop.seeds = {"rosa_rugosa": 15}
         shop.save()
 
-        monkeypatch.setattr(Shop, "initialize_starter_stock", lambda self: None)
+        monkeypatch.setattr(
+            Shop,
+            "initialize_starter_stock",
+            lambda self: None,
+        )
 
         Plant.objects.create(
             scientificName="rosa_rugosa",
@@ -697,7 +704,18 @@ class TestShopViewMissingCoverage:
             canFlower=True,
         )
 
-        request = RequestFactory().get("/shop/")
+        user = User.objects.create_user(
+            username="testuser_shop",
+            password="testpass123",
+            language="en",
+        )
+
+        factory = APIRequestFactory()
+
+        request = factory.get("/shop/")
+
+        force_authenticate(request, user=user)
+
         response = get_shop(request)
 
         assert response.status_code == 200
@@ -706,11 +724,14 @@ class TestShopViewMissingCoverage:
 
         assert "seeds" in data
         assert len(data["seeds"]) == 1
-        assert data["seeds"][0]["scientificName"] == "rosa_rugosa"
-        assert data["seeds"][0]["commonName"] == "Rosa rugosa"
-        assert data["seeds"][0]["family"] == "Rosaceae"
-        assert data["seeds"][0]["description"] == "A flowering plant."
-        assert data["seeds"][0]["price"] == 15
+
+        seed = data["seeds"][0]
+
+        assert seed["scientificName"] == "rosa_rugosa"
+        assert seed["commonName"] == "Rosa rugosa"
+        assert seed["family"] == "Rosaceae"
+        assert seed["description"] == "A flowering plant."
+        assert seed["price"] == 15
 
     def test_buy_seed_success(self):
         user, inventory = self.create_user_with_inventory(coins=100)

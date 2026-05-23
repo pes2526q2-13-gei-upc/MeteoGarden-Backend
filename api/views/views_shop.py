@@ -10,10 +10,30 @@ from api.serializer import ShopSeedSerializer
 
 from .views_translate import translate_text
 
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_shop_products(request):
+    shop = Shop.get_solo()
+    shop.initialize_starter_stock()
+    lang = request.user.language
+
+    products_data = []
+
+    for product in Product.objects.select_related().all():
+        products_data.append(
+            {
+                "name": product.name,
+                "displayName": translate_text(product.name, lang),
+                "price": product.price,
+                "image_url": product.image_url.url if product.image_url else None,
+                "rarity": product.rarity,
+            }
+        )
+    return JsonResponse(products_data, safe=False, status=200)
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def get_shop(request):
+def get_shop_seeds(request):
     shop = Shop.get_solo()
     shop.initialize_starter_stock()
     lang = request.user.language
@@ -42,27 +62,7 @@ def get_shop(request):
         except Plant.DoesNotExist:
             continue
 
-    products_data = []
-
-    for product in Product.objects.select_related().all():
-        products_data.append(
-            {
-                "name": product.name,
-                "displayName": translate_text(product.name, lang),
-                "price": product.price,
-                "image_url": product.image_url.url if product.image_url else None,
-                "rarity": product.rarity,
-            }
-        )
-
-    return JsonResponse(
-        {
-            "seeds": seeds_data,
-            "products": products_data,
-        },
-        status=200,
-    )
-
+    return JsonResponse(seeds_data, safe=False, status=200)
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])

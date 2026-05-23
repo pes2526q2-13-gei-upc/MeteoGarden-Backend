@@ -44,7 +44,8 @@ from .views_profile_operations import (  # noqa: F401
 )
 from .views_shop import (  # noqa: F401
     buy_item,
-    get_shop,
+    get_shop_products,
+    get_shop_seeds,
     get_shop_product,
     get_shop_seed,
 )

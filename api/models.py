@@ -125,7 +125,7 @@ class Inventory(models.Model):
         User, on_delete=models.CASCADE, primary_key=True
     )  # RT.1
     # All users start with 5 coins
-    coins = models.PositiveIntegerField(default=5)
+    coins = models.PositiveIntegerField(default=20)
     seeds = models.JSONField(default=dict, blank=True)
     products = models.JSONField(default=dict, blank=True)
 

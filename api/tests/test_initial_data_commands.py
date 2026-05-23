@@ -1,10 +1,12 @@
-from django.core.management import call_command
-
-from api.models import Image, Mission, Plant, Product, Shop
 from pathlib import Path
 
 from django.conf import settings
+from django.core.management import call_command
 from PIL import Image as PILImage
+
+from api.models import Image, Mission, Plant, Product, Shop
+
+
 def create_fake_image_files():
     image_paths = [
         "plants/dahlia_pinnata/dahlia_pinnata_seed.png",
@@ -40,6 +42,7 @@ def create_fake_image_files():
         if not full_path.exists():
             PILImage.new("RGB", (1, 1)).save(full_path)
 
+
 def test_sync_plants_creates_initial_plants(db):
     call_command("sync_plants")
 
@@ -61,6 +64,7 @@ def test_sync_images_creates_initial_images(db):
         plant__scientificName="dahlia_pinnata",
         growthPhase="seed",
     ).exists()
+
 
 def test_sync_products_creates_initial_products(db):
     call_command("sync_products")
@@ -107,6 +111,7 @@ def test_seed_initial_data_runs_all_commands(db):
 
     shop = Shop.get_solo()
     assert shop.seeds["dahlia_pinnata"] > 0
+
 
 def test_sync_missions_creates_initial_missions(db):
     call_command("sync_products")

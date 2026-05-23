@@ -11,7 +11,7 @@ class Command(BaseCommand):
         for entry in STARTER_IMAGES:
             try:
                 plant = Plant.objects.get(scientificName=entry["plant"])
-                Image.objects.get_or_create(
+                Image.objects.update_or_create(
                     plant=plant,
                     growthPhase=entry["phase"],
                     defaults={"url": entry["url"]},

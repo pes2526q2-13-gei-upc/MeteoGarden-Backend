@@ -1,129 +1,127 @@
 from api.models import GrowthState
 
 STARTER_IMAGES = [
-    # --- citrus_sinensis ---
-    # {
-    #    "plant": "citrus_sinensis",
-    #    "phase": GrowthState.SEED,
-    #    "url": "plants/citrus_sinensis/citrus_sinensis_seed.png",
-    # },
-    # {
-    #    "plant": "citrus_sinensis",
-    #    "phase": GrowthState.GERMINATION,
-    #    "url": "plants/citrus_sinensis/citrus_sinensis_germination.png",
-    # },
-    # {
-    #    "plant": "citrus_sinensis",
-    #    "phase": GrowthState.GROWTH,
-    #    "url": "plants/citrus_sinensis/citrus_sinensis_growth.png",
-    # },
-    # {
-    #    "plant": "citrus_sinensis",
-    #    "phase": GrowthState.MATURE,
-    #    "url": "plants/citrus_sinensis/citrus_sinensis_mature.png",
-    # },
-    # {
-    #    "plant": "citrus_sinensis",
-    #    "phase": GrowthState.FLOWERING,
-    #    "url": "plants/citrus_sinensis/citrus_sinensis_flowering.png",
-    # },
-    # {
-    #    "plant": "citrus_sinensis",
-    #    "phase": GrowthState.DEAD,
-    #    "url": "plants/citrus_sinensis/citrus_sinensis_dead.png",
-    # },
-    # --- dianthus_caryophyllus ---
     {
-        "plant": "dianthus_caryophyllus",
+        "plant": "dahlia_pinnata",
         "phase": GrowthState.SEED,
-        "url": "plants/dianthus_caryophyllus/dianthus_caryophyllus_seed.png",
+        "url": "plants/dahlia_pinnata/dahlia_pinnata_seed.png",
     },
     {
-        "plant": "dianthus_caryophyllus",
+        "plant": "dahlia_pinnata",
         "phase": GrowthState.GERMINATION,
-        "url": "plants/dianthus_caryophyllus/dianthus_caryophyllus_germination.png",
+        "url": "plants/dahlia_pinnata/dahlia_pinnata_germination.png",
     },
     {
-        "plant": "dianthus_caryophyllus",
+        "plant": "dahlia_pinnata",
         "phase": GrowthState.GROWTH,
-        "url": "plants/dianthus_caryophyllus/dianthus_caryophyllus_growth.png",
+        "url": "plants/dahlia_pinnata/dahlia_pinnata_growth.png",
     },
     {
-        "plant": "dianthus_caryophyllus",
+        "plant": "dahlia_pinnata",
         "phase": GrowthState.MATURE,
-        "url": "plants/dianthus_caryophyllus/dianthus_caryophyllus_mature.png",
+        "url": "plants/dahlia_pinnata/dahlia_pinnata_mature.png",
     },
     {
-        "plant": "dianthus_caryophyllus",
+        "plant": "dahlia_pinnata",
         "phase": GrowthState.FLOWERING,
-        "url": "plants/dianthus_caryophyllus/dianthus_caryophyllus_flowering.png",
+        "url": "plants/dahlia_pinnata/dahlia_pinnata_flowering.png",
     },
     {
-        "plant": "dianthus_caryophyllus",
+        "plant": "dahlia_pinnata",
         "phase": GrowthState.DEAD,
-        "url": "plants/dianthus_caryophyllus/dianthus_caryophyllus_dead.png",
+        "url": "plants/dahlia_pinnata/dahlia_pinnata_dead.png",
     },
-    # --- helianthus_annuus ---
+
     {
-        "plant": "helianthus_annuus",
+        "plant": "rosa_rugosa",
         "phase": GrowthState.SEED,
-        "url": "plants/helianthus_annuus/helianthus_annuus_seed_ugsoSEG.png",
+        "url": "plants/rosa_rugosa/rosa_rugosa_seed.png",
     },
     {
-        "plant": "helianthus_annuus",
+        "plant": "rosa_rugosa",
         "phase": GrowthState.GERMINATION,
-        "url": "plants/helianthus_annuus/helianthus_annuus_germination_HdfR45a.png",
+        "url": "plants/rosa_rugosa/rosa_rugosa_germination.png",
     },
     {
-        "plant": "helianthus_annuus",
+        "plant": "rosa_rugosa",
         "phase": GrowthState.GROWTH,
-        "url": "plants/helianthus_annuus/helianthus_annuus_growth_MVx3vF1.png",
+        "url": "plants/rosa_rugosa/rosa_rugosa_growth.png",
     },
     {
-        "plant": "helianthus_annuus",
+        "plant": "rosa_rugosa",
         "phase": GrowthState.MATURE,
-        "url": "plants/helianthus_annuus/helianthus_annuus_mature_VG25ckP.png",
+        "url": "plants/rosa_rugosa/rosa_rugosa_mature.png",
     },
     {
-        "plant": "helianthus_annuus",
+        "plant": "rosa_rugosa",
         "phase": GrowthState.FLOWERING,
-        "url": "plants/helianthus_annuus/helianthus_annuus_flowering_raa4TSh.png",
+        "url": "plants/rosa_rugosa/rosa_rugosa_flowering.png",
     },
     {
-        "plant": "helianthus_annuus",
+        "plant": "rosa_rugosa",
         "phase": GrowthState.DEAD,
-        "url": "plants/helianthus_annuus/helianthus_annuus_dead_XXzT081.png",
+        "url": "plants/rosa_rugosa/rosa_rugosa_dead.png",
     },
-    # --- mentha_spicata ---
+
     {
-        "plant": "mentha_spicata",
+        "plant": "orchidaceae",
         "phase": GrowthState.SEED,
-        "url": "plants/mentha_spicata/mentha_spicata_seed_MtIVPcW.png",
+        "url": "plants/orchidaceae/orchidaceae_seed.png",
     },
     {
-        "plant": "mentha_spicata",
+        "plant": "orchidaceae",
         "phase": GrowthState.GERMINATION,
-        "url": "plants/mentha_spicata/mentha_spicata_germination_Mi6Y7dY.png",
+        "url": "plants/orchidaceae/orchidaceae_germination.png",
     },
     {
-        "plant": "mentha_spicata",
+        "plant": "orchidaceae",
         "phase": GrowthState.GROWTH,
-        "url": "plants/mentha_spicata/mentha_spicata_growth_fFHtLuw.png",
+        "url": "plants/orchidaceae/orchidaceae_growth.png",
     },
     {
-        "plant": "mentha_spicata",
+        "plant": "orchidaceae",
         "phase": GrowthState.MATURE,
-        "url": "plants/mentha_spicata/mentha_spicata_mature_iLVJ1ft.png",
+        "url": "plants/orchidaceae/orchidaceae_mature.png",
     },
     {
-        "plant": "mentha_spicata",
+        "plant": "orchidaceae",
         "phase": GrowthState.FLOWERING,
-        "url": "plants/mentha_spicata/mentha_spicata_flowering_mV3u5qk.png",
+        "url": "plants/orchidaceae/orchidaceae_flowering.png",
     },
     {
-        "plant": "mentha_spicata",
+        "plant": "orchidaceae",
         "phase": GrowthState.DEAD,
-        "url": "plants/mentha_spicata/mentha_spicata_dead_hnYHu2o.png",
+        "url": "plants/orchidaceae/orchidaceae_dead.png",
     },
-    # --- rosa_canina & lavandula_angustifolia --- (pendiente, añade cuando subas las imágenes a S3)
+
+    {
+        "plant": "dendrobium_anosmum",
+        "phase": GrowthState.SEED,
+        "url": "plants/dendrobium_anosmum/dendrobium_anosmum_seed.png",
+    },
+    {
+        "plant": "dendrobium_anosmum",
+        "phase": GrowthState.GERMINATION,
+        "url": "plants/dendrobium_anosmum/dendrobium_anosmum_germination.png",
+    },
+    {
+        "plant": "dendrobium_anosmum",
+        "phase": GrowthState.GROWTH,
+        "url": "plants/dendrobium_anosmum/dendrobium_anosmum_growth.png",
+    },
+    {
+        "plant": "dendrobium_anosmum",
+        "phase": GrowthState.MATURE,
+        "url": "plants/dendrobium_anosmum/dendrobium_anosmum_mature.png",
+    },
+    {
+        "plant": "dendrobium_anosmum",
+        "phase": GrowthState.FLOWERING,
+        "url": "plants/dendrobium_anosmum/dendrobium_anosmum_flowering.png",
+    },
+    {
+        "plant": "dendrobium_anosmum",
+        "phase": GrowthState.DEAD,
+        "url": "plants/dendrobium_anosmum/dendrobium_anosmum_dead.png",
+    },
 ]

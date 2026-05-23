@@ -130,8 +130,8 @@ def water_plant(request, username, garden_name, pot_number):
     planting.waterLevel = 100.0
     now = timezone.now()
 
-    if now - planting.lastWateredAt < timedelta(hours=10):
-        remaining = timedelta(hours=10) - (now - planting.lastWateredAt)
+    if now - planting.lastWateredAt < timedelta(hours=3):
+        remaining = timedelta(hours=3) - (now - planting.lastWateredAt)
         total_seconds = int(remaining.total_seconds())
         hours = total_seconds // 3600
         minutes = (total_seconds % 3600) // 60

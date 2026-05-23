@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
-from api.models import Inventory, Plant, Product, Shop, User
+from api.models import Image, Inventory, Plant, Product, Shop, User
 from api.serializer import ShopSeedSerializer
 
 from .views_translate import translate_text
@@ -22,13 +22,21 @@ def get_shop(request):
     for scientific_name, price in shop.seeds.items():
         try:
             plant = Plant.objects.get(scientificName=scientific_name)
+
+            image = Image.objects.filter(
+                plant=plant,
+                growthPhase="seed",
+            ).first()
+
             seeds_data.append(
                 {
                     "scientificName": plant.scientificName,
-                    "commonName": plant.commonName,
-                    "family": plant.family,
-                    "description": plant.description,
+                    "commonName": translate_text(
+                        plant.commonName,
+                        lang,
+                    ),
                     "price": price,
+                    "image_url": (image.url.url if image and image.url else None),
                 }
             )
         except Plant.DoesNotExist:
@@ -49,11 +57,7 @@ def get_shop(request):
 
     return JsonResponse(
         {
-            "seeds": ShopSeedSerializer(
-                seeds_data,
-                many=True,
-                context={"language": lang},
-            ).data,
+            "seeds": seeds_data,
             "products": products_data,
         },
         status=200,

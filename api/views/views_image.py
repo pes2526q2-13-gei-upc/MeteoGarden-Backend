@@ -3,13 +3,15 @@ import urllib
 
 import requests
 from django.core.files.base import ContentFile
-from rembg import remove
+from rembg import new_session, remove
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from config.settings import MEDIA_URL
 
 from ..models import AlbumEntry, GrowthState, Image, Plant, User
+
+rembg_session = new_session("u2net")
 
 POLLINATIONS_URL = "https://gen.pollinations.ai/image"
 STATE_DESCRIPTIONS = {
@@ -25,23 +27,24 @@ STATE_DESCRIPTIONS = {
 def createPlantImages(scientificName):
 
     safe_name = scientificName.replace(" ", "_").lower()
-    plant = Plant.objects.get(scientificName=scientificName)
-    if not plant:
+    try:
+        plant = Plant.objects.get(scientificName=scientificName)
+    except Plant.DoesNotExist:
         return Response({"plant": "Plant not found."}, status=404)
 
     api_key = os.getenv("POLLINATION_API_KEY")
 
     style = f"""
         game-ready 2D farming game asset,
-        isolated object cutout on pure transparent background,
+        object on the pure white background,
         front-facing orthographic view,
         centered composition,
         clean sharp edges, no blur,
         botanically accurate {scientificName} characteristics,
-        stem and leaves only,
+        stem,
         NO pot, NO container, NO soil, NO ground, NO shadow, NO surface,
         bright vibrant colors, soft cel-shaded cartoon style,
-        high quality digital art, PNG format,
+        high quality digital art,
         clean alpha channel
         """.strip()
 
@@ -52,18 +55,26 @@ def createPlantImages(scientificName):
         encoded_prompt = urllib.parse.quote(prompt)
         image_url = f"{POLLINATIONS_URL}/{encoded_prompt}?model=flux"
 
-        response = requests.get(
-            image_url, headers={"Authorization": f"Bearer {api_key}"}, timeout=60
-        )
+        try:
+            response = requests.get(
+                image_url, headers={"Authorization": f"Bearer {api_key}"}, timeout=60
+            )
 
-        if response.status_code == 200:
-            transparent_image_bytes = remove(response.content)
-            image_content = ContentFile(transparent_image_bytes)
+            if response.status_code == 200:
+                transparent_image_bytes = remove(
+                    response.content, session=rembg_session
+                )
+                image_content = ContentFile(transparent_image_bytes)
 
-            new_image = Image(plant=plant, growthPhase=state_value)
+                new_image = Image(plant=plant, growthPhase=state_value)
 
-            filename = f"{safe_name}_{state_value}.png"
-            new_image.url.save(filename, image_content, save=True)
+                filename = f"{safe_name}_{state_value}.png"
+                new_image.url.save(filename, image_content, save=True)
+            else:
+                return Response({"Error pollinations."}, status=404)
+
+        except Exception as e:
+            return Response({"Unexpected error.": e}, status=400)
 
     return None
 

@@ -31,7 +31,6 @@ STARTER_IMAGES = [
         "phase": GrowthState.DEAD,
         "url": "plants/dahlia_pinnata/dahlia_pinnata_dead.png",
     },
-
     {
         "plant": "rosa_rugosa",
         "phase": GrowthState.SEED,
@@ -62,7 +61,6 @@ STARTER_IMAGES = [
         "phase": GrowthState.DEAD,
         "url": "plants/rosa_rugosa/rosa_rugosa_dead.png",
     },
-
     {
         "plant": "orchidaceae",
         "phase": GrowthState.SEED,
@@ -93,7 +91,6 @@ STARTER_IMAGES = [
         "phase": GrowthState.DEAD,
         "url": "plants/orchidaceae/orchidaceae_dead.png",
     },
-
     {
         "plant": "dendrobium_anosmum",
         "phase": GrowthState.SEED,

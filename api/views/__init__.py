@@ -44,10 +44,10 @@ from .views_profile_operations import (  # noqa: F401
 )
 from .views_shop import (  # noqa: F401
     buy_item,
-    get_shop_products,
-    get_shop_seeds,
     get_shop_product,
+    get_shop_products,
     get_shop_seed,
+    get_shop_seeds,
 )
 from .views_translate import translate  # noqa: F401
 from .views_visualitzarJardi import (  # noqa: F401

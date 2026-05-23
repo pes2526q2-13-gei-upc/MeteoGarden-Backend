@@ -10,6 +10,7 @@ from api.serializer import ShopSeedSerializer
 
 from .views_translate import translate_text
 
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_shop_products(request):
@@ -30,6 +31,7 @@ def get_shop_products(request):
             }
         )
     return JsonResponse(products_data, safe=False, status=200)
+
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -63,6 +65,7 @@ def get_shop_seeds(request):
             continue
 
     return JsonResponse(seeds_data, safe=False, status=200)
+
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])

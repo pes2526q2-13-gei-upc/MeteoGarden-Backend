@@ -1,5 +1,6 @@
 import requests
 from django.contrib.auth import authenticate
+from django.utils import timezone
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
 from rest_framework.authtoken.models import Token
@@ -18,7 +19,10 @@ def assignAllMissions(user):
     missions = Mission.objects.all()
     for mission in missions:
         UserMission.objects.create(
-            user=user, mission=mission, missionState=MissionState.IN_PROGRESS
+            user=user,
+            mission=mission,
+            missionState=MissionState.IN_PROGRESS,
+            acquiredAt=timezone.now(),
         )
 
 

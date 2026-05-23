@@ -18,4 +18,7 @@ class Command(BaseCommand):
         self.stdout.write("Seeding shop...")
         call_command("sync_shop")
 
+        self.stdout.write("Seeding missions...")
+        call_command("sync_missions")
+
         self.stdout.write(self.style.SUCCESS("All initial data seeded successfully."))

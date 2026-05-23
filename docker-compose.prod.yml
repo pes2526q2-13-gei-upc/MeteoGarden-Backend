@@ -17,6 +17,11 @@ services:
       timeout: 5s
       retries: 10
 
+  redis:
+    image: redis:7-alpine
+    container_name: meteogarden_redis
+    restart: unless-stopped
+
   api:
     image: ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
     container_name: meteogarden_api
@@ -26,5 +31,39 @@ services:
     depends_on:
       pg:
         condition: service_healthy
+      redis:
+        condition: service_started
     ports:
       - "8080:8000"
+    volumes:
+      - ./firebase-key.json:/app/firebase-key.json:ro
+
+  worker:
+    image: ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
+    container_name: meteogarden_worker
+    restart: unless-stopped
+    command: celery -A config worker -l info
+    env_file:
+      - .django.env
+    depends_on:
+      pg:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ./firebase-key.json:/app/firebase-key.json:ro
+
+  beat:
+    image: ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
+    container_name: meteogarden_beat
+    restart: unless-stopped
+    command: celery -A config beat -l info
+    env_file:
+      - .django.env
+    depends_on:
+      pg:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ./firebase-key.json:/app/firebase-key.json:ro

@@ -480,7 +480,7 @@ class Event(models.Model):
     price = models.PositiveIntegerField()
     tags = models.JSONField(default=list)
     image = models.ImageField(upload_to="events/", null=True, blank=True)
-    city = models.CharField(max_length=150, blank=True)
+    city = models.CharField(max_length=150, blank=True, default="")
     street = models.CharField(max_length=255, blank=True)
 
 

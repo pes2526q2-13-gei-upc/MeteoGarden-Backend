@@ -42,7 +42,12 @@ from .views_profile_operations import (  # noqa: F401
     register,
     validate_token,
 )
-from .views_shop import buy_item, get_shop  # noqa: F401
+from .views_shop import (  # noqa: F401
+    buy_item,
+    get_shop,
+    get_shop_product,
+    get_shop_seed,
+)
 from .views_translate import translate  # noqa: F401
 from .views_visualitzarJardi import (  # noqa: F401
     garden_plants,

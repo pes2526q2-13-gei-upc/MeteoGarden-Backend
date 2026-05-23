@@ -41,11 +41,6 @@ def get_shop(request):
             {
                 "name": product.name,
                 "displayName": translate_text(product.name, lang),
-                "description": translate_text(product.description, lang),
-                "effectType": product.effectType,
-                "value": product.value,
-                "durationHours": product.durationHours,
-                "isInstant": product.isInstant,
                 "price": product.price,
                 "image_url": product.image_url.url if product.image_url else None,
                 "rarity": product.rarity,
@@ -61,6 +56,80 @@ def get_shop(request):
             ).data,
             "products": products_data,
         },
+        status=200,
+    )
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_shop_product(request, name):
+    lang = request.user.language
+
+    try:
+        product = Product.objects.get(name=name)
+
+    except Product.DoesNotExist:
+        return JsonResponse(
+            {"error": translate_text("Product not found", lang)},
+            status=404,
+        )
+
+    data = {
+        "name": product.name,
+        "displayName": translate_text(
+            product.name,
+            lang,
+        ),
+        "description": translate_text(
+            product.description,
+            lang,
+        ),
+        "effectType": product.effectType,
+        "value": product.value,
+        "durationHours": product.durationHours,
+        "isInstant": product.isInstant,
+        "price": product.price,
+        "rarity": product.rarity,
+        "image_url": (product.image_url.url if product.image_url else None),
+    }
+
+    return JsonResponse(data, status=200)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_shop_seed(request, scientific_name):
+    shop = Shop.get_solo()
+    lang = request.user.language
+
+    if scientific_name not in shop.seeds:
+        return JsonResponse(
+            {"error": translate_text("Seed not found in shop", lang)},
+            status=404,
+        )
+
+    try:
+        plant = Plant.objects.get(scientificName=scientific_name)
+
+    except Plant.DoesNotExist:
+        return JsonResponse(
+            {"error": translate_text("Plant not found", lang)},
+            status=404,
+        )
+
+    data = {
+        "scientificName": plant.scientificName,
+        "commonName": plant.commonName,
+        "family": plant.family,
+        "description": plant.description,
+        "price": shop.seeds[scientific_name],
+    }
+
+    return JsonResponse(
+        ShopSeedSerializer(
+            data,
+            context={"language": lang},
+        ).data,
         status=200,
     )
 

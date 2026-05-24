@@ -283,6 +283,14 @@ def sync_events_task():
         loc = item.get("location", {})
         category_obj = get_or_create_category(item.get("category"))
 
+        city = loc.get("county")
+        street = loc.get("street")
+
+        if city is None:
+            city = ""
+        if street is None:
+            street = ""
+
         defaults = {
             "title": item.get("title"),
             "subtitle": item.get("subtitle"),
@@ -292,8 +300,8 @@ def sync_events_task():
             "category": category_obj,
             "price": int(float(item.get("price", 0))),
             "tags": item.get("tags", []),
-            "city": loc.get("county", "Desconeguda"),
-            "street": loc.get("street", ""),
+            "city": city,
+            "street": street,
         }
 
         event, created = Event.objects.update_or_create(

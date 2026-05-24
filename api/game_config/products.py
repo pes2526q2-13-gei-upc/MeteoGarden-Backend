@@ -62,7 +62,7 @@ PRODUCTS = [
         "durationHours": None,
         "price": 90,
         "isInstant": True,
-        "image_url": "products/pocio_reviure.jpeg",
+        "image_url": "products/pocio_reviure.jpng",
         "rarity": "epic",
     },
     {

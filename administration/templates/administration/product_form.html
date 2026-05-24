@@ -1,0 +1,88 @@
+{% extends 'administration/base.html' %}
+
+{% block title %}{% if product %}Editar{% else %}Nou{% endif %} producte — MeteoGarden Admin{% endblock %}
+{% block page_title %}{% if product %}Editar producte{% else %}Nou producte{% endif %}{% endblock %}
+{% block page_sub %}{% if product %}Modifica els camps del producte «{{ product.name }}»{% else %}Omple els camps per crear un nou producte{% endif %}{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'adm_products' %}" class="btn-secondary">← Tornar</a>
+{% endblock %}
+
+{% block content %}
+<div class="card form-card">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="form-grid">
+      <div class="field full-width">
+        <label class="field-label">Nom <span class="required">*</span></label>
+        {% if product %}
+          <input type="text" class="field-input" value="{{ product.name }}" disabled />
+        {% else %}
+          <input type="text" name="name" class="field-input" placeholder="Ex: Fertilitzant bàsic" required />
+          <span class="field-hint">El nom és l'identificador únic i no es pot canviar després.</span>
+        {% endif %}
+      </div>
+
+      <div class="field full-width">
+        <label class="field-label">Descripció <span class="required">*</span></label>
+        <textarea name="description" class="field-input field-textarea" required>{{ product.description|default:'' }}</textarea>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Tipus d'efecte <span class="required">*</span></label>
+        <select name="effectType" class="field-input field-select" required>
+          {% for value, label in effect_types %}
+            <option value="{{ value }}" {% if product and product.effectType == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Raresa</label>
+        <select name="rarity" class="field-input field-select">
+          {% for r in "common,uncommon,rare,epic,legendary"|split:"," %}
+            <option value="{{ r }}" {% if product and product.rarity == r %}selected{% endif %}>{{ r|capfirst }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Preu (monedes) <span class="required">*</span></label>
+        <input type="number" name="price" class="field-input" min="0" value="{{ product.price|default:0 }}" required />
+      </div>
+
+      <div class="field">
+        <label class="field-label">Valor de l'efecte</label>
+        <input type="number" name="value" class="field-input" step="0.1" value="{{ product.value|default:'' }}" placeholder="Ex: 20.0" />
+      </div>
+
+      <div class="field">
+        <label class="field-label">Durada (hores, si no és instant)</label>
+        <input type="number" name="durationHours" class="field-input" step="0.5" value="{{ product.durationHours|default:'' }}" placeholder="Ex: 24" />
+      </div>
+
+      <div class="field">
+        <label class="field-label">Efecte instant</label>
+        <label class="toggle">
+          <input type="checkbox" name="isInstant" {% if not product or product.isInstant %}checked{% endif %} />
+          <span class="toggle-label">Sí, s'aplica immediatament</span>
+        </label>
+      </div>
+
+      <div class="field full-width">
+        <label class="field-label">Imatge</label>
+        {% if product and product.image_url %}
+          <img src="{{ product.image_url.url }}" alt="{{ product.name }}" class="product-img-preview" />
+        {% endif %}
+        <input type="file" name="image_url" class="field-input" accept="image/*" />
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a href="{% url 'adm_products' %}" class="btn-secondary">Cancel·lar</a>
+      <button type="submit" class="btn-primary">{{ action_label }}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

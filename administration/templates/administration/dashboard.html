@@ -1,0 +1,86 @@
+{% extends 'administration/base.html' %}
+
+{% block title %}Dashboard — MeteoGarden Admin{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block page_sub %}Resum general de MeteoGarden{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-label">👤 Usuaris</div>
+    <div class="stat-value">{{ num_users }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">🌱 Plantes actives</div>
+    <div class="stat-value">{{ num_plants_active }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">🎯 Missions</div>
+    <div class="stat-value">{{ num_missions }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">🧪 Productes</div>
+    <div class="stat-value">{{ num_products }}</div>
+  </div>
+</div>
+
+<div class="two-col">
+  <!-- Missions recents -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Missions</span>
+      <a href="{% url 'adm_missions' %}" class="btn-secondary btn-sm">Veure totes</a>
+    </div>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Acció</th>
+          <th>Objectiu</th>
+          <th>Monedes</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in missions %}
+        <tr>
+          <td><strong>{{ m.name }}</strong></td>
+          <td><span class="badge badge-action">{{ m.action }}</span></td>
+          <td>{{ m.goal }}</td>
+          <td>🪙 {{ m.rewardCoins }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="empty">No hi ha missions</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Usuaris recents -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Usuaris recents</span>
+      <a href="{% url 'adm_users' %}" class="btn-secondary btn-sm">Veure tots</a>
+    </div>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Usuari</th>
+          <th>Ciutat</th>
+          <th>Darrer accés</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in recent_users %}
+        <tr>
+          <td><strong>{{ u.username }}</strong></td>
+          <td>{{ u.city }}</td>
+          <td class="muted">{{ u.lastEntry|date:"d/m/Y H:i" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3" class="empty">No hi ha usuaris</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends 'administration/base.html' %}
+
+{% block title %}Missions — MeteoGarden Admin{% endblock %}
+{% block page_title %}Missions{% endblock %}
+{% block page_sub %}Gestiona les missions disponibles{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'adm_mission_create' %}" class="btn-primary">+ Nova missió</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Nom</th>
+        <th>Descripció</th>
+        <th>Acció</th>
+        <th>Objectiu</th>
+        <th>Monedes</th>
+        <th>Recompensa planta</th>
+        <th>Recompensa producte</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in missions %}
+      <tr>
+        <td><strong>{{ m.name }}</strong></td>
+        <td class="muted truncate">{{ m.description|truncatechars:50 }}</td>
+        <td><span class="badge badge-action">{{ m.action }}</span></td>
+        <td>{{ m.goal }}</td>
+        <td>🪙 {{ m.rewardCoins }}</td>
+        <td>{% if m.plantReward %}<span class="badge badge-green">{{ m.plantReward.commonName|default:m.plantReward.scientificName }}</span>{% else %}—{% endif %}</td>
+        <td>{% if m.productReward %}<span class="badge badge-amber">{{ m.productReward.name }}</span>{% else %}—{% endif %}</td>
+        <td class="actions-cell">
+          <!-- Assign to all -->
+          <form method="post" action="{% url 'adm_mission_assign' m.name %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn-icon btn-green" title="Assignar a tots els usuaris">👥</button>
+          </form>
+          <a href="{% url 'adm_mission_edit' m.name %}" class="btn-icon" title="Editar">✏️</a>
+          <form method="post" action="{% url 'adm_mission_delete' m.name %}" style="display:inline;" onsubmit="return confirm('Eliminar la missió «{{ m.name }}»?')">
+            {% csrf_token %}
+            <button type="submit" class="btn-icon btn-danger" title="Eliminar">🗑</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8" class="empty">No hi ha missions. <a href="{% url 'adm_mission_create' %}">Crea'n una</a>.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

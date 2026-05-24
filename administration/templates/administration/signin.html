@@ -1,0 +1,41 @@
+{% extends 'administration/base.html' %}
+{% load static %}
+
+{% block auth_content %}
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8" />
+  <title>Accés — MeteoGarden Admin</title>
+  <link rel="stylesheet" href="{% static 'administration/css/style.css' %}" />
+</head>
+<body class="signin-body">
+  <div class="signin-wrap">
+    <div class="signin-card">
+      <div class="signin-logo">🌿</div>
+      <h1 class="signin-title">MeteoGarden</h1>
+      <p class="signin-sub">Panell d'administració</p>
+
+      {% if errors %}
+        {% for error in errors %}
+          <div class="alert alert-error">{{ error }}</div>
+        {% endfor %}
+      {% endif %}
+
+      <form method="post" action="{% url 'adm_signin' %}">
+        {% csrf_token %}
+        <div class="field">
+          <label class="field-label">Usuari</label>
+          <input type="text" name="username" class="field-input" autofocus autocomplete="username" />
+        </div>
+        <div class="field">
+          <label class="field-label">Contrasenya</label>
+          <input type="password" name="password" class="field-input" autocomplete="current-password" />
+        </div>
+        <button type="submit" class="btn-primary btn-block">Entrar</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
+{% endblock %}

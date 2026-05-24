@@ -1,5 +1,6 @@
-import requests
 import os
+
+import requests
 from django.contrib.auth import authenticate
 from django.utils import timezone
 from google.auth.transport import requests as google_requests

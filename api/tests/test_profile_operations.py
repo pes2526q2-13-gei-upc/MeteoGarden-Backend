@@ -6,6 +6,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 
 from api.models import Garden, Inventory, Pot, User
+from api.views.views_profile_operations import verify_google_token
 
 TEST_PASSWORD = "test_password_123"  # NOSONAR
 NEW_PASSWORD = "new_password_456"  # NOSONAR
@@ -654,3 +655,16 @@ class GoogleAuthTests(APITestCase):
 
         pots = Pot.objects.filter(garden=garden)
         self.assertEqual(pots.count(), 16)
+
+    @patch("api.views.views_profile_operations.id_token.verify_oauth2_token")
+    def test_verify_google_token_uses_google_client_id(self, mock_verify):
+        mock_verify.return_value = {
+            "sub": "123",
+            "email": "test@test.com",
+            "name": "Test User",
+        }
+
+        info = verify_google_token("eyJ.fake.token")
+
+        self.assertEqual(info["email"], "test@test.com")
+        mock_verify.assert_called_once()

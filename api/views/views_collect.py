@@ -73,7 +73,7 @@ def collect_plant(request, username, garden_name, pot_number):
     pot.save()
 
     inventory = Inventory.objects.get(user=user)
-    inventory.coins += 2
+    inventory.coins += 10
     inventory.save()
 
     user.increment_plants()

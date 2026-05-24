@@ -21,6 +21,7 @@ from api.serializer import (
     PotSerializer,
 )
 from api.services.xema_sync import ensure_station_synced
+from api.views.views_translate import translate_text
 
 
 def _sync_user_station(user: User) -> Station | None:
@@ -60,7 +61,8 @@ def garden_plants(request, username, garden_name):
         .order_by("number")
         .select_related("plantingarden", "plantingarden__plant")
     )
-    serializer = PotSerializer(pots, many=True)
+    user = get_object_or_404(User, username=username)
+    serializer = PotSerializer(pots, many=True, context={"language": user.language})
     return JsonResponse(serializer.data, safe=False)
 
 
@@ -91,7 +93,8 @@ def plant_status(request, username, garden_name, pot_number):
             planting = simulate_plant(planting, station)
             planting.save()
 
-    serializer = PotSerializer(pot)
+    user = get_object_or_404(User, username=username)
+    serializer = PotSerializer(pot, context={"language": user.language})
     return JsonResponse(serializer.data)
 
 
@@ -112,20 +115,16 @@ def water_plant(request, username, garden_name, pot_number):
         garden=garden,
         number=pot_number,
     )
+    user = get_object_or_404(User, username=username)
+    lang = user.language
 
     planting = getattr(pot, "plantingarden", None)
 
     if planting is None:
         return JsonResponse(
-            {"error": "There is no plant in this pot."},
+            {"error": translate_text("There is no plant in this pot.", lang)},
             status=404,
         )
-
-    # ns si actualitzar aqui la planta o no abans de regar
-    # if planting.growthPhase != GrowthState.DEAD:
-    #    station = _sync_user_station(garden.user)
-    #    if station:
-    #        planting = simulate_plant(planting, station)
 
     planting.waterLevel = 100.0
     now = timezone.now()
@@ -138,9 +137,10 @@ def water_plant(request, username, garden_name, pot_number):
 
         return JsonResponse(
             {
-                "error": "Plant was watered recently.",
-                "message": (
-                    f"You must wait {hours}h {minutes}m before watering again."
+                "error": translate_text("Plant was watered recently.", lang),
+                "message": translate_text(
+                    f"You must wait {hours}h {minutes}m before watering again.",
+                    lang,
                 ),
             },
             status=400,
@@ -151,7 +151,7 @@ def water_plant(request, username, garden_name, pot_number):
     planting.lastWateredAt = now
     planting.save()
     data = {
-        "message": "Plant watered successfully.",
+        "message": translate_text("Plant watered successfully.", lang),
         "pot_number": pot.number,
         "plant": {
             "scientific_name": planting.plant.scientificName,
@@ -192,7 +192,9 @@ def user_seeds(request, username):
         for seed, amount in inventory.seeds.items()
     ]
 
-    serializer = InventorySeedSerializer(seeds_data, many=True)
+    serializer = InventorySeedSerializer(
+        seeds_data, many=True, context={"language": user.language}
+    )
     return JsonResponse(serializer.data, safe=False)
 
 
@@ -208,5 +210,7 @@ def user_products(request, username):
         for product, amount in sorted(inventory.products.items())
     ]
 
-    serializer = InventoryProductSerializer(products_data, many=True)
+    serializer = InventoryProductSerializer(
+        products_data, many=True, context={"language": user.language}
+    )
     return JsonResponse(serializer.data, safe=False)

@@ -9,6 +9,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from ..models import Garden, Inventory, Mission, MissionState, Pot, User, UserMission
+from .views_translate import translate_text
 
 GOOGLE_CLIENT_ID = (
     "413098408136-jci0fe83maj5uonf6s9v065cnobktrmt.apps.googleusercontent.com"
@@ -101,7 +102,12 @@ def register(request):
 
     token, created = Token.objects.get_or_create(user=user)
     return Response(
-        {"token": token.key, "message": "User, garden and inventory created"}
+        {
+            "token": token.key,
+            "message": translate_text(
+                "User, garden and inventory created", user.language
+            ),
+        }
     )
 
 
@@ -111,13 +117,24 @@ def register(request):
 def login(request):
     username = request.data["username"]
     password = request.data["password"]
+
+    lang = "en"
+
+    existing_user = User.objects.filter(username=username).first()
+    if existing_user:
+        lang = existing_user.language
+
     user = authenticate(username=username, password=password)
     if user:
         token, created = Token.objects.get_or_create(user=user)
         return Response(
-            {"token": token.key, "username": user.username, "message": "Login correcte"}
+            {
+                "token": token.key,
+                "username": user.username,
+                "message": translate_text("Login correcte", lang),
+            }
         )
-    return Response({"error": "Wrong credentials"}, status=400)
+    return Response({"error": translate_text("Wrong credentials", lang)}, status=400)
 
 
 # View profile
@@ -157,9 +174,11 @@ def edit_profile(request):
         user.set_password(data["password"])
     try:
         user.save()
-        return Response({"message": "Actualized profile"})
+        return Response(
+            {"message": translate_text("Actualized profile", user.language)}
+        )
     except Exception as e:
-        return Response({"error": str(e)}, status=400)
+        return Response({"error": translate_text(str(e), user.language)}, status=400)
 
 
 @api_view(["POST"])
@@ -245,7 +264,9 @@ def google_register(request):
         )
 
     if User.objects.filter(username=username).exists():
-        return Response({"error": "Username already taken"}, status=400)
+        return Response(
+            {"error": translate_text("Username already taken", language)}, status=400
+        )
 
     # Es crea l'usuari sense contrasenya
     user = User.objects.create_user(
@@ -279,7 +300,7 @@ def google_register(request):
         {
             "token": token.key,
             "username": user.username,
-            "message": "User created successfully",
+            "message": translate_text("User created successfully", language),
         }
     )
 
@@ -290,8 +311,9 @@ def google_register(request):
     [IsAuthenticated]
 )  # Aqui s'envia el token i llavors django associa el token a l'usuari
 def delete_profile(request):
+    lang = request.user.language
     request.user.delete()  # eliminem l'usuari i, per casacada, s'eliminen les clases associades
-    return Response({"message": "User deleted successfully"})
+    return Response({"message": translate_text("User deleted successfully", lang)})
 
 
 # Validate token

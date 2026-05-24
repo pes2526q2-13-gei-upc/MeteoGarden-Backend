@@ -421,9 +421,12 @@ class Product(models.Model):
     EFFECT_TYPES = [
         ("health", "Health"),
         ("growth", "Growth"),
-        ("sun", "Sun"),
-        ("protection", "Protection"),
-        ("mixed", "Mixed"),
+        ("revive", "Revive"),
+        ("water_protection", "Water Protection"),
+        ("meteo_protection", "Meteo Protection"),
+        ("sun_protection", "Sun Protection"),
+        ("wind_protection", "Wind Protection"),
+        ("temp_protection", "Temperature Protection"),
     ]
     name = models.CharField(max_length=50, primary_key=True)
 

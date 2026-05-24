@@ -13,7 +13,7 @@ PRODUCTS = [
     {
         "name": "Hydration Shield",
         "description": "Reduces water loss.",
-        "effectType": "protection",
+        "effectType": "water_protection",
         "value": 100.0,
         "durationHours": None,
         "price": 30,
@@ -46,7 +46,7 @@ PRODUCTS = [
     {
         "name": "Protection Shield",
         "description": "Prevents health loss from weather conditions.",
-        "effectType": "protection",
+        "effectType": "meteo_protection",
         "value": 1.0,
         "durationHours": 12.0,
         "price": 60,
@@ -57,7 +57,7 @@ PRODUCTS = [
     {
         "name": "Revive",
         "description": "Revives a dead plant with partial health.",
-        "effectType": "health",
+        "effectType": "revive",
         "value": 20.0,
         "durationHours": None,
         "price": 90,
@@ -79,7 +79,7 @@ PRODUCTS = [
     {
         "name": "Solar Shield",
         "description": "Protects against intense sunlight and dry air.",
-        "effectType": "sun",
+        "effectType": "sun_protection",
         "value": None,
         "durationHours": 12.0,
         "price": 20,
@@ -90,7 +90,7 @@ PRODUCTS = [
     {
         "name": "Temperature Shield",
         "description": "Stabilizes the plant against extreme temperatures.",
-        "effectType": "protection",
+        "effectType": "temp_protection",
         "value": None,
         "durationHours": 12.0,
         "price": 20,
@@ -101,7 +101,7 @@ PRODUCTS = [
     {
         "name": "Wind Shield",
         "description": "Prevents damage caused by strong winds.",
-        "effectType": "protection",
+        "effectType": "wind_protection",
         "value": None,
         "durationHours": 12.0,
         "price": 20,

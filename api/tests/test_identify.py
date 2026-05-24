@@ -14,9 +14,7 @@ from api.models import (
 
 
 class TestIdentifyPlantAPI(APITestCase):
-
     def setUp(self):
-
         self.client = APIClient()
 
         self.user = User.objects.create_user(
@@ -27,6 +25,8 @@ class TestIdentifyPlantAPI(APITestCase):
             stationCode="0001",
             language="english",
         )
+
+        self.client.force_authenticate(user=self.user)
 
         self.image = SimpleUploadedFile(
             "leaf.jpg", b"fake-image-content", content_type="image/jpeg"
@@ -76,19 +76,32 @@ class TestIdentifyPlantAPI(APITestCase):
     # plantnet
     ################################
 
+    @patch("api.views.views_identify.translate_text")
     @patch("api.views.views_identify.update_photo_missions")
     @patch("api.views.views_identify.Inventory.addSeed")
     @patch("api.views.views_identify.getInfoPlant")
     @patch("api.views.views_identify.requests.post")
     @patch("api.views.views_identify.os.getenv")
     def test_identify_success(
-        self, mock_env, mock_post, mock_info, mock_seed, mock_missions
+        self,
+        mock_env,
+        mock_post,
+        mock_info,
+        mock_seed,
+        mock_missions,
+        mock_translate,
     ):
+
+        mock_translate.side_effect = lambda text, lang: text
 
         mock_env.return_value = "fake_key"
 
         Plant.objects.create(
-            scientificName="Monstera deliciosa", minTemperature=10, maxTemperature=30
+            scientificName="Monstera deliciosa",
+            commonName="Monstera",
+            family="Araceae",
+            minTemperature=10,
+            maxTemperature=30,
         )
 
         mock_response = mock_post.return_value
@@ -153,9 +166,12 @@ class TestIdentifyPlantAPI(APITestCase):
 
         self.assertEqual(response.status_code, 500)
 
+    @patch("api.views.views_identify.translate_text")
     @patch("api.views.views_identify.os.getenv")
     @patch("api.views.views_identify.requests.post")
-    def test_plantnet_error(self, mock_post, mock_env):
+    def test_plantnet_error(self, mock_post, mock_env, mock_translate):
+
+        mock_translate.side_effect = lambda text, lang: text
 
         mock_env.return_value = "fake_key"
 
@@ -173,9 +189,12 @@ class TestIdentifyPlantAPI(APITestCase):
 
         self.assertEqual(response.status_code, 502)
 
+    @patch("api.views.views_identify.translate_text")
     @patch("api.views.views_identify.os.getenv")
     @patch("api.views.views_identify.requests.post")
-    def test_no_results(self, mock_post, mock_env):
+    def test_no_results(self, mock_post, mock_env, mock_translate):
+
+        mock_translate.side_effect = lambda text, lang: text
 
         mock_env.return_value = "fake_key"
 

@@ -74,7 +74,6 @@ def collect_plant(request, username, garden_name, pot_number):
 
     inventory = Inventory.objects.get(user=user)
     inventory.coins += 2
-    inventory.addSeed(scientificName, 1)
     inventory.save()
 
     user.increment_plants()
@@ -84,7 +83,6 @@ def collect_plant(request, username, garden_name, pot_number):
         {
             "message": "Plant collected successfully",
             "new_balance": inventory.coins,
-            "seed_obtained": plant.commonName,
         },
         status=200,
     )

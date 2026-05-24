@@ -4,6 +4,9 @@ set -e
 echo Django migrate
 python manage.py migrate --noinput
 
+echo Seed initial data
+python manage.py seed_initial_data
+
 echo Django Collectstatic
 python manage.py collectstatic --noinput --clear
 

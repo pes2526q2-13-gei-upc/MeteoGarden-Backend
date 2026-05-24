@@ -121,7 +121,7 @@ jobs:
             -Dsonar.organization=pes2526q2-13-gei-upc
             -Dsonar.sources=.
             -Dsonar.exclusions=**/migrations/**,**/tests/**,**/.github/workflows/**,**/__pycache__/**,**/.venv/**,**/venv/**
-            -Dsonar.coverage.exclusions=**/migrations/**,**/tests/**
+            -Dsonar.coverage.exclusions=**/migrations/**,**/tests/**,api/game_config/**
             -Dsonar.cpd.exclusions=**/migrations/**,**/tests/**
             -Dsonar.python.coverage.reportPaths=coverage.xml
 

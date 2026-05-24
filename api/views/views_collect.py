@@ -1,5 +1,3 @@
-import random
-
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -76,9 +74,7 @@ def collect_plant(request, username, garden_name, pot_number):
 
     inventory = Inventory.objects.get(user=user)
     inventory.coins += 2
-    p = random.randint(1, 100)
-    if p < 30:
-        inventory.addSeed(scientificName, 1)
+    inventory.addSeed(scientificName, 1)
     inventory.save()
 
     user.increment_plants()
@@ -86,8 +82,9 @@ def collect_plant(request, username, garden_name, pot_number):
 
     return Response(
         {
-            "message": translate_text("Plant collected successfully", user.language),
+            "message": "Plant collected successfully",
             "new_balance": inventory.coins,
+            "seed_obtained": plant.commonName,
         },
         status=200,
     )

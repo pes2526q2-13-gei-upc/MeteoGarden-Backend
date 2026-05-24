@@ -1,4 +1,5 @@
 import requests
+import os
 from django.contrib.auth import authenticate
 from django.utils import timezone
 from google.auth.transport import requests as google_requests
@@ -11,9 +12,7 @@ from rest_framework.response import Response
 from ..models import Garden, Inventory, Mission, MissionState, Pot, User, UserMission
 from .views_translate import translate_text
 
-GOOGLE_CLIENT_ID = (
-    "413098408136-jci0fe83maj5uonf6s9v065cnobktrmt.apps.googleusercontent.com"
-)
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
 
 
 def assignAllMissions(user):
@@ -28,21 +27,18 @@ def assignAllMissions(user):
 
 
 def verify_google_token(token_str):
-    # 1. Si el token es de Android/iOS (ID Token JWT, empieza por 'eyJ')
     if token_str.startswith("eyJ"):
         try:
-            # Aquí pones tu Web Client ID de Google Cloud
-            CLIENT_ID = "413098408136-jci0fe83maj5uonf6s9v065cnobktrmt.apps.googleusercontent.com"
             info = id_token.verify_oauth2_token(
-                token_str, google_requests.Request(), CLIENT_ID
+                token_str,
+                google_requests.Request(),
+                GOOGLE_CLIENT_ID,
             )
-            return info  # Devuelve el dict con 'sub', 'email', 'name'
+            return info
         except ValueError:
             raise ValueError("ID Token inválido")
 
-    # 2. Si el token es de Flutter Web (Access Token, suele empezar por 'ya29')
     else:
-        # Hacemos una petición al endpoint de userinfo de Google
         response = requests.get(
             "https://www.googleapis.com/oauth2/v3/userinfo",
             params={"access_token": token_str},
@@ -53,10 +49,6 @@ def verify_google_token(token_str):
 
         info = response.json()
 
-        # El endpoint de userinfo devuelve exactamente lo mismo que necesitamos
-        # info["sub"] es el google_id
-        # info["email"] es el correo
-        # info["name"] es el nombre
         return info
 
 

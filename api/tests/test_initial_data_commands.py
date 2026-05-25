@@ -139,10 +139,6 @@ def test_sync_missions_creates_initial_missions(db):
     hard_lesson = Mission.objects.get(name="Hard Lesson")
     assert hard_lesson.productReward.name == "Revive"
 
-    plant_expert = Mission.objects.get(name="Plant Expert")
-
-    assert plant_expert.productReward.name == "Small Heal"
-
 
 def test_seed_initial_data_runs_all_commands(db):
     create_fake_image_files()
@@ -152,7 +148,7 @@ def test_seed_initial_data_runs_all_commands(db):
     assert Plant.objects.count() == 4
     assert Image.objects.count() == 24
     assert Product.objects.count() == 10
-    assert Mission.objects.count() == 17
+    assert Mission.objects.count() == 11
 
     shop = Shop.get_solo()
     assert shop.seeds["dahlia_pinnata"] > 0

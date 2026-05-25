@@ -54,3 +54,8 @@ CACHES = {
 }
 
 FIREBASE_ENABLED = False
+
+os.environ.setdefault(
+    "GOOGLE_CLIENT_ID",
+    "test-google-client-id.apps.googleusercontent.com",
+)

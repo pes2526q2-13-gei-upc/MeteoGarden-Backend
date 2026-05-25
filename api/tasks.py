@@ -266,46 +266,50 @@ def _download_image(event_obj, url):
         logger.exception(f"Error downloading image for the event {event_obj.id}: {e}")
 
 
+def get_or_create_category(category_name):
+    if not category_name:
+        return None
+    return EventsCategory.objects.get_or_create(name=category_name.strip())[0]
+
+
+def update_event_image(event, item, created):
+    new_image = item.get("image_url")
+    if new_image and (created or not event.image):
+        _download_image(event, new_image)
+
+
+def process_event_item(item):
+    loc = item.get("location", {})
+    category_obj = get_or_create_category(item.get("category"))
+
+    city = loc.get("county") or ""
+    street = loc.get("street") or ""
+
+    defaults = {
+        "title": item.get("title"),
+        "subtitle": item.get("subtitle"),
+        "description": item.get("description", ""),
+        "start_date": parse_datetime(item.get("start_date")),
+        "end_date": parse_datetime(item.get("end_date")),
+        "category": category_obj,
+        "price": int(float(item.get("price", 0))),
+        "tags": item.get("tags", []),
+        "city": city,
+        "street": street,
+    }
+
+    event, created = Event.objects.update_or_create(
+        id=item.get("id"), defaults=defaults
+    )
+    update_event_image(event, item, created)
+    return created
+
+
 @shared_task()
 def sync_events_task():
-    def get_or_create_category(category_name):
-        if not category_name:
-            return None
-        return EventsCategory.objects.get_or_create(name=category_name.strip())[0]
-
-    def update_event_image(event, item, created):
-        """Extracted branching logic to reduce complexity in the main process."""
-        new_image = item.get("image_url")
-        if new_image and (created or not event.image):
-            _download_image(event, new_image)
-
-    def process_event_item(item):
-        loc = item.get("location", {})
-        category_obj = get_or_create_category(item.get("category"))
-
-        defaults = {
-            "title": item.get("title"),
-            "subtitle": item.get("subtitle"),
-            "description": item.get("description", ""),
-            "start_date": parse_datetime(item.get("start_date")),
-            "end_date": parse_datetime(item.get("end_date")),
-            "category": category_obj,
-            "price": int(float(item.get("price", 0))),
-            "tags": item.get("tags", []),
-            "city": loc.get("county", "Desconeguda"),
-            "street": loc.get("street", ""),
-        }
-
-        event, created = Event.objects.update_or_create(
-            id=item.get("id"), defaults=defaults
-        )
-        update_event_image(event, item, created)
-        return created
-
     next_url = None
     counts = {"created": 0, "updated": 0}
 
-    # Use a cleaner loop structure to avoid multiple 'break' conditions
     active = True
     while active:
         data = get_events_from_service(url=next_url) or {}

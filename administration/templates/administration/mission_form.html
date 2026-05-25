@@ -1,0 +1,151 @@
+{% extends 'administration/base.html' %}
+
+{% block title %}{% if mission %}Editar{% else %}Nova{% endif %} missió — MeteoGarden Admin{% endblock %}
+{% block page_title %}{% if mission %}Editar missió{% else %}Nova missió{% endif %}{% endblock %}
+{% block page_sub %}{% if mission %}Modifica els camps de la missió «{{ mission.name }}»{% else %}Omple els camps per crear una nova missió{% endif %}{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'adm_missions' %}" class="btn-secondary">← Tornar</a>
+{% endblock %}
+
+{% block content %}
+<div class="card form-card">
+  <form method="post" action="{% if mission %}{% url 'adm_mission_edit_submit' mission.name %}{% else %}{% url 'adm_mission_create_submit' %}{% endif %}">
+    {% csrf_token %}
+
+    <div class="form-grid">
+      <div class="field full-width">
+        <label class="field-label" for="mission_name">
+          Nom <span class="required">*</span>
+        </label>
+
+        {% if mission %}
+          <input id="mission_name" type="text" class="field-input" value="{{ mission.name }}" disabled />
+        {% else %}
+          <input id="mission_name" type="text" name="name" class="field-input" placeholder="Ex: Primera planta" required />
+          <span class="field-hint">El nom és l'identificador únic i no es pot canviar després.</span>
+        {% endif %}
+      </div>
+
+      <div class="field full-width">
+        <label class="field-label" for="description">
+          Descripció <span class="required">*</span>
+        </label>
+
+        <textarea
+          id="description"
+          name="description"
+          class="field-input field-textarea"
+          required
+        >{{ mission.description|default:'' }}</textarea>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="action">
+          Acció <span class="required">*</span>
+        </label>
+
+        <select id="action" name="action" class="field-input field-select" required>
+          {% for value, label in actions %}
+            <option value="{{ value }}" {% if mission and mission.action == value %}selected{% endif %}>
+              {{ label }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="target_quantity">
+          Objectiu (quantitat)
+        </label>
+
+        <input
+          id="target_quantity"
+          name="target_quantity"
+          type="number"
+        >
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="rewardCoins">
+          Monedes de recompensa
+        </label>
+
+        <input
+          id="rewardCoins"
+          type="number"
+          name="rewardCoins"
+          class="field-input"
+          min="0"
+          value="{{ mission.rewardCoins|default:0 }}"
+        />
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="plant">
+          Planta requerida (opcional)
+        </label>
+
+        <select id="plant" name="plant" class="field-input field-select">
+          <option value="">— Cap —</option>
+          {% for p in plants %}
+            <option value="{{ p.scientificName }}" {% if mission and mission.plant and mission.plant.scientificName == p.scientificName %}selected{% endif %}>
+              {{ p.commonName|default:p.scientificName }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="product">
+          Producte requerit (opcional)
+        </label>
+
+        <select id="product" name="product" class="field-input field-select">
+          <option value="">— Cap —</option>
+          {% for pr in products %}
+            <option value="{{ pr.name }}" {% if mission and mission.product and mission.product.name == pr.name %}selected{% endif %}>
+              {{ pr.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="plantReward">
+          Planta de recompensa (opcional)
+        </label>
+
+        <select id="plantReward" name="plantReward" class="field-input field-select">
+          <option value="">— Cap —</option>
+          {% for p in plants %}
+            <option value="{{ p.scientificName }}" {% if mission and mission.plantReward and mission.plantReward.scientificName == p.scientificName %}selected{% endif %}>
+              {{ p.commonName|default:p.scientificName }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="productReward">
+          Producte de recompensa (opcional)
+        </label>
+
+        <select id="productReward" name="productReward" class="field-input field-select">
+          <option value="">— Cap —</option>
+          {% for pr in products %}
+            <option value="{{ pr.name }}" {% if mission and mission.productReward and mission.productReward.name == pr.name %}selected{% endif %}>
+              {{ pr.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a href="{% url 'adm_missions' %}" class="btn-secondary">Cancel·lar</a>
+      <button type="submit" class="btn-primary">{{ action_label }}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

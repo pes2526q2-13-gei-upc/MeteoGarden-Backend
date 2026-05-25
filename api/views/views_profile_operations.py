@@ -1,5 +1,8 @@
+import os
+
 import requests
 from django.contrib.auth import authenticate
+from django.utils import timezone
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
 from rest_framework.authtoken.models import Token
@@ -8,36 +11,35 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from ..models import Garden, Inventory, Mission, MissionState, Pot, User, UserMission
+from .views_translate import translate_text
 
-GOOGLE_CLIENT_ID = (
-    "413098408136-jci0fe83maj5uonf6s9v065cnobktrmt.apps.googleusercontent.com"
-)
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
 
 
 def assignAllMissions(user):
     missions = Mission.objects.all()
     for mission in missions:
         UserMission.objects.create(
-            user=user, mission=mission, missionState=MissionState.IN_PROGRESS
+            user=user,
+            mission=mission,
+            missionState=MissionState.IN_PROGRESS,
+            acquiredAt=timezone.now(),
         )
 
 
 def verify_google_token(token_str):
-    # 1. Si el token es de Android/iOS (ID Token JWT, empieza por 'eyJ')
     if token_str.startswith("eyJ"):
         try:
-            # Aquí pones tu Web Client ID de Google Cloud
-            CLIENT_ID = "413098408136-jci0fe83maj5uonf6s9v065cnobktrmt.apps.googleusercontent.com"
             info = id_token.verify_oauth2_token(
-                token_str, google_requests.Request(), CLIENT_ID
+                token_str,
+                google_requests.Request(),
+                GOOGLE_CLIENT_ID,
             )
-            return info  # Devuelve el dict con 'sub', 'email', 'name'
+            return info
         except ValueError:
             raise ValueError("ID Token inválido")
 
-    # 2. Si el token es de Flutter Web (Access Token, suele empezar por 'ya29')
     else:
-        # Hacemos una petición al endpoint de userinfo de Google
         response = requests.get(
             "https://www.googleapis.com/oauth2/v3/userinfo",
             params={"access_token": token_str},
@@ -48,10 +50,6 @@ def verify_google_token(token_str):
 
         info = response.json()
 
-        # El endpoint de userinfo devuelve exactamente lo mismo que necesitamos
-        # info["sub"] es el google_id
-        # info["email"] es el correo
-        # info["name"] es el nombre
         return info
 
 
@@ -97,7 +95,12 @@ def register(request):
 
     token, created = Token.objects.get_or_create(user=user)
     return Response(
-        {"token": token.key, "message": "User, garden and inventory created"}
+        {
+            "token": token.key,
+            "message": translate_text(
+                "User, garden and inventory created", user.language
+            ),
+        }
     )
 
 
@@ -107,13 +110,24 @@ def register(request):
 def login(request):
     username = request.data["username"]
     password = request.data["password"]
+
+    lang = "en"
+
+    existing_user = User.objects.filter(username=username).first()
+    if existing_user:
+        lang = existing_user.language
+
     user = authenticate(username=username, password=password)
     if user:
         token, created = Token.objects.get_or_create(user=user)
         return Response(
-            {"token": token.key, "username": user.username, "message": "Login correcte"}
+            {
+                "token": token.key,
+                "username": user.username,
+                "message": translate_text("Login correcte", lang),
+            }
         )
-    return Response({"error": "Wrong credentials"}, status=400)
+    return Response({"error": translate_text("Wrong credentials", lang)}, status=400)
 
 
 # View profile
@@ -153,9 +167,11 @@ def edit_profile(request):
         user.set_password(data["password"])
     try:
         user.save()
-        return Response({"message": "Actualized profile"})
+        return Response(
+            {"message": translate_text("Actualized profile", user.language)}
+        )
     except Exception as e:
-        return Response({"error": str(e)}, status=400)
+        return Response({"error": translate_text(str(e), user.language)}, status=400)
 
 
 @api_view(["POST"])
@@ -241,7 +257,9 @@ def google_register(request):
         )
 
     if User.objects.filter(username=username).exists():
-        return Response({"error": "Username already taken"}, status=400)
+        return Response(
+            {"error": translate_text("Username already taken", language)}, status=400
+        )
 
     # Es crea l'usuari sense contrasenya
     user = User.objects.create_user(
@@ -275,7 +293,7 @@ def google_register(request):
         {
             "token": token.key,
             "username": user.username,
-            "message": "User created successfully",
+            "message": translate_text("User created successfully", language),
         }
     )
 
@@ -286,8 +304,9 @@ def google_register(request):
     [IsAuthenticated]
 )  # Aqui s'envia el token i llavors django associa el token a l'usuari
 def delete_profile(request):
+    lang = request.user.language
     request.user.delete()  # eliminem l'usuari i, per casacada, s'eliminen les clases associades
-    return Response({"message": "User deleted successfully"})
+    return Response({"message": translate_text("User deleted successfully", lang)})
 
 
 # Validate token

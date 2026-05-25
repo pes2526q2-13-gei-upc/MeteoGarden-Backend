@@ -15,42 +15,78 @@
 
     <div class="form-grid">
       <div class="field full-width">
-        <label class="field-label">Nom <span class="required">*</span></label>
+        <label class="field-label" for="mission_name">
+          Nom <span class="required">*</span>
+        </label>
+
         {% if mission %}
-          <input type="text" class="field-input" value="{{ mission.name }}" disabled />
+          <input id="mission_name" type="text" class="field-input" value="{{ mission.name }}" disabled />
         {% else %}
-          <input type="text" name="name" class="field-input" placeholder="Ex: Primera planta" required />
+          <input id="mission_name" type="text" name="name" class="field-input" placeholder="Ex: Primera planta" required />
           <span class="field-hint">El nom és l'identificador únic i no es pot canviar després.</span>
         {% endif %}
       </div>
 
       <div class="field full-width">
-        <label class="field-label">Descripció <span class="required">*</span></label>
-        <textarea name="description" class="field-input field-textarea" required>{{ mission.description|default:'' }}</textarea>
+        <label class="field-label" for="description">
+          Descripció <span class="required">*</span>
+        </label>
+
+        <textarea
+          id="description"
+          name="description"
+          class="field-input field-textarea"
+          required
+        >{{ mission.description|default:'' }}</textarea>
       </div>
 
       <div class="field">
-        <label class="field-label">Acció <span class="required">*</span></label>
-        <select name="action" class="field-input field-select" required>
+        <label class="field-label" for="action">
+          Acció <span class="required">*</span>
+        </label>
+
+        <select id="action" name="action" class="field-input field-select" required>
           {% for value, label in actions %}
-            <option value="{{ value }}" {% if mission and mission.action == value %}selected{% endif %}>{{ label }}</option>
+            <option value="{{ value }}" {% if mission and mission.action == value %}selected{% endif %}>
+              {{ label }}
+            </option>
           {% endfor %}
         </select>
       </div>
 
       <div class="field">
-        <label class="field-label">Objectiu (quantitat)</label>
-        <input type="number" name="goal" class="field-input" min="1" value="{{ mission.goal|default:1 }}" />
+        <label class="field-label" for="target_quantity">
+          Objectiu (quantitat)
+        </label>
+
+        <input
+          id="target_quantity"
+          name="target_quantity"
+          type="number"
+        >
       </div>
 
       <div class="field">
-        <label class="field-label">Monedes de recompensa</label>
-        <input type="number" name="rewardCoins" class="field-input" min="0" value="{{ mission.rewardCoins|default:0 }}" />
+        <label class="field-label" for="rewardCoins">
+          Monedes de recompensa
+        </label>
+
+        <input
+          id="rewardCoins"
+          type="number"
+          name="rewardCoins"
+          class="field-input"
+          min="0"
+          value="{{ mission.rewardCoins|default:0 }}"
+        />
       </div>
 
       <div class="field">
-        <label class="field-label">Planta requerida (opcional)</label>
-        <select name="plant" class="field-input field-select">
+        <label class="field-label" for="plant">
+          Planta requerida (opcional)
+        </label>
+
+        <select id="plant" name="plant" class="field-input field-select">
           <option value="">— Cap —</option>
           {% for p in plants %}
             <option value="{{ p.scientificName }}" {% if mission and mission.plant and mission.plant.scientificName == p.scientificName %}selected{% endif %}>
@@ -61,8 +97,11 @@
       </div>
 
       <div class="field">
-        <label class="field-label">Producte requerit (opcional)</label>
-        <select name="product" class="field-input field-select">
+        <label class="field-label" for="product">
+          Producte requerit (opcional)
+        </label>
+
+        <select id="product" name="product" class="field-input field-select">
           <option value="">— Cap —</option>
           {% for pr in products %}
             <option value="{{ pr.name }}" {% if mission and mission.product and mission.product.name == pr.name %}selected{% endif %}>
@@ -85,8 +124,11 @@
       </div>
 
       <div class="field">
-        <label class="field-label">Producte de recompensa (opcional)</label>
-        <select name="productReward" class="field-input field-select">
+        <label class="field-label" for="productReward">
+          Producte de recompensa (opcional)
+        </label>
+
+        <select id="productReward" name="productReward" class="field-input field-select">
           <option value="">— Cap —</option>
           {% for pr in products %}
             <option value="{{ pr.name }}" {% if mission and mission.productReward and mission.productReward.name == pr.name %}selected{% endif %}>

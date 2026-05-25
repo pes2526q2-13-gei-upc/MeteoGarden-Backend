@@ -15,9 +15,7 @@ from api.models import (
 )
 
 
-# ──────────────────────────────────────────────
 # Auth helpers
-# ──────────────────────────────────────────────
 def _require_staff(request):
     """Returns None if OK, redirect otherwise."""
     if not request.user.is_authenticated or not request.user.is_staff:
@@ -25,9 +23,7 @@ def _require_staff(request):
     return None
 
 
-# ──────────────────────────────────────────────
 # Auth views
-# ──────────────────────────────────────────────
 def signin(request):
     if request.user.is_authenticated and request.user.is_staff:
         return redirect("adm_dashboard")
@@ -51,9 +47,7 @@ def signout(request):
     return redirect("adm_signin")
 
 
-# ──────────────────────────────────────────────
 # Dashboard
-# ──────────────────────────────────────────────
 def dashboard(request):
     guard = _require_staff(request)
     if guard:
@@ -70,9 +64,7 @@ def dashboard(request):
     return render(request, "administration/dashboard.html", context)
 
 
-# ──────────────────────────────────────────────
 # Missions
-# ──────────────────────────────────────────────
 def missions(request):
     guard = _require_staff(request)
     if guard:
@@ -204,9 +196,7 @@ def mission_assign_all(request, name):
     return redirect("adm_missions")
 
 
-# ──────────────────────────────────────────────
 # Products
-# ──────────────────────────────────────────────
 def products(request):
     guard = _require_staff(request)
     if guard:
@@ -307,9 +297,7 @@ def product_delete(request, name):
     return redirect("adm_products")
 
 
-# ──────────────────────────────────────────────
 # Users
-# ──────────────────────────────────────────────
 def users(request):
     guard = _require_staff(request)
     if guard:

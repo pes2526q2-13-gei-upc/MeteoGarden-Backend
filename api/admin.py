@@ -24,17 +24,13 @@ from .models import (
     WeatherReading,
 )
 
-# ──────────────────────────────────────────────
 # Site branding
-# ──────────────────────────────────────────────
 admin.site.site_header = "🌿 MeteoGarden Admin"
 admin.site.site_title = "MeteoGarden"
 admin.site.index_title = "Panell d'administració"
 
 
-# ──────────────────────────────────────────────
 # Inlines
-# ──────────────────────────────────────────────
 class AvatarInline(admin.StackedInline):
     model = Avatar
     extra = 0
@@ -102,9 +98,6 @@ class ActiveProductInline(admin.TabularInline):
     is_active_display.short_description = "Estat"
 
 
-# ──────────────────────────────────────────────
-# User
-# ──────────────────────────────────────────────
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
     list_display = (
@@ -141,9 +134,6 @@ class UserAdmin(admin.ModelAdmin):
     )
 
 
-# ──────────────────────────────────────────────
-# Plant
-# ──────────────────────────────────────────────
 @admin.register(Plant)
 class PlantAdmin(admin.ModelAdmin):
     list_display = (
@@ -160,9 +150,6 @@ class PlantAdmin(admin.ModelAdmin):
     inlines = [ImageInline]
 
 
-# ──────────────────────────────────────────────
-# Garden & Pot
-# ──────────────────────────────────────────────
 @admin.register(Garden)
 class GardenAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "user", "availablePots", "likes")
@@ -182,9 +169,6 @@ class PotAdmin(admin.ModelAdmin):
     inlines = [PlantInGardenInline]
 
 
-# ──────────────────────────────────────────────
-# PlantInGarden
-# ──────────────────────────────────────────────
 @admin.register(PlantInGarden)
 class PlantInGardenAdmin(admin.ModelAdmin):
     list_display = (
@@ -223,13 +207,20 @@ class PlantInGardenAdmin(admin.ModelAdmin):
 
     def health_bar(self, obj):
         pct = int(obj.healthLevel)
-        color = "green" if pct > 60 else ("orange" if pct > 30 else "red")
+
+        if pct > 60:
+            color = "green"
+        elif pct > 30:
+            color = "orange"
+        else:
+            color = "red"
+
         return format_html(
-            '<div style="width:80px;background:#eee;border-radius:4px;">'
-            '<div style="width:{pct}%;background:{color};height:12px;border-radius:4px;"></div>'
-            "</div> {pct}%",
-            pct=pct,
-            color=color,
+            '<div style="width:100px;background:#eee;border-radius:4px;">'
+            '<div style="width:{}%;background:{};height:10px;border-radius:4px;"></div>'
+            "</div>",
+            pct,
+            color,
         )
 
     health_bar.short_description = "Salut"
@@ -248,9 +239,6 @@ class PlantInGardenAdmin(admin.ModelAdmin):
     water_bar.short_description = "Aigua"
 
 
-# ──────────────────────────────────────────────
-# Inventory
-# ──────────────────────────────────────────────
 @admin.register(Inventory)
 class InventoryAdmin(admin.ModelAdmin):
     list_display = ("user", "coins", "num_seeds", "num_products")
@@ -269,9 +257,6 @@ class InventoryAdmin(admin.ModelAdmin):
     num_products.short_description = "Total productes"
 
 
-# ──────────────────────────────────────────────
-# Avatar
-# ──────────────────────────────────────────────
 @admin.register(Avatar)
 class AvatarAdmin(admin.ModelAdmin):
     list_display = ("user", "expression", "hair_color", "clothing", "body")
@@ -279,9 +264,6 @@ class AvatarAdmin(admin.ModelAdmin):
     list_select_related = ("user",)
 
 
-# ──────────────────────────────────────────────
-# AlbumEntry
-# ──────────────────────────────────────────────
 @admin.register(AlbumEntry)
 class AlbumEntryAdmin(admin.ModelAdmin):
     list_display = ("user", "plant", "discoveryDate")
@@ -291,9 +273,6 @@ class AlbumEntryAdmin(admin.ModelAdmin):
     list_select_related = ("user", "plant")
 
 
-# ──────────────────────────────────────────────
-# Product & ActiveProduct
-# ──────────────────────────────────────────────
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = (
@@ -336,9 +315,6 @@ class ActiveProductAdmin(admin.ModelAdmin):
     is_active_display.short_description = "Estat"
 
 
-# ──────────────────────────────────────────────
-# Shop
-# ──────────────────────────────────────────────
 @admin.register(Shop)
 class ShopAdmin(admin.ModelAdmin):
     list_display = ("id", "num_seeds", "num_products")
@@ -354,9 +330,6 @@ class ShopAdmin(admin.ModelAdmin):
     num_products.short_description = "Tipus de productes"
 
 
-# ──────────────────────────────────────────────
-# Mission & UserMission
-# ──────────────────────────────────────────────
 @admin.register(Mission)
 class MissionAdmin(admin.ModelAdmin):
     list_display = (
@@ -384,9 +357,6 @@ class UserMissionAdmin(admin.ModelAdmin):
     date_hierarchy = "acquiredAt"
 
 
-# ──────────────────────────────────────────────
-# Station & WeatherReading
-# ──────────────────────────────────────────────
 @admin.register(Station)
 class StationAdmin(admin.ModelAdmin):
     list_display = (
@@ -422,9 +392,6 @@ class WeatherReadingAdmin(admin.ModelAdmin):
     list_select_related = ("station",)
 
 
-# ──────────────────────────────────────────────
-# FriendRequest
-# ──────────────────────────────────────────────
 @admin.register(FriendRequest)
 class FriendRequestAdmin(admin.ModelAdmin):
     list_display = (
@@ -439,9 +406,6 @@ class FriendRequestAdmin(admin.ModelAdmin):
     list_select_related = ("requester", "requested")
 
 
-# ──────────────────────────────────────────────
-# Device
-# ──────────────────────────────────────────────
 @admin.register(Device)
 class DeviceAdmin(admin.ModelAdmin):
     list_display = ("user", "short_token", "createdAt")
@@ -456,9 +420,6 @@ class DeviceAdmin(admin.ModelAdmin):
     short_token.short_description = "Token (truncat)"
 
 
-# ──────────────────────────────────────────────
-# Events
-# ──────────────────────────────────────────────
 @admin.register(EventsCategory)
 class EventsCategoryAdmin(admin.ModelAdmin):
     list_display = ("name", "num_events")

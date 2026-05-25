@@ -25,12 +25,31 @@
       <form method="post" action="{% url 'adm_signin' %}">
         {% csrf_token %}
         <div class="field">
-          <label class="field-label">Usuari</label>
-          <input type="text" name="username" class="field-input" autofocus autocomplete="username" />
+          <label class="field-label" for="username">
+            Usuari
+          </label>
+
+          <input
+            id="username"
+            type="text"
+            name="username"
+            class="field-input"
+            autofocus
+            autocomplete="username"
+          />
         </div>
         <div class="field">
-          <label class="field-label">Contrasenya</label>
-          <input type="password" name="password" class="field-input" autocomplete="current-password" />
+          <label class="field-label" for="password">
+            Contrasenya
+          </label>
+
+          <input
+            id="password"
+            type="password"
+            name="password"
+            class="field-input"
+            autocomplete="current-password"
+          />
         </div>
         <button type="submit" class="btn-primary btn-block">Entrar</button>
       </form>

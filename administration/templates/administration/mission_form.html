@@ -10,7 +10,7 @@
 
 {% block content %}
 <div class="card form-card">
-  <form method="post">
+  <form method="post" action="{% if mission %}{% url 'adm_mission_edit_submit' mission.name %}{% else %}{% url 'adm_mission_create_submit' %}{% endif %}">
     {% csrf_token %}
 
     <div class="form-grid">

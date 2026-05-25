@@ -22,7 +22,7 @@
         {% endfor %}
       {% endif %}
 
-      <form method="post" action="{% url 'adm_signin' %}">
+      <form method="post" action="{% url 'adm_signin_submit' %}">
         {% csrf_token %}
         <div class="field">
           <label class="field-label" for="username">

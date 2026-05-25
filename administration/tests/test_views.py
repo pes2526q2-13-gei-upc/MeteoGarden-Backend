@@ -54,11 +54,8 @@ def test_signin_valid_staff_redirects(db):
     client = Client()
 
     response = client.post(
-        reverse("adm_signin"),
-        {
-            "username": "admin",
-            "password": "admin123",
-        },
+        reverse("adm_signin_submit"),
+        {"username": "admin", "password": "admin123"},
     )
 
     assert response.status_code == 302
@@ -66,11 +63,8 @@ def test_signin_valid_staff_redirects(db):
 
 def test_signin_invalid_credentials_shows_error(db):
     response = Client().post(
-        reverse("adm_signin"),
-        {
-            "username": "wrong",
-            "password": "wrong",
-        },
+        reverse("adm_signin_submit"),
+        {"username": "wrong", "password": "wrong"},
     )
 
     assert response.status_code == 200
@@ -102,7 +96,7 @@ def test_mission_create_get_loads(db):
 
 def test_mission_create_post_creates_mission(db):
     response = logged_client().post(
-        reverse("adm_mission_create"),
+        reverse("adm_mission_create_submit"),
         {
             "name": "Created Mission",
             "description": "desc",
@@ -132,7 +126,7 @@ def test_mission_edit_post_updates_mission(db):
     mission = create_mission()
 
     response = logged_client().post(
-        reverse("adm_mission_edit", args=[mission.name]),
+        reverse("adm_mission_edit_submit", args=[mission.name]),
         {
             "description": "new desc",
             "action": "WATER",
@@ -170,6 +164,7 @@ def test_mission_assign_all_creates_user_missions(db):
         email="normal@test.com",
         password="pass123",
     )
+
     response = logged_client().post(reverse("adm_mission_assign", args=[mission.name]))
 
     assert response.status_code == 302
@@ -191,7 +186,7 @@ def test_product_create_get_loads(db):
 
 def test_product_create_post_creates_product(db):
     response = logged_client().post(
-        reverse("adm_product_create"),
+        reverse("adm_product_create_submit"),
         {
             "name": "Created Product",
             "description": "desc",
@@ -220,7 +215,7 @@ def test_product_edit_post_updates_product(db):
     product = create_product()
 
     response = logged_client().post(
-        reverse("adm_product_edit", args=[product.name]),
+        reverse("adm_product_edit_submit", args=[product.name]),
         {
             "description": "new desc",
             "effectType": "health",

@@ -10,7 +10,7 @@
 
 {% block content %}
 <div class="card form-card">
-  <form method="post" enctype="multipart/form-data">
+  <form method="post" enctype="multipart/form-data" action="{% if product %}{% url 'adm_product_edit_submit' product.name %}{% else %}{% url 'adm_product_create_submit' %}{% endif %}">
     {% csrf_token %}
 
     <div class="form-grid">

@@ -7,9 +7,10 @@ from api.models import Mission, Product, UserMission
 User = get_user_model()
 
 
-def create_staff():
+def create_staff(username="admin", email="admin@test.com"):
     return User.objects.create_user(
-        username="admin",
+        username=username,
+        email=email,
         password="admin123",
         is_staff=True,
     )
@@ -164,8 +165,11 @@ def test_mission_delete_post_deletes_mission(db):
 
 def test_mission_assign_all_creates_user_missions(db):
     mission = create_mission()
-    User.objects.create_user(username="normal_user", password="pass123")
-
+    User.objects.create_user(
+        username="normal_user",
+        email="normal@test.com",
+        password="pass123",
+    )
     response = logged_client().post(reverse("adm_mission_assign", args=[mission.name]))
 
     assert response.status_code == 302

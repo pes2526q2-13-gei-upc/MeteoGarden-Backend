@@ -428,10 +428,6 @@ class MissionTests(APITestCase):
             description="Desc",
             action="PLANT",
             goal=1,
-            plant=self.plant,
-            product=self.product,
-            plantReward=self.reward_plant,
-            productReward=self.reward_product,
             rewardCoins=25,
         )
 

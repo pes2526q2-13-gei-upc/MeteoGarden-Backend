@@ -21,4 +21,7 @@ class Command(BaseCommand):
         self.stdout.write("Seeding missions...")
         call_command("sync_missions")
 
+        self.stdout.write("Seeding events...")
+        call_command("sync_events")
+
         self.stdout.write(self.style.SUCCESS("All initial data seeded successfully."))

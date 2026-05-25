@@ -1,6 +1,6 @@
-from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import authenticate, login, logout
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from api.models import (
@@ -8,11 +8,10 @@ from api.models import (
     MissionAction,
     MissionState,
     Plant,
+    PlantInGarden,
     Product,
     User,
     UserMission,
-    Garden,
-    PlantInGarden,
 )
 
 
@@ -147,9 +146,13 @@ def mission_edit(request, name):
             product_pk = request.POST.get("product")
             mission.product = Product.objects.get(pk=product_pk) if product_pk else None
             plant_reward_pk = request.POST.get("plantReward")
-            mission.plantReward = Plant.objects.get(pk=plant_reward_pk) if plant_reward_pk else None
+            mission.plantReward = (
+                Plant.objects.get(pk=plant_reward_pk) if plant_reward_pk else None
+            )
             product_reward_pk = request.POST.get("productReward")
-            mission.productReward = Product.objects.get(pk=product_reward_pk) if product_reward_pk else None
+            mission.productReward = (
+                Product.objects.get(pk=product_reward_pk) if product_reward_pk else None
+            )
 
             mission.save()
             messages.success(request, f"Missió «{mission.name}» actualitzada.")
@@ -244,10 +247,14 @@ def product_create(request):
         except Exception as e:
             messages.error(request, f"Error: {e}")
 
-    return render(request, "administration/product_form.html", {
-        "effect_types": effect_types,
-        "action_label": "Crear producte",
-    })
+    return render(
+        request,
+        "administration/product_form.html",
+        {
+            "effect_types": effect_types,
+            "action_label": "Crear producte",
+        },
+    )
 
 
 def product_edit(request, name):
@@ -277,11 +284,15 @@ def product_edit(request, name):
         except Exception as e:
             messages.error(request, f"Error: {e}")
 
-    return render(request, "administration/product_form.html", {
-        "product": product,
-        "effect_types": effect_types,
-        "action_label": "Guardar canvis",
-    })
+    return render(
+        request,
+        "administration/product_form.html",
+        {
+            "product": product,
+            "effect_types": effect_types,
+            "action_label": "Guardar canvis",
+        },
+    )
 
 
 def product_delete(request, name):

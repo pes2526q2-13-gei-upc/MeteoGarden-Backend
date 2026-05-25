@@ -56,6 +56,7 @@ class DeviceInline(admin.TabularInline):
 
     def short_token(self, obj):
         return f"{obj.token[:12]}…" if obj.token else "—"
+
     short_token.short_description = "Token (truncat)"
 
 
@@ -69,6 +70,7 @@ class ImageInline(admin.TabularInline):
         if obj.url:
             return format_html('<img src="{}" style="max-height:60px;"/>', obj.url.url)
         return "—"
+
     image_preview.short_description = "Previsualització"
 
 
@@ -96,6 +98,7 @@ class ActiveProductInline(admin.TabularInline):
         color = "green" if active else "red"
         text = "Actiu" if active else "Caducat"
         return format_html('<span style="color:{}">&#9679; {}</span>', color, text)
+
     is_active_display.short_description = "Estat"
 
 
@@ -208,11 +211,13 @@ class PlantInGardenAdmin(admin.ModelAdmin):
 
     def garden_name(self, obj):
         return obj.pot.garden.name
+
     garden_name.short_description = "Jardí"
     garden_name.admin_order_field = "pot__garden__name"
 
     def owner(self, obj):
         return obj.pot.garden.user.username
+
     owner.short_description = "Usuari"
     owner.admin_order_field = "pot__garden__user__username"
 
@@ -226,6 +231,7 @@ class PlantInGardenAdmin(admin.ModelAdmin):
             pct=pct,
             color=color,
         )
+
     health_bar.short_description = "Salut"
 
     def water_bar(self, obj):
@@ -238,6 +244,7 @@ class PlantInGardenAdmin(admin.ModelAdmin):
             pct=pct,
             color=color,
         )
+
     water_bar.short_description = "Aigua"
 
 
@@ -253,10 +260,12 @@ class InventoryAdmin(admin.ModelAdmin):
 
     def num_seeds(self, obj):
         return sum(obj.seeds.values()) if obj.seeds else 0
+
     num_seeds.short_description = "Total llavors"
 
     def num_products(self, obj):
         return sum(obj.products.values()) if obj.products else 0
+
     num_products.short_description = "Total productes"
 
 
@@ -307,6 +316,7 @@ class ProductAdmin(admin.ModelAdmin):
                 obj.image_url.url,
             )
         return "—"
+
     product_image.short_description = "Imatge"
 
 
@@ -322,6 +332,7 @@ class ActiveProductAdmin(admin.ModelAdmin):
         color = "green" if active else "red"
         text = "Actiu" if active else "Caducat"
         return format_html('<span style="color:{}">&#9679; {}</span>', color, text)
+
     is_active_display.short_description = "Estat"
 
 
@@ -334,10 +345,12 @@ class ShopAdmin(admin.ModelAdmin):
 
     def num_seeds(self, obj):
         return len(obj.seeds)
+
     num_seeds.short_description = "Tipus de llavors"
 
     def num_products(self, obj):
         return len(obj.products)
+
     num_products.short_description = "Tipus de productes"
 
 
@@ -439,6 +452,7 @@ class DeviceAdmin(admin.ModelAdmin):
 
     def short_token(self, obj):
         return f"{obj.token[:16]}…" if obj.token else "—"
+
     short_token.short_description = "Token (truncat)"
 
 
@@ -452,6 +466,7 @@ class EventsCategoryAdmin(admin.ModelAdmin):
 
     def num_events(self, obj):
         return obj.events.count()
+
     num_events.short_description = "Nombre d'esdeveniments"
 
 
@@ -479,4 +494,5 @@ class EventAdmin(admin.ModelAdmin):
                 obj.image.url,
             )
         return "—"
+
     event_image.short_description = "Imatge"

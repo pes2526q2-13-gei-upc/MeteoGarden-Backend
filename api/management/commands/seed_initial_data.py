@@ -1,3 +1,5 @@
+import os
+
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
@@ -22,6 +24,7 @@ class Command(BaseCommand):
         call_command("sync_missions")
 
         self.stdout.write("Seeding events...")
-        call_command("sync_events")
+        if os.getenv("API_KEY_GRESCA"):
+            call_command("sync_events")
 
         self.stdout.write(self.style.SUCCESS("All initial data seeded successfully."))

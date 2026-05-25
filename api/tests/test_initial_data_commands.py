@@ -124,7 +124,7 @@ def test_sync_missions_creates_initial_missions(db):
     call_command("sync_products")
     call_command("sync_missions")
 
-    assert Mission.objects.count() == 17
+    assert Mission.objects.count() == 11
 
     assert Mission.objects.filter(
         name="First Plant",

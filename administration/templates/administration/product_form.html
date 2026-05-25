@@ -49,16 +49,13 @@
       </div>
 
       <div class="field">
-        <label class="field-label" for="rarity">
-          Raresa
-        </label>
-
-        <select id="rarity" name="rarity" class="field-input field-select">
-          {% for value, label in rarity_types %}
-            <option value="{{ value }}" {% if product and product.rarity == value %}selected{% endif %}>
-              {{ label }}
-            </option>
-          {% endfor %}
+        <label class="field-label">Raresa</label>
+        <select name="rarity" class="field-input field-select">
+          <option value="common" {% if product and product.rarity == "common" %}selected{% endif %}>Common</option>
+          <option value="uncommon" {% if product and product.rarity == "uncommon" %}selected{% endif %}>Uncommon</option>
+          <option value="rare" {% if product and product.rarity == "rare" %}selected{% endif %}>Rare</option>
+          <option value="epic" {% if product and product.rarity == "epic" %}selected{% endif %}>Epic</option>
+          <option value="legendary" {% if product and product.rarity == "legendary" %}selected{% endif %}>Legendary</option>
         </select>
       </div>
 

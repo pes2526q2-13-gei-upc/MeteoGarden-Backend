@@ -79,4 +79,3 @@ def test_products_page_loads(db):
 
     assert response.status_code == 200
     assert b"Test Product" in response.content
-

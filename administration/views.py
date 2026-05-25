@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from api.models import (
     Mission,
@@ -24,6 +25,7 @@ def _require_staff(request):
 
 
 # Auth views
+@require_http_methods(["GET", "POST"])
 def signin(request):
     if request.user.is_authenticated and request.user.is_staff:
         return redirect("adm_dashboard")
@@ -42,12 +44,14 @@ def signin(request):
     return render(request, "administration/signin.html", {"errors": errors})
 
 
+@require_POST
 def signout(request):
     logout(request)
     return redirect("adm_signin")
 
 
 # Dashboard
+@require_GET
 def dashboard(request):
     guard = _require_staff(request)
     if guard:
@@ -65,6 +69,7 @@ def dashboard(request):
 
 
 # Missions
+@require_GET
 def missions(request):
     guard = _require_staff(request)
     if guard:
@@ -82,6 +87,7 @@ def _mission_form_context():
     }
 
 
+@require_http_methods(["GET", "POST"])
 def mission_create(request):
     guard = _require_staff(request)
     if guard:
@@ -119,6 +125,7 @@ def mission_create(request):
     return render(request, "administration/mission_form.html", ctx)
 
 
+@require_http_methods(["GET", "POST"])
 def mission_edit(request, name):
     guard = _require_staff(request)
     if guard:
@@ -158,6 +165,7 @@ def mission_edit(request, name):
     return render(request, "administration/mission_form.html", ctx)
 
 
+@require_http_methods(["GET", "POST"])
 def mission_delete(request, name):
     guard = _require_staff(request)
     if guard:
@@ -170,6 +178,7 @@ def mission_delete(request, name):
     return redirect("adm_missions")
 
 
+@require_http_methods(["GET", "POST"])
 def mission_assign_all(request, name):
     """Assign a mission to all users that don't have it yet."""
     guard = _require_staff(request)
@@ -197,6 +206,7 @@ def mission_assign_all(request, name):
 
 
 # Products
+@require_GET
 def products(request):
     guard = _require_staff(request)
     if guard:
@@ -205,7 +215,7 @@ def products(request):
     all_products = Product.objects.all().order_by("name")
     return render(request, "administration/products.html", {"products": all_products})
 
-
+@require_http_methods(["GET", "POST"])
 def product_create(request):
     guard = _require_staff(request)
     if guard:
@@ -247,6 +257,7 @@ def product_create(request):
     )
 
 
+@require_http_methods(["GET", "POST"])
 def product_edit(request, name):
     guard = _require_staff(request)
     if guard:
@@ -285,6 +296,7 @@ def product_edit(request, name):
     )
 
 
+@require_POST
 def product_delete(request, name):
     guard = _require_staff(request)
     if guard:
@@ -298,6 +310,7 @@ def product_delete(request, name):
 
 
 # Users
+@require_GET
 def users(request):
     guard = _require_staff(request)
     if guard:

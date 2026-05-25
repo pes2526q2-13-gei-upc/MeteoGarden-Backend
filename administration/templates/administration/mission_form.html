@@ -112,8 +112,11 @@
       </div>
 
       <div class="field">
-        <label class="field-label">Planta de recompensa (opcional)</label>
-        <select name="plantReward" class="field-input field-select">
+        <label class="field-label" for="plantReward">
+          Planta de recompensa (opcional)
+        </label>
+
+        <select id="plantReward" name="plantReward" class="field-input field-select">
           <option value="">— Cap —</option>
           {% for p in plants %}
             <option value="{{ p.scientificName }}" {% if mission and mission.plantReward and mission.plantReward.scientificName == p.scientificName %}selected{% endif %}>

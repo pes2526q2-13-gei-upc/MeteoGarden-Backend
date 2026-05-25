@@ -41,8 +41,10 @@
       <div class="field">
         <label class="field-label">Raresa</label>
         <select name="rarity" class="field-input field-select">
-          {% for r in "common,uncommon,rare,epic,legendary"|split:"," %}
-            <option value="{{ r }}" {% if product and product.rarity == r %}selected{% endif %}>{{ r|capfirst }}</option>
+          {% for value, label in rarity_types %}
+            <option value="{{ value }}" {% if product and product.rarity == value %}selected{% endif %}>
+              {{ label }}
+            </option>
           {% endfor %}
         </select>
       </div>

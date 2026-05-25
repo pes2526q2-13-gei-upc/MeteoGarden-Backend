@@ -17,6 +17,19 @@ from ..models import (
 from ..services.translate import translate_text
 
 
+def _batch_translate_strings(texts, lang, cache):
+    texts_to_translate = []
+    for text in texts:
+        if text and text not in cache:
+            cache[text] = None
+            texts_to_translate.append(text)
+
+    if texts_to_translate:
+        translated = translate_text(texts_to_translate, lang)
+        for original, translated_text in zip(texts_to_translate, translated):
+            cache[original] = translated_text
+
+
 # Get missions
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -29,27 +42,47 @@ def get_user_missions(request):
         "mission__plantReward",
         "mission__productReward",
     )
+
+    translation_cache = {}
+    texts = []
+    for user_mission in missions:
+        mission = user_mission.mission
+        texts.extend(
+            [
+                mission.name,
+                mission.description,
+                mission.plant.scientificName if mission.plant else None,
+                mission.product.name if mission.product else None,
+                mission.plantReward.commonName if mission.plantReward else None,
+                mission.productReward.name if mission.productReward else None,
+            ]
+        )
+    _batch_translate_strings(texts, lang, translation_cache)
+
+    def _t(value):
+        return translation_cache.get(value) if value else None
+
     return Response(
         {
             "missions": [
                 {
                     "Name": mission.mission.name,
-                    "displayName": translate_text(mission.mission.name, lang),
-                    "Description": translate_text(mission.mission.description, lang),
+                    "displayName": _t(mission.mission.name),
+                    "Description": _t(mission.mission.description),
                     "Goal": mission.mission.goal,
                     "Action": mission.mission.action,
                     "Plant needed scientific name": (
-                        translate_text(mission.mission.plant.scientificName, lang)
+                        _t(mission.mission.plant.scientificName)
                         if mission.mission.plant
                         else None
                     ),
                     "Product needed": (
-                        translate_text(mission.mission.product.name, lang)
+                        _t(mission.mission.product.name)
                         if mission.mission.product
                         else None
                     ),
                     "Plant reward common name": (
-                        translate_text(mission.mission.plantReward.commonName, lang)
+                        _t(mission.mission.plantReward.commonName)
                         if mission.mission.plantReward
                         else None
                     ),
@@ -60,7 +93,7 @@ def get_user_missions(request):
                     ),
                     "Reward coins": mission.mission.rewardCoins,
                     "Product reward": (
-                        translate_text(mission.mission.productReward.name, lang)
+                        _t(mission.mission.productReward.name)
                         if mission.mission.productReward
                         else None
                     ),

@@ -215,6 +215,7 @@ def products(request):
     all_products = Product.objects.all().order_by("name")
     return render(request, "administration/products.html", {"products": all_products})
 
+
 @require_http_methods(["GET", "POST"])
 def product_create(request):
     guard = _require_staff(request)

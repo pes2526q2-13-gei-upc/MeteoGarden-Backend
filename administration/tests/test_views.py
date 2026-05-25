@@ -52,19 +52,25 @@ def test_signin_valid_staff_redirects(db):
     create_staff()
     client = Client()
 
-    response = client.post(reverse("adm_signin"), {
-        "username": "admin",
-        "password": "admin123",
-    })
+    response = client.post(
+        reverse("adm_signin"),
+        {
+            "username": "admin",
+            "password": "admin123",
+        },
+    )
 
     assert response.status_code == 302
 
 
 def test_signin_invalid_credentials_shows_error(db):
-    response = Client().post(reverse("adm_signin"), {
-        "username": "wrong",
-        "password": "wrong",
-    })
+    response = Client().post(
+        reverse("adm_signin"),
+        {
+            "username": "wrong",
+            "password": "wrong",
+        },
+    )
 
     assert response.status_code == 200
     assert "Credencials incorrectes".encode() in response.content
@@ -94,17 +100,20 @@ def test_mission_create_get_loads(db):
 
 
 def test_mission_create_post_creates_mission(db):
-    response = logged_client().post(reverse("adm_mission_create"), {
-        "name": "Created Mission",
-        "description": "desc",
-        "action": "PLANT",
-        "goal": "2",
-        "rewardCoins": "5",
-        "plant": "",
-        "product": "",
-        "plantReward": "",
-        "productReward": "",
-    })
+    response = logged_client().post(
+        reverse("adm_mission_create"),
+        {
+            "name": "Created Mission",
+            "description": "desc",
+            "action": "PLANT",
+            "goal": "2",
+            "rewardCoins": "5",
+            "plant": "",
+            "product": "",
+            "plantReward": "",
+            "productReward": "",
+        },
+    )
 
     assert response.status_code == 302
     assert Mission.objects.filter(name="Created Mission").exists()
@@ -121,16 +130,19 @@ def test_mission_edit_get_loads(db):
 def test_mission_edit_post_updates_mission(db):
     mission = create_mission()
 
-    response = logged_client().post(reverse("adm_mission_edit", args=[mission.name]), {
-        "description": "new desc",
-        "action": "WATER",
-        "goal": "3",
-        "rewardCoins": "20",
-        "plant": "",
-        "product": "",
-        "plantReward": "",
-        "productReward": "",
-    })
+    response = logged_client().post(
+        reverse("adm_mission_edit", args=[mission.name]),
+        {
+            "description": "new desc",
+            "action": "WATER",
+            "goal": "3",
+            "rewardCoins": "20",
+            "plant": "",
+            "product": "",
+            "plantReward": "",
+            "productReward": "",
+        },
+    )
 
     mission.refresh_from_db()
 
@@ -174,16 +186,19 @@ def test_product_create_get_loads(db):
 
 
 def test_product_create_post_creates_product(db):
-    response = logged_client().post(reverse("adm_product_create"), {
-        "name": "Created Product",
-        "description": "desc",
-        "effectType": "growth",
-        "price": "15",
-        "rarity": "common",
-        "isInstant": "on",
-        "value": "2.5",
-        "durationHours": "",
-    })
+    response = logged_client().post(
+        reverse("adm_product_create"),
+        {
+            "name": "Created Product",
+            "description": "desc",
+            "effectType": "growth",
+            "price": "15",
+            "rarity": "common",
+            "isInstant": "on",
+            "value": "2.5",
+            "durationHours": "",
+        },
+    )
 
     assert response.status_code == 302
     assert Product.objects.filter(name="Created Product").exists()
@@ -200,15 +215,18 @@ def test_product_edit_get_loads(db):
 def test_product_edit_post_updates_product(db):
     product = create_product()
 
-    response = logged_client().post(reverse("adm_product_edit", args=[product.name]), {
-        "description": "new desc",
-        "effectType": "health",
-        "price": "30",
-        "rarity": "rare",
-        "isInstant": "on",
-        "value": "5",
-        "durationHours": "",
-    })
+    response = logged_client().post(
+        reverse("adm_product_edit", args=[product.name]),
+        {
+            "description": "new desc",
+            "effectType": "health",
+            "price": "30",
+            "rarity": "rare",
+            "isInstant": "on",
+            "value": "5",
+            "durationHours": "",
+        },
+    )
 
     product.refresh_from_db()
 

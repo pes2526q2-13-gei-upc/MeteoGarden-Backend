@@ -5,18 +5,23 @@ from unittest.mock import MagicMock, patch
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from api.models import ActiveProduct, User
+from api.models import ActiveProduct, GrowthState, User
 
 MOCK_PATH = "api.views.views_products"
 
 
 class TestViewsProductsComprehensive(TestCase):
     def setUp(self):
-        self.url = "/api/use_product/"
-        self.auth_user = User.objects.create_user(
-            username="authuser", password="testpass"
-        )
-        self.client.force_login(self.auth_user)
+        self.client = Client()
+
+        self.user = User.objects.create_user(username="alice", password="test123")
+
+        self.client.force_login(self.user)
+
+        try:
+            self.url = reverse("use_product")
+        except:
+            self.url = "/api/use_product/"
 
     def test_error_invalid_json(self):
         response = self.client.post(

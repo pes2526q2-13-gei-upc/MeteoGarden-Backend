@@ -25,7 +25,11 @@ def translate_text(
 
     response = requests.post(url, params=params, timeout=30)
     response.raise_for_status()
+
     data = response.json()
+
+    if "data" not in data or "translations" not in data["data"]:
+        return texts
 
     translations = [t["translatedText"] for t in data["data"]["translations"]]
     return translations[0] if is_single_text else translations

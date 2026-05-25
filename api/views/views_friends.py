@@ -6,6 +6,7 @@ from rest_framework.response import Response
 
 from api.models import FriendRequest, Garden, User
 from api.services.notifications import notify
+from api.views.views_translate import translate_text
 
 
 @api_view(["GET"])
@@ -52,10 +53,11 @@ def get_users_friends(request):
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
 def delete_friend(request, username):
+    lang = request.user.language
     try:
         friend = User.objects.get(username=username)
     except User.DoesNotExist:
-        return Response({"error": "User not found."}, status=404)
+        return Response({"error": translate_text("User not found.", lang)}, status=404)
 
     friend_request = FriendRequest.objects.filter(
         (
@@ -66,30 +68,43 @@ def delete_friend(request, username):
     ).first()
 
     if not friend_request:
-        return Response({"error": "You are not friends with this user."}, status=404)
+        return Response(
+            {"error": translate_text("You are not friends with this user.", lang)},
+            status=404,
+        )
 
     friend_request.delete()
 
-    return Response({"success": f"Friend {username} deleted successfully."}, status=200)
+    return Response(
+        {"success": translate_text(f"Friend {username} deleted successfully.", lang)},
+        status=200,
+    )
 
 
 @api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated])
 def like_friend(request, username):
+    lang = request.user.language
     try:
         friend = User.objects.get(username=username)
     except User.DoesNotExist:
-        return Response({"error": "User not found."}, status=404)
+        return Response({"error": translate_text("User not found.", lang)}, status=404)
 
     friend_ship = get_friendship(request.user, friend)
 
     if not friend_ship:
-        return Response({"error": "You are not friends with this user."}, status=403)
+        return Response(
+            {"error": translate_text("You are not friends with this user.", lang)},
+            status=403,
+        )
 
     try:
         garden = Garden.objects.get(user=friend)
     except Garden.DoesNotExist:
-        return Response({"error": "This user does not have a garden yet."}, status=404)
+        return Response(
+            {"error": translate_text("This user does not have a garden yet.", lang)},
+            status=404,
+        )
 
     like_state = handle_like_action(request, friend_ship, garden)
 

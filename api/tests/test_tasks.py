@@ -314,14 +314,6 @@ def test_simulate_all_plants_excludes_already_dead(monkeypatch, base_garden_setu
     assert len(spy_called) == 0
 
 
-from datetime import timedelta
-
-import pytest
-from django.utils import timezone
-
-from api.models import Event, EventsCategory
-
-
 # 1. TEST: Sincronització quan l'API externa respon sense cap resultat (llista buida)
 @pytest.mark.django_db
 def test_sync_events_task_empty_response(monkeypatch):
@@ -629,3 +621,141 @@ def test_weather_notification_alerts(monkeypatch, base_garden_setup):
 
     # Validem si s'ha interceptat l'alerta climàtica de calor
     assert any("Extreme heat" in t for (t, _) in notified)
+
+
+@pytest.mark.django_db
+def test_get_or_create_category_empty_or_none():
+    """Verifica que si la categoria és None o un text buit, retorna None sense fallar."""
+    from api.tasks import get_or_create_category
+
+    assert get_or_create_category(None) is None
+    assert get_or_create_category("") is None
+
+
+@pytest.mark.django_db
+def test_get_or_create_category_strips_whitespace():
+    """Verifica que neteja els espais en blanc extrems i crea o obté la categoria."""
+    from api.tasks import get_or_create_category
+
+    assert not EventsCategory.objects.filter(name="Concerts").exists()
+
+    cat = get_or_create_category("  Concerts   ")
+    assert cat.name == "Concerts"
+    assert EventsCategory.objects.filter(name="Concerts").count() == 1
+
+    # Si la tornem a demanar, l'ha de recuperar en comptes de duplicar-la
+    cat_repetida = get_or_create_category("Concerts")
+    assert cat_repetida.id == cat.id
+
+
+@pytest.mark.django_db
+def test_update_event_image_no_url(events_category):
+    """Verifica que si no hi ha image_url, no intenta fer cap descàrrega."""
+    from api.tasks import update_event_image
+
+    event = Event.objects.create(
+        id="test-no-img",
+        title="Sense imatge",
+        category=events_category,
+        start_date=timezone.now(),
+        end_date=timezone.now(),
+        price=0,
+        city="",
+    )
+
+    item = {"image_url": None}
+    # Si intentés descarregar, petaria perquè no hem mockejat requests.get
+    update_event_image(event, item, created=True)
+    assert not event.image
+
+
+@pytest.mark.django_db
+def test_process_event_item_handles_missing_location(monkeypatch, events_category):
+    """Verifica que process_event_item gestiona correctament l'absència de 'location'
+
+    o valors None, guardant strings buits com a fallback.
+    """
+    from api.tasks import process_event_item
+
+    # Simulem un item que ve del servei extern sense adreça ni comtat ni imatge
+    item = {
+        "id": "test-fallback-loc",
+        "title": "Esdeveniment Minimalista",
+        "subtitle": "Sub",
+        "description": "Desc",
+        "start_date": "2026-05-25T18:00:00Z",
+        "end_date": "2026-05-25T23:00:00Z",
+        "category": "Concerts",
+        "price": "0.00",
+        "tags": [],
+        "location": {},  # Buit per provar el fallback del .get() o ""
+        "image_url": None,
+    }
+
+    created = process_event_item(item)
+    assert created is True
+
+    db_event = Event.objects.get(id="test-fallback-loc")
+    assert db_event.city == ""
+    assert db_event.street == ""
+
+
+@pytest.mark.django_db
+def test_sync_events_task_pagination_loop(monkeypatch):
+    """Test crucial per a SonarCloud: verifica que el bucle 'while True' de paginació
+
+    itera correctament mentre hi hagi un 'next' i es deté de forma neta.
+    """
+    call_tracker = {"page": 1}
+
+    def fake_get_events_paginated(url=None):
+        # Primera pàgina: retorna un element i un enllaç a la següent pàgina
+        if call_tracker["page"] == 1:
+            call_tracker["page"] += 1
+            return {
+                "results": [
+                    {
+                        "id": "pag-1",
+                        "title": "Ev Pàgina 1",
+                        "subtitle": "",
+                        "category": "Festa",
+                        "start_date": "2026-05-25T18:00:00Z",
+                        "end_date": "2026-05-25T23:00:00Z",
+                        "price": "10",
+                        "location": {"county": "BCN"},
+                    }
+                ],
+                "next": "https://api-externa.com/events/?page=2",
+            }
+        # Segona pàgina: retorna un element però ja no hi ha més pàgines (next=None)
+        elif call_tracker["page"] == 2:
+            call_tracker["page"] += 1
+            return {
+                "results": [
+                    {
+                        "id": "pag-2",
+                        "title": "Ev Pàgina 2",
+                        "subtitle": "",
+                        "category": "Festa",
+                        "start_date": "2026-05-25T18:00:00Z",
+                        "end_date": "2026-05-25T23:00:00Z",
+                        "price": "12",
+                        "location": {"county": "GIR"},
+                    }
+                ],
+                "next": None,
+            }
+        # Per seguretat, si tornés a demanar, buit
+        return {"results": [], "next": None}
+
+    monkeypatch.setattr("api.tasks.get_events_from_service", fake_get_events_paginated)
+
+    from api.tasks import sync_events_task
+
+    result_msg = sync_events_task()
+
+    # Comprovem que ha fet les dues iteracions i ha sumat correctament ambdós registres de les dues pàgines
+    assert "2 creats" in result_msg
+    assert "0 actualitzats" in result_msg
+    assert Event.objects.filter(id="pag-1").exists()
+    assert Event.objects.filter(id="pag-2").exists()

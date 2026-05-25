@@ -3,12 +3,13 @@ import os
 import requests
 from dotenv import load_dotenv
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from api.services.xema_sync import ensure_station_synced
 
 from ..models import Station, WeatherReading
+from .views_translate import translate_text
 
 load_dotenv()
 
@@ -18,14 +19,16 @@ XEMA_METEO_TOKEN = os.getenv("XEMA_METEO_TOKEN")
 # GET {BASE_URL}/api/weather/current/?stationCode=<codi_estació>
 # GET {BASE_URL}/api/weather/current/?stationName=<nom_estació>
 @api_view(["GET"])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def current_weather(request):
+    user = request.user
+    lang = user.language
     station_code = request.GET.get("stationCode")
     station_name = request.GET.get("stationName")
 
     if not station_code and not station_name:
         return Response(
-            {"error": "stationCode or stationName is required"},
+            {"error": translate_text("stationCode or stationName is required", lang)},
             status=400,
         )
 
@@ -35,7 +38,9 @@ def current_weather(request):
     else:
         station = Station.objects.filter(station__iexact=station_name).first()
     if not station:
-        return Response({"error": "Station not found"}, status=404)
+        return Response(
+            {"error": translate_text("Station not found", lang)}, status=404
+        )
 
     ensure_station_synced(station)
 
@@ -46,7 +51,11 @@ def current_weather(request):
 
     if not latest:
         return Response(
-            {"error": "No weather data available for this station"},
+            {
+                "error": translate_text(
+                    "No weather data available for this station", lang
+                )
+            },
             status=503,
         )
 
@@ -63,7 +72,7 @@ def current_weather(request):
     )
 
 
-# GET {BASE_URL}/api/stations/
+# aquest no es pot traduir pq encara no s'ha guardat l'usuari
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def get_stations(request):

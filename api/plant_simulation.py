@@ -374,6 +374,8 @@ def apply_product(user, plant, product_name):
                     time_dead = timezone.now() - plant.diedAt
                     plant.plantedAt += time_dead
 
+                plant.healthLevel = MIN_HEALTH_TO_GROW
+
                 # per a poder recalcular la fase
                 plant.growthPhase = GrowthState.SEED
 

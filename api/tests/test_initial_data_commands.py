@@ -70,9 +70,42 @@ def test_sync_products_creates_initial_products(db):
     call_command("sync_products")
 
     assert Product.objects.count() == 10
-    assert Product.objects.filter(name="Small Heal", effectType="health").exists()
-    assert Product.objects.filter(name="Phase Boost", effectType="growth").exists()
-    assert Product.objects.filter(name="Solar Shield", effectType="sun").exists()
+
+    assert Product.objects.filter(
+        name="Small Heal",
+        effectType="health",
+    ).exists()
+
+    assert Product.objects.filter(
+        name="Phase Boost",
+        effectType="growth",
+    ).exists()
+
+    # ARREGLAT:
+    assert Product.objects.filter(
+        name="Solar Shield",
+        effectType="sun_protection",
+    ).exists()
+
+    assert Product.objects.filter(
+        name="Protection Shield",
+        effectType="meteo_protection",
+    ).exists()
+
+    assert Product.objects.filter(
+        name="Wind Shield",
+        effectType="wind_protection",
+    ).exists()
+
+    assert Product.objects.filter(
+        name="Temperature Shield",
+        effectType="temp_protection",
+    ).exists()
+
+    assert Product.objects.filter(
+        name="Revive",
+        effectType="revive",
+    ).exists()
 
 
 def test_sync_shop_initializes_starter_stock(db):
@@ -92,11 +125,23 @@ def test_sync_missions_creates_initial_missions(db):
     call_command("sync_missions")
 
     assert Mission.objects.count() == 17
-    assert Mission.objects.filter(name="First Plant", action="PLANT").exists()
-    assert Mission.objects.filter(name="Hard Lesson", action="DIE").exists()
+
+    assert Mission.objects.filter(
+        name="First Plant",
+        action="PLANT",
+    ).exists()
+
+    assert Mission.objects.filter(
+        name="Hard Lesson",
+        action="DIE",
+    ).exists()
 
     hard_lesson = Mission.objects.get(name="Hard Lesson")
     assert hard_lesson.productReward.name == "Revive"
+
+    plant_expert = Mission.objects.get(name="Plant Expert")
+
+    assert plant_expert.productReward.name == "Small Heal"
 
 
 def test_seed_initial_data_runs_all_commands(db):
@@ -111,19 +156,3 @@ def test_seed_initial_data_runs_all_commands(db):
 
     shop = Shop.get_solo()
     assert shop.seeds["dahlia_pinnata"] > 0
-
-
-def test_sync_missions_creates_initial_missions(db):
-    call_command("sync_products")
-    call_command("sync_missions")
-
-    assert Mission.objects.count() == 17
-
-    assert Mission.objects.filter(name="First Plant", action="PLANT").exists()
-    assert Mission.objects.filter(name="Hard Lesson", action="DIE").exists()
-
-    hard_lesson = Mission.objects.get(name="Hard Lesson")
-    assert hard_lesson.productReward.name == "Revive"
-
-    plant_expert = Mission.objects.get(name="Plant Expert")
-    assert plant_expert.productReward.name == "Small Heal"

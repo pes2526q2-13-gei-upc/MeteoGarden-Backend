@@ -1,5 +1,3 @@
-import random
-
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -16,6 +14,7 @@ from api.models import (
     User,
     UserMission,
 )
+from api.views.views_translate import translate_text
 
 
 def update_collect_missions(user, plant):
@@ -63,7 +62,10 @@ def collect_plant(request, username, garden_name, pot_number):
         return Response({"error": f"Resource not found: {str(e)}"}, status=404)
 
     if plantGarden.growthPhase != GrowthState.MATURE:
-        return Response({"error": "Growth phase must be mature"}, status=404)
+        return Response(
+            {"error": translate_text("Growth phase must be mature", user.language)},
+            status=404,
+        )
 
     plantGarden.delete()
 
@@ -71,16 +73,16 @@ def collect_plant(request, username, garden_name, pot_number):
     pot.save()
 
     inventory = Inventory.objects.get(user=user)
-    inventory.coins += 2
-    p = random.randint(1, 100)
-    if p < 30:
-        inventory.addSeed(scientificName, 1)
+    inventory.coins += 10
     inventory.save()
 
     user.increment_plants()
     update_collect_missions(user, plant)
 
     return Response(
-        {"message": "Plant collected successfully", "new_balance": inventory.coins},
+        {
+            "message": "Plant collected successfully",
+            "new_balance": inventory.coins,
+        },
         status=200,
     )

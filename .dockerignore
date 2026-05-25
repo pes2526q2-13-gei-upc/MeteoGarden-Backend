@@ -25,3 +25,9 @@ db.sqlite3
 # Docker
 docker-compose*.yml
 .dockerignore
+
+# Backups
+backups/
+*.sql
+*.sql.gz
+backup.log

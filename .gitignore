@@ -25,3 +25,9 @@ config/settings_coverage.py
 
 staticfiles/
 media/
+
+# Backups
+backups/
+*.sql
+*.sql.gz
+backup.log

@@ -1,0 +1,45 @@
+{% extends 'administration/base.html' %}
+
+{% block title %}Usuaris — MeteoGarden Admin{% endblock %}
+{% block page_title %}Usuaris{% endblock %}
+{% block page_sub %}Llista de tots els usuaris registrats{% endblock %}
+
+{% block content %}
+<div class="card">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Usuari</th>
+        <th>Email</th>
+        <th>Ciutat</th>
+        <th>Idioma</th>
+        <th>Plantes</th>
+        <th>Darrer accés</th>
+        <th>Actiu</th>
+        <th>Staff</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+      <tr>
+        <td>
+          <div class="user-cell">
+            <div class="avatar-sm">{{ u.username|slice:":2"|upper }}</div>
+            <strong>{{ u.username }}</strong>
+          </div>
+        </td>
+        <td class="muted">{{ u.email }}</td>
+        <td>{{ u.city }}</td>
+        <td>{{ u.language }}</td>
+        <td>{{ u.numPlantsCollected }}</td>
+        <td class="muted small">{{ u.lastEntry|date:"d/m/Y H:i" }}</td>
+        <td>{% if u.is_active %}<span class="badge badge-green">Sí</span>{% else %}<span class="badge badge-red">No</span>{% endif %}</td>
+        <td>{% if u.is_staff %}<span class="badge badge-blue">Sí</span>{% else %}<span class="badge badge-gray">No</span>{% endif %}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8" class="empty">No hi ha usuaris.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

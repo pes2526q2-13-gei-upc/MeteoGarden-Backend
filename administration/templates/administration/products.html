@@ -1,0 +1,56 @@
+{% extends 'administration/base.html' %}
+
+{% block title %}Productes — MeteoGarden Admin{% endblock %}
+{% block page_title %}Productes{% endblock %}
+{% block page_sub %}Gestiona els productes disponibles a la botiga{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'adm_product_create' %}" class="btn-primary">+ Nou producte</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Imatge</th>
+        <th>Nom</th>
+        <th>Efecte</th>
+        <th>Raresa</th>
+        <th>Preu</th>
+        <th>Instant</th>
+        <th>Durada (h)</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in products %}
+      <tr>
+        <td>
+          {% if p.image_url %}
+            <img src="{{ p.image_url.url }}" alt="{{ p.name }}" class="product-img" />
+          {% else %}
+            <span class="muted">—</span>
+          {% endif %}
+        </td>
+        <td><strong>{{ p.name }}</strong><br/><span class="muted small">{{ p.description|truncatechars:40 }}</span></td>
+        <td><span class="badge badge-effect-{{ p.effectType }}">{{ p.effectType }}</span></td>
+        <td><span class="badge badge-rarity-{{ p.rarity }}">{{ p.rarity }}</span></td>
+        <td>🪙 {{ p.price }}</td>
+        <td>{% if p.isInstant %}<span class="badge badge-green">Sí</span>{% else %}<span class="badge badge-gray">No</span>{% endif %}</td>
+        <td>{{ p.durationHours|default:"—" }}</td>
+        <td class="actions-cell">
+          <a href="{% url 'adm_product_edit' p.name %}" class="btn-icon" title="Editar">✏️</a>
+          <form method="post" action="{% url 'adm_product_delete' p.name %}" style="display:inline;" onsubmit="return confirm('Eliminar el producte «{{ p.name }}»?')">
+            {% csrf_token %}
+            <button type="submit" class="btn-icon btn-danger" title="Eliminar">🗑</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8" class="empty">No hi ha productes. <a href="{% url 'adm_product_create' %}">Crea'n un</a>.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

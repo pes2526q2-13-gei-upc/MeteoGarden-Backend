@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     # METEOGARDEN APPS
     "api",
     "third_party_service",
+    "administration",
 ]
 
 MIDDLEWARE = [

@@ -11,4 +11,4 @@ echo Django Collectstatic
 python manage.py collectstatic --noinput --clear
 
 echo Run app
-gunicorn config.wsgi:application --bind 0.0.0.0:8000 --access-logfile - --error-logfile -
+gunicorn config.wsgi:application --bind 0.0.0.0:8000 --timeout 120 --workers 2 --access-logfile - --error-logfile -

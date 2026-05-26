@@ -5,9 +5,10 @@ from django.urls import reverse
 from django.utils import timezone
 from rest_framework.test import APIClient, APITestCase
 
-from api.models import (
+from api.models import (  # add to imports
     Garden,
     Inventory,
+    Mission,
     MissionAction,
     MissionState,
     Plant,
@@ -15,12 +16,23 @@ from api.models import (
     Pot,
     Station,
     User,
+    UserMission,
 )
 
 
 class TestGardenViewsAPI(APITestCase):
 
     def setUp(self):
+        self.translate_patcher_serializer = patch(
+            "api.serializer.translate_text",
+            side_effect=lambda text, lang: text,
+        )
+        self.translate_patcher_view = patch(
+            "api.views.views_visualitzarJardi.translate_text",
+            side_effect=lambda text, lang: text,
+        )
+        self.translate_patcher_serializer.start()
+        self.translate_patcher_view.start()
 
         self.client = APIClient()
 
@@ -43,6 +55,10 @@ class TestGardenViewsAPI(APITestCase):
             minTemperature=5,
             maxTemperature=30,
         )
+
+    def tearDown(self):
+        self.translate_patcher_serializer.stop()
+        self.translate_patcher_view.stop()
 
     ################################
     # gardens
@@ -255,3 +271,110 @@ class TestGardenViewsAPI(APITestCase):
 
         self.assertEqual(planting.waterLevel, 100.0)
         self.assertEqual(planting.healthLevel, 55.0)
+
+
+class TestUpdateWaterMissions(APITestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="bob",
+            password="123",
+            email="b@b.com",
+            city="bcn",
+            stationCode="0002",
+        )
+        self.plant = Plant.objects.create(
+            scientificName="Rose",
+            commonName="Rose",
+            minTemperature=5,
+            maxTemperature=30,
+        )
+        self.other_plant = Plant.objects.create(
+            scientificName="Cactus",
+            commonName="Cactus",
+            minTemperature=10,
+            maxTemperature=40,
+        )
+
+    def _make_mission(self, goal, current=0, plant=None):
+        """Helper: creates a WATER mission and links it to self.user."""
+        mission = Mission.objects.create(
+            action=MissionAction.WATER,
+            goal=goal,
+            plant=plant,
+        )
+        return UserMission.objects.create(
+            user=self.user,
+            mission=mission,
+            missionState=MissionState.IN_PROGRESS,
+            current=current,
+            acquiredAt=timezone.now(),
+        )
+
+    def test_no_missions_does_nothing(self):
+        """No UserMission rows → function runs without error and changes nothing."""
+        from api.views.views_visualitzarJardi import update_water_missions
+
+        update_water_missions(self.user, self.plant)  # should not raise
+
+        self.assertEqual(UserMission.objects.count(), 0)
+
+    def test_mission_with_no_plant_restriction_increments(self):
+        """mission.plant is None → counts any watered plant."""
+        from api.views.views_visualitzarJardi import update_water_missions
+
+        um = self._make_mission(goal=5, current=0, plant=None)
+
+        update_water_missions(self.user, self.plant)
+
+        um.refresh_from_db()
+        self.assertEqual(um.current, 1)
+        self.assertEqual(um.missionState, MissionState.IN_PROGRESS)
+
+    def test_mission_matching_plant_increments(self):
+        """mission.plant == watered plant → counter increments."""
+        from api.views.views_visualitzarJardi import update_water_missions
+
+        um = self._make_mission(goal=5, current=2, plant=self.plant)
+
+        update_water_missions(self.user, self.plant)
+
+        um.refresh_from_db()
+        self.assertEqual(um.current, 3)
+        self.assertEqual(um.missionState, MissionState.IN_PROGRESS)
+
+    def test_mission_different_plant_not_incremented(self):
+        """mission.plant != watered plant → mission is skipped entirely."""
+        from api.views.views_visualitzarJardi import update_water_missions
+
+        um = self._make_mission(goal=5, current=1, plant=self.other_plant)
+
+        update_water_missions(self.user, self.plant)
+
+        um.refresh_from_db()
+        self.assertEqual(um.current, 1)  # unchanged
+        self.assertEqual(um.missionState, MissionState.IN_PROGRESS)
+
+    def test_mission_completes_when_goal_reached(self):
+        """Increment that hits the goal → missionState becomes COMPLETED."""
+        from api.views.views_visualitzarJardi import update_water_missions
+
+        um = self._make_mission(goal=3, current=2, plant=None)
+
+        update_water_missions(self.user, self.plant)
+
+        um.refresh_from_db()
+        self.assertEqual(um.current, 3)
+        self.assertEqual(um.missionState, MissionState.COMPLETED)
+
+    def test_mission_completes_when_current_exceeds_goal(self):
+        """current > goal after increment still completes (goal <= current)."""
+        from api.views.views_visualitzarJardi import update_water_missions
+
+        # current already equals goal-1, one more push goes over
+        um = self._make_mission(goal=2, current=2, plant=None)
+
+        update_water_missions(self.user, self.plant)
+
+        um.refresh_from_db()
+        self.assertEqual(um.missionState, MissionState.COMPLETED)

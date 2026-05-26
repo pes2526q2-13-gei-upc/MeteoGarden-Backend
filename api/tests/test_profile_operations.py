@@ -668,3 +668,55 @@ class GoogleAuthTests(APITestCase):
 
         self.assertEqual(info["email"], "test@test.com")
         mock_verify.assert_called_once()
+class TestRegisterUniqueness(APITestCase):
+
+    def setUp(self):
+        self.register_url = reverse("register")
+        self.user_data = {
+            "username": "existinguser",
+            "password": "password123",
+            "email": "existing@test.com",
+            "city": "Barcelona",
+            "language": "en",
+            "stationCode": "BCN",
+            "gardenName": "Mi Jardín",
+        }
+        # Mockeamos translate_text para evitar llamadas a Google
+        self.translate_patcher = patch(
+            "api.views.views_profile_operations.translate_text",
+            side_effect=lambda text, lang: text,
+        )
+        self.translate_patcher.start()
+
+    def tearDown(self):
+        self.translate_patcher.stop()
+
+    def test_register_duplicate_username_returns_400(self):
+        """No se puede registrar un usuario con un username ya existente"""
+        User.objects.create_user(
+            username="existinguser",
+            password="other_pass",
+            email="other@test.com",
+        )
+
+        response = self.client.post(self.register_url, self.user_data, format="json")
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Username already taken", response.data["error"])
+        # Verificamos que no se creó un segundo usuario
+        self.assertEqual(User.objects.filter(username="existinguser").count(), 1)
+
+    def test_register_duplicate_email_returns_400(self):
+        """No se puede registrar un usuario con un email ya existente"""
+        User.objects.create_user(
+            username="otheruser",
+            password="other_pass",
+            email="existing@test.com",
+        )
+
+        response = self.client.post(self.register_url, self.user_data, format="json")
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Email already registered", response.data["error"])
+        # Verificamos que no se creó el nuevo usuario
+        self.assertFalse(User.objects.filter(username="existinguser").exists())

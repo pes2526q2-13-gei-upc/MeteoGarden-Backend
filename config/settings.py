@@ -155,7 +155,7 @@ STORAGES = {
 MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:62294",
+    "http://localhost:60955",
     "http://127.0.0.1:62057",
 ]
 

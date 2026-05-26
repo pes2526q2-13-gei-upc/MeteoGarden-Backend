@@ -70,6 +70,22 @@ def register(request):
     if not garden_name:
         return Response({"error": "Garden name is mandatory"}, status=400)
 
+    username = request.data.get("username")
+    email = request.data.get("email")
+    language = request.data.get("language", "en")
+
+    if User.objects.filter(username=username).exists():
+        return Response(
+            {"error": translate_text("Username already taken", language)},
+            status=400,
+        )
+
+    if User.objects.filter(email=email).exists():
+        return Response(
+            {"error": translate_text("Email already registered", language)},
+            status=400,
+        )
+
     user = User.objects.create_user(
         username=request.data["username"],
         password=request.data["password"],

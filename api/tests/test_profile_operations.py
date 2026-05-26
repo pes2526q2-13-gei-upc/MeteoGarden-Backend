@@ -668,6 +668,8 @@ class GoogleAuthTests(APITestCase):
 
         self.assertEqual(info["email"], "test@test.com")
         mock_verify.assert_called_once()
+
+
 class TestRegisterUniqueness(APITestCase):
 
     def setUp(self):

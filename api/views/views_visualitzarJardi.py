@@ -10,9 +10,12 @@ from api.models import (
     Garden,
     GrowthState,
     Inventory,
+    MissionAction,
+    MissionState,
     Pot,
     Station,
-    User, UserMission, MissionState, MissionAction,
+    User,
+    UserMission,
 )
 from api.plant_simulation import simulate_plant
 from api.serializer import (
@@ -46,6 +49,7 @@ def _simulate_garden(garden: Garden) -> None:
         updated = simulate_plant(pig, station)
         updated.save()
 
+
 def update_water_missions(user, plant):
     # Obtenim les missions
     missions = UserMission.objects.filter(
@@ -63,6 +67,7 @@ def update_water_missions(user, plant):
                 user_mission.missionState = MissionState.COMPLETED
 
             user_mission.save()
+
 
 def garden_plants(request, username, garden_name):
     garden = get_object_or_404(

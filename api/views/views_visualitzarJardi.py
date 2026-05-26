@@ -12,7 +12,7 @@ from api.models import (
     Inventory,
     Pot,
     Station,
-    User,
+    User, UserMission, MissionState, MissionAction,
 )
 from api.plant_simulation import simulate_plant
 from api.serializer import (
@@ -46,6 +46,23 @@ def _simulate_garden(garden: Garden) -> None:
         updated = simulate_plant(pig, station)
         updated.save()
 
+def update_water_missions(user, plant):
+    # Obtenim les missions
+    missions = UserMission.objects.filter(
+        user=user,
+        missionState=MissionState.IN_PROGRESS,
+        mission__action=MissionAction.WATER,
+    )
+    for user_mission in missions:
+        mission = user_mission.mission
+
+        if mission.plant is None or mission.plant == plant:
+            user_mission.current += 1
+
+            if mission.goal <= user_mission.current:
+                user_mission.missionState = MissionState.COMPLETED
+
+            user_mission.save()
 
 def garden_plants(request, username, garden_name):
     garden = get_object_or_404(
@@ -150,6 +167,9 @@ def water_plant(request, username, garden_name, pot_number):
     planting.healthLevel = min(100.0, planting.healthLevel + 5.0)
     planting.lastWateredAt = now
     planting.save()
+
+    update_water_missions(user, planting.plant)
+
     data = {
         "message": translate_text("Plant watered successfully.", lang),
         "pot_number": pot.number,

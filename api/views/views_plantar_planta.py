@@ -39,7 +39,6 @@ def update_plant_missions(user, plant):
 
             user_mission.save()
 
-
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def plant_seed(request, username, garden_name, pot_number):

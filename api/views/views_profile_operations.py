@@ -2,6 +2,7 @@ import os
 
 import requests
 from django.contrib.auth import authenticate
+from django.db.models import Q
 from django.utils import timezone
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
@@ -10,7 +11,16 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from ..models import Garden, Inventory, Mission, MissionState, Pot, User, UserMission
+from ..models import (
+    FriendRequest,
+    Garden,
+    Inventory,
+    Mission,
+    MissionState,
+    Pot,
+    User,
+    UserMission,
+)
 from .views_translate import translate_text
 
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
@@ -316,13 +326,26 @@ def google_register(request):
 
 # Register view
 @api_view(["DELETE"])
-@permission_classes(
-    [IsAuthenticated]
-)  # Aqui s'envia el token i llavors django associa el token a l'usuari
+@permission_classes([IsAuthenticated])
 def delete_profile(request):
-    lang = request.user.language
-    request.user.delete()  # eliminem l'usuari i, per casacada, s'eliminen les clases associades
-    return Response({"message": translate_text("User deleted successfully", lang)})
+    user = request.user
+    lang = user.language
+
+    try:
+        FriendRequest.objects.filter(Q(requester=user) | Q(requested=user)).delete()
+
+        user.delete()
+
+        return Response(
+            {"message": translate_text("User deleted successfully", lang)},
+            status=200,
+        )
+
+    except Exception as e:
+        return Response(
+            {"error": translate_text(str(e), lang)},
+            status=400,
+        )
 
 
 # Validate token
